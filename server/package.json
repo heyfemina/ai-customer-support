@@ -1,0 +1,34 @@
+{
+  "name": "ai-customer-support-server",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "nodemon --config nodemon.json src/server.js",
+    "start": "node src/server.js",
+    "prisma:migrate": "prisma migrate dev --name init",
+    "prisma:seed": "node prisma/seed.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.19.3",
+    "bcryptjs": "latest",
+    "cors": "latest",
+    "dotenv": "latest",
+    "express": "latest",
+    "express-rate-limit": "latest",
+    "helmet": "latest",
+    "jsonwebtoken": "latest",
+    "morgan": "latest",
+    "multer": "latest",
+    "nodemailer": "latest",
+    "prisma": "^6.19.3",
+    "socket.io": "latest",
+    "zod": "latest"
+  },
+  "devDependencies": {
+    "nodemon": "latest"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  }
+}

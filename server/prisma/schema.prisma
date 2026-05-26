@@ -1,0 +1,157 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  AGENT
+  CUSTOMER
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_CUSTOMER
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+}
+
+enum ChatStatus {
+  ACTIVE
+  WAITING
+  TRANSFERRED
+  CLOSED
+}
+
+model User {
+  id            String         @id @default(cuid())
+  name          String
+  email         String         @unique
+  password      String
+  role          Role           @default(CUSTOMER)
+  language      String         @default("en")
+  isActive      Boolean        @default(true)
+  twoFactorOn   Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  tickets       Ticket[]       @relation("CustomerTickets")
+  assigned      Ticket[]       @relation("AgentTickets")
+  messages      Message[]
+  customerChats ChatSession[]  @relation("CustomerChats")
+  agentChats    ChatSession[]  @relation("AgentChats")
+  logs          ActivityLog[]
+  notifications Notification[]
+}
+
+model Ticket {
+  id          String         @id @default(cuid())
+  subject     String
+  description String
+  status      TicketStatus   @default(OPEN)
+  priority    TicketPriority @default(MEDIUM)
+  category    String
+  customerId  String
+  agentId     String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  customer    User           @relation("CustomerTickets", fields: [customerId], references: [id])
+  agent       User?          @relation("AgentTickets", fields: [agentId], references: [id])
+  messages    Message[]
+  attachments Attachment[]
+}
+
+model Message {
+  id            String       @id @default(cuid())
+  content       String
+  senderId      String
+  ticketId      String?
+  chatSessionId String?
+  isAI          Boolean      @default(false)
+  fileUrl       String?
+  messageType   MessageType  @default(TEXT)
+  createdAt     DateTime     @default(now())
+  sender        User         @relation(fields: [senderId], references: [id])
+  ticket        Ticket?      @relation(fields: [ticketId], references: [id])
+  chatSession   ChatSession? @relation(fields: [chatSessionId], references: [id])
+}
+
+model ChatSession {
+  id         String     @id @default(cuid())
+  customerId String
+  agentId    String?
+  status     ChatStatus @default(WAITING)
+  rating     Int?
+  feedback   String?
+  language   String     @default("en")
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  customer   User       @relation("CustomerChats", fields: [customerId], references: [id])
+  agent      User?      @relation("AgentChats", fields: [agentId], references: [id])
+  messages   Message[]
+}
+
+model Attachment {
+  id        String   @id @default(cuid())
+  fileName  String
+  fileUrl   String
+  fileType  String
+  ticketId  String?
+  createdAt DateTime @default(now())
+  ticket    Ticket?  @relation(fields: [ticketId], references: [id])
+}
+
+model AIConfig {
+  id              String   @id @default(cuid())
+  botName         String   @default("Support AI")
+  welcomeMessage  String
+  fallbackMessage String
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  ipAddress String?
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model IntegrationSetting {
+  id        String   @id @default(cuid())
+  type      String   @unique
+  config    Json
+  isActive  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
