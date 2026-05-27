@@ -10,6 +10,7 @@ import { tickets } from "../../utils/dummyData.js";
 import { normalizeItems } from "../../utils/helpers.js";
 import Badge from "../../components/common/Badge.jsx";
 import { useTranslation } from "react-i18next";
+import { demoStore } from "../../utils/demoStore.js";
 
 export default function AdminTicketDetails() {
   const { id } = useParams();
@@ -21,24 +22,39 @@ export default function AdminTicketDetails() {
   const [notice, setNotice] = useState("");
 
   useEffect(() => {
-    api.get(`/tickets/${id}`).then(({ data }) => setTicket(data.data || data)).catch(() => null);
-    api.get("/reports/agents").then(({ data }) => setAgents(normalizeItems(data, []))).catch(() => setAgents([]));
+    api.get(`/tickets/${id}`).then(({ data }) => setTicket(data.data || data)).catch(() => {
+      setTicket(demoStore.tickets().find((item) => item.id === id) || tickets.find((item) => item.id === id) || tickets[0]);
+    });
+    api.get("/reports/agents").then(({ data }) => setAgents(normalizeItems(data, []))).catch(() => setAgents(demoStore.users().filter((user) => user.role === "AGENT")));
   }, [id]);
 
   const updateTicket = async (data) => {
-    const response = await api.put(`/tickets/${id}`, data);
-    const updated = response.data.data || response.data;
-    setTicket(updated);
-    if (data.agentId !== undefined) setNotice(`Assigned to ${updated.agent?.name || "Unassigned"}`);
-    if (data.status) setNotice(`Status changed to ${data.status}`);
+    try {
+      const response = await api.put(`/tickets/${id}`, data);
+      const updated = response.data.data || response.data;
+      setTicket(updated);
+      if (data.agentId !== undefined) setNotice(`Assigned to ${updated.agent?.name || "Unassigned"}`);
+      if (data.status) setNotice(`Status changed to ${data.status}`);
+    } catch {
+      const agent = agents.find((item) => item.id === data.agentId);
+      const updated = demoStore.updateTicket(id, { ...data, agentName: agent?.name || "Unassigned" });
+      setTicket(updated);
+      if (data.agentId !== undefined) setNotice(`Assigned to ${agent?.name || "Unassigned"}`);
+      if (data.status) setNotice(`Status changed to ${data.status}`);
+    }
   };
 
   const sendReply = async () => {
     if (!reply.trim() && !file) return;
     const filePayload = file ? await uploadFile(file) : {};
-    const { data } = await api.post(`/tickets/${id}/reply`, { content: reply, ...filePayload });
-    const message = data.data || data;
-    setTicket((current) => ({ ...current, messages: [...(current.messages || []), message] }));
+    try {
+      const { data } = await api.post(`/tickets/${id}/reply`, { content: reply, ...filePayload });
+      const message = data.data || data;
+      setTicket((current) => ({ ...current, messages: [...(current.messages || []), message] }));
+    } catch {
+      const { ticket: updatedTicket } = demoStore.addTicketReply(id, { content: reply || filePayload.fileName, senderId: "admin", ...filePayload });
+      setTicket(updatedTicket);
+    }
     setReply("");
     setFile(null);
   };

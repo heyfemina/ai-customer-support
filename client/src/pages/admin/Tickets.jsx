@@ -6,6 +6,7 @@ import api from "../../api/axios.js";
 import { normalizeItems } from "../../utils/helpers.js";
 import { tickets as fallbackTickets } from "../../utils/dummyData.js";
 import { useTranslation } from "react-i18next";
+import { demoStore } from "../../utils/demoStore.js";
 
 export default function Tickets() {
   const { t } = useTranslation();
@@ -16,12 +17,20 @@ export default function Tickets() {
 
   useEffect(() => {
     const params = new URLSearchParams(Object.entries(filters).filter(([, value]) => value));
-    api.get(`/tickets?${params.toString()}`).then(({ data }) => setItems(normalizeItems(data, fallbackTickets))).catch(() => setItems(fallbackTickets));
+    api.get(`/tickets?${params.toString()}`).then(({ data }) => setItems(normalizeItems(data, fallbackTickets))).catch(() => {
+      const search = filters.search.toLowerCase();
+      setItems(demoStore.tickets().filter((ticket) => {
+        const matchesSearch = !search || `${ticket.subject} ${ticket.description}`.toLowerCase().includes(search);
+        const matchesStatus = !filters.status || ticket.status === filters.status;
+        const matchesPriority = !filters.priority || ticket.priority === filters.priority;
+        return matchesSearch && matchesStatus && matchesPriority;
+      }));
+    });
   }, [filters]);
 
   useEffect(() => {
-    api.get("/reports/agents").then(({ data }) => setAgents(normalizeItems(data, []))).catch(() => setAgents([]));
-    api.get("/reports/customers").then(({ data }) => setCustomers(normalizeItems(data, []))).catch(() => setCustomers([]));
+    api.get("/reports/agents").then(({ data }) => setAgents(normalizeItems(data, []))).catch(() => setAgents(demoStore.users().filter((user) => user.role === "AGENT")));
+    api.get("/reports/customers").then(({ data }) => setCustomers(normalizeItems(data, []))).catch(() => setCustomers(demoStore.users().filter((user) => user.role === "CUSTOMER")));
   }, []);
 
   return (

@@ -10,6 +10,7 @@ import { useSocket } from "../../context/SocketContext.jsx";
 import { chats, messages } from "../../utils/dummyData.js";
 import { normalizeItems } from "../../utils/helpers.js";
 import { useTranslation } from "react-i18next";
+import { demoStore } from "../../utils/demoStore.js";
 
 export default function CustomerLiveChat() {
   const { user } = useAuth();
@@ -21,24 +22,38 @@ export default function CustomerLiveChat() {
   const [typingUsers, setTypingUsers] = useState([]);
   const [rating, setRating] = useState(5);
   const [feedback, setFeedback] = useState("");
+  const [notice, setNotice] = useState("");
   const activeMessages = useMemo(() => active?.messages?.length ? active.messages : messages, [active]);
 
   const loadChats = () => api.get("/chats").then(({ data }) => {
-    const rows = normalizeItems(data, chats.slice(0, 1));
+    const rows = normalizeItems(data, demoStore.chats().slice(0, 1));
     setSessions(rows);
     setActive(rows[0] || null);
     setMessagesByChat(Object.fromEntries(rows.map((row) => [row.id, row.messages || []])));
-  }).catch(() => null);
+  }).catch(() => {
+    const rows = demoStore.chats().slice(0, 1);
+    setSessions(rows);
+    setActive(rows[0] || null);
+    setMessagesByChat(Object.fromEntries(rows.map((row) => [row.id, row.messages || []])));
+  });
 
   useEffect(() => {
     loadChats();
   }, []);
 
   const startChat = async () => {
-    const { data } = await api.post("/chats/start", { language: "en" });
-    const session = data.data || data;
+    let session;
+    try {
+      const { data } = await api.post("/chats/start", { language: "en" });
+      session = data.data || data;
+    } catch {
+      session = { id: `chat-${Date.now()}`, customerName: user?.name || "Customer", status: "WAITING", language: "en", lastMessage: "New chat started", updatedAt: new Date().toISOString(), messages: [{ id: `welcome-${Date.now()}`, senderId: "ai", content: "Thanks for contacting support. An agent can join this chat if needed.", createdAt: new Date().toISOString() }] };
+      demoStore.saveChats([session, ...demoStore.chats()]);
+    }
     setSessions((current) => [session, ...current]);
     setActive(session);
+    setMessagesByChat((current) => ({ ...current, [session.id]: session.messages || [] }));
+    setNotice("Live chat started.");
   };
 
   useEffect(() => {
@@ -68,31 +83,62 @@ export default function CustomerLiveChat() {
     if (connected) {
       socket.emit("send_message", payload);
     } else {
-      const { data } = await api.post(`/chats/${active.id}/message`, payload);
-      const message = data.data || data;
+      let message;
+      try {
+        const { data } = await api.post(`/chats/${active.id}/message`, payload);
+        message = data.data || data;
+      } catch {
+        const result = demoStore.addChatMessage(active.id, { ...payload, mine: true });
+        message = result.message;
+        setActive(result.chat);
+        setSessions((current) => current.map((item) => item.id === result.chat.id ? result.chat : item));
+      }
       setMessagesByChat((current) => ({ ...current, [active.id]: [...(current[active.id] || []), message] }));
     }
   };
 
+  const requestAgent = async () => {
+    if (!active?.id) return;
+    const { message } = demoStore.addChatEvent(active.id, "AI transferred this conversation to the agent queue.");
+    const updated = demoStore.updateChat(active.id, { status: "TRANSFERRED", queuePosition: 1, lastMessage: message.content });
+    setActive(updated);
+    setSessions((current) => current.map((item) => item.id === updated.id ? updated : item));
+    setMessagesByChat((current) => ({ ...current, [active.id]: [...(current[active.id] || []), message] }));
+    setNotice("An agent transfer was requested.");
+  };
+
   const closeChat = async () => {
     if (!active?.id) return;
-    const { data } = await api.put(`/chats/${active.id}/close`);
-    const chat = data.data || data;
+    let chat;
+    try {
+      const { data } = await api.put(`/chats/${active.id}/close`);
+      chat = data.data || data;
+    } catch {
+      chat = demoStore.updateChat(active.id, { status: "CLOSED" });
+    }
     setActive(chat);
     setSessions((current) => current.map((item) => item.id === chat.id ? chat : item));
+    setNotice("Chat closed.");
   };
 
   const submitRating = async () => {
     if (!active?.id) return;
-    const { data } = await api.post(`/chats/${active.id}/rating`, { rating: Number(rating), feedback });
-    const chat = data.data || data;
+    let chat;
+    try {
+      const { data } = await api.post(`/chats/${active.id}/rating`, { rating: Number(rating), feedback });
+      chat = data.data || data;
+    } catch {
+      chat = demoStore.updateChat(active.id, { rating: Number(rating), feedback });
+    }
     setActive(chat);
     setSessions((current) => current.map((item) => item.id === chat.id ? chat : item));
+    setNotice("Thanks, your feedback was saved.");
   };
 
   return (
     <>
       <PageHeader title={t("nav.liveChat")} description="Start a secure AI-assisted support chat, share files, and rate the experience." actions={<Button onClick={startChat}>{t("buttons.startChat")}</Button>} />
+      {notice ? <p className="mb-4 rounded-md bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">{notice}</p> : null}
       <div className="grid gap-6 xl:grid-cols-[1fr_340px]">
         <div className="flex flex-col overflow-hidden rounded-lg border border-slate-200 md:flex-row">
           <ChatSidebar sessions={sessions} activeId={active?.id} onSelect={setActive} />
@@ -104,6 +150,7 @@ export default function CustomerLiveChat() {
             onTyping={() => socket?.emit("typing", { chatSessionId: active?.id, user })}
             onStopTyping={() => socket?.emit("stop_typing", { chatSessionId: active?.id, user })}
             onSend={sendMessage}
+            onAiTransfer={requestAgent}
             onClose={closeChat}
           />
         </div>

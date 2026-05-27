@@ -2,7 +2,63 @@
   "appName": "AI Customer Support",
   "appShortName": "AI Support",
   "workspace": "Workspace",
-  "dashboard": "Dashboard",
+  "dashboard": {
+    "admin": {
+      "title": "Admin dashboard",
+      "description": "Operational overview across support tickets, chats, AI automation, and satisfaction."
+    },
+    "customer": {
+      "title": "Customer dashboard",
+      "description": "Track requests, continue live chats, review history, and rate support.",
+      "openLiveChat": "Open live chat",
+      "recentSupportRequests": "Recent support requests",
+      "viewAllTickets": "View all tickets"
+    },
+    "agent": {
+      "title": "Agent dashboard",
+      "description": "Assigned workload, live chats, response time, and customer feedback."
+    },
+    "stats": {
+      "totalTickets": "Total tickets",
+      "openTickets": "Open tickets",
+      "resolvedTickets": "Resolved tickets",
+      "activeChats": "Active chats",
+      "avgResponseTime": "Avg response time",
+      "agentRating": "Agent rating",
+      "customerSatisfaction": "Customer satisfaction",
+      "aiResolvedTickets": "AI resolved tickets",
+      "myTickets": "My tickets",
+      "avgResponse": "Avg response",
+      "assignedTickets": "Assigned tickets",
+      "pendingTickets": "Pending tickets",
+      "resolvedToday": "Resolved today",
+      "liveChats": "Live chats",
+      "rating": "Rating"
+    },
+    "monitoring": {
+      "applicationServer": "Application server",
+      "healthy": "Healthy",
+      "demoMode": "Demo mode active",
+      "database": "Database",
+      "localStore": "Local store",
+      "recordsLoaded": "{{count}} recent records loaded",
+      "agentCoverage": "Agent coverage",
+      "online": "{{count}} online",
+      "activeChatSessions": "{{count}} active chat sessions",
+      "securityPosture": "Security posture",
+      "protected": "Protected",
+      "rbacEnabled": "RBAC and audit controls enabled"
+    },
+    "sections": {
+      "systemMonitoring": "System monitoring",
+      "monthlyTicketPerformance": "Monthly ticket performance",
+      "customerSatisfaction": "Customer satisfaction",
+      "multiLanguageSupport": "Multi-language support",
+      "multiLanguageDescription": "Dynamic language switching, AI translation, and regional profiles.",
+      "aiTranslation": "AI translation",
+      "recentTickets": "Recent tickets"
+    }
+  },
   "tickets": "Tickets",
   "chats": "Chats",
   "analytics": "Analytics",
@@ -73,5 +129,198 @@
     "myTickets": "My Tickets",
     "liveChat": "Live Chat",
     "profile": "Profile"
+  },
+  "common": {
+    "on": "on",
+    "off": "off"
+  },
+  "reports": {
+    "title": "Analytics and reports",
+    "description": "Customer analytics, response-time monitoring, complaint tracking, and live chat statistics.",
+    "summary": {
+      "openComplaints": "Open complaints",
+      "avgResponse": "Avg response",
+      "resolvedThisMonth": "Resolved this month",
+      "newTicketsThisMonth": "New tickets this month",
+      "activeChats": "Active chats",
+      "ratedChats": "Rated chats",
+      "aiTransfers": "AI transfers"
+    },
+    "charts": {
+      "ticketStatus": "Ticket status chart",
+      "responseTime": "Response time trend",
+      "complaintsByStatus": "Complaint tracking by status",
+      "priorityMix": "Priority mix",
+      "customerAnalytics": "Customer analytics by category",
+      "agentPerformance": "Agent performance reports",
+      "liveChatComplaintDashboard": "Live chat and complaint dashboard"
+    },
+    "agentPerformance": {
+      "description": "Resolution volume, customer satisfaction, average response, and complaint trends.",
+      "resolvedTickets": "Resolved tickets",
+      "avgRating": "Avg rating",
+      "complaints": "Complaints",
+      "monthlyResolution": "Monthly resolution volume",
+      "responseAndRating": "Agent response and rating",
+      "performanceComplaintTracking": "Agent performance and complaint tracking"
+    }
+  },
+  "pages": {
+    "activityLogs": {
+      "title": "Activity logs",
+      "description": "Audit user actions, security events, and operational changes."
+    },
+    "agents": {
+      "title": "Agent management",
+      "description": "Monitor assignments, availability, workload, and ratings."
+    },
+    "aiSettings": {
+      "title": "AI configuration settings",
+      "description": "Tune bot identity, fallback behavior, translation, summarization, and human transfer rules."
+    },
+    "assignedTickets": {
+      "title": "Assigned tickets",
+      "description": "Handle support tickets, reply to customers, and manage ticket status."
+    },
+    "chatMonitoring": {
+      "title": "Chat monitoring",
+      "description": "Monitor live conversations, AI-to-agent handoffs, queues, notifications, and visitor sessions."
+    },
+    "createTicket": {
+      "title": "Create ticket",
+      "description": "Submit a support request with priority, category, and optional files or images."
+    },
+    "customerLiveChat": {
+      "title": null,
+      "description": "Start a secure AI-assisted support chat, share files, and rate the experience."
+    },
+    "customers": {
+      "title": "Customer management",
+      "description": "View customer profiles, support history, and account health."
+    },
+    "integrations": {
+      "title": "Integration settings",
+      "description": "Configure WhatsApp, website chatbot, and email support channels."
+    },
+    "liveChatQueue": {
+      "title": "Live chat queue",
+      "description": "Accept live chats, transfer conversations, view history, and send secure messages."
+    },
+    "myTickets": {
+      "title": "My tickets",
+      "description": "Track support requests, status, replies, and attachments."
+    },
+    "profile": {
+      "title": "Profile",
+      "description": "Manage customer details, language, security preferences, and data privacy requests."
+    },
+    "security": {
+      "title": "Security settings",
+      "description": "Authentication, compliance, API security, audit controls, and resilience placeholders."
+    },
+    "ticketManagement": {
+      "title": "Ticket management",
+      "description": "Review, assign, prioritize, reply, and resolve support tickets."
+    },
+    "users": {
+      "title": "User management",
+      "description": "Create, edit, deactivate, and audit platform users."
+    },
+    "ticketDetails": {
+      "adminDescription": "Assign agents, change status, review timeline, and reply to the customer.",
+      "agentDescription": "Ticket details, customer profile, reply timeline, attachments, and status controls.",
+      "customerDescription": "Ticket tracking, details, chat history, feedback, and support replies."
+    }
+  },
+  "integrations": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "actions": {
+      "save": "Save settings",
+      "test": "Test connection",
+      "check": "Check setup",
+      "pause": "Pause demo channel",
+      "enable": "Enable demo channel"
+    },
+    "items": {
+      "whatsapp": {
+        "title": "WhatsApp API",
+        "text": "Business number, webhook URL, access token, template sync"
+      },
+      "chatbot": {
+        "title": "Website chatbot",
+        "text": "Embed key, domains, AI handoff trigger, visitor tracking"
+      },
+      "email": {
+        "title": "Email system",
+        "text": "SMTP host, sender address, test mail, ticket ingestion"
+      }
+    },
+    "fields": {
+      "phoneNumberId": "Phone number ID",
+      "webhookUrl": "Webhook URL",
+      "accessToken": "Access token",
+      "templateNamespace": "Template namespace",
+      "embedKey": "Embed key",
+      "allowedDomains": "Allowed domains",
+      "handoffTrigger": "AI handoff trigger words",
+      "visitorTracking": "Visitor tracking",
+      "smtpHost": "SMTP host",
+      "smtpPort": "SMTP port",
+      "senderEmail": "Sender email",
+      "inboundAddress": "Inbound ticket address"
+    }
+  },
+  "security": {
+    "enabled": "Enabled",
+    "enable": "Enable",
+    "states": {
+      "Active": "Active",
+      "Ready": "Ready",
+      "Planned": "Planned"
+    },
+    "actions": {
+      "backup": "Run secure backup",
+      "gdprExport": "Prepare GDPR export",
+      "securityCheck": "Run security check"
+    },
+    "items": {
+      "auth": {
+        "title": "Secure user authentication",
+        "detail": "JWT sessions, password hashing, inactive-user blocking"
+      },
+      "roles": {
+        "title": "Role-based access control",
+        "detail": "Admin, agent, and customer route permissions"
+      },
+      "encryption": {
+        "title": "Data encryption",
+        "detail": "Encrypted transport and encrypted-message indicators"
+      },
+      "twoFactor": {
+        "title": "Two-factor authentication",
+        "detail": "User profile flag ready for OTP provider setup"
+      },
+      "backup": {
+        "title": "Secure cloud backup",
+        "detail": "Manual secure backup action available in demo mode"
+      },
+      "activity": {
+        "title": "Activity logs",
+        "detail": "Admin changes and auth events are auditable"
+      },
+      "gdpr": {
+        "title": "GDPR compliance",
+        "detail": "Data export and deletion workflow placeholders"
+      },
+      "firewall": {
+        "title": "Firewall protection",
+        "detail": "Helmet headers, CORS policy, and rate limiting"
+      },
+      "apiSecurity": {
+        "title": "API security",
+        "detail": "Protected API routes and request throttling"
+      }
+    }
   }
 }

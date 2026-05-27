@@ -3,17 +3,12 @@ import api from "../../api/axios.js";
 import PageHeader from "../../components/common/PageHeader.jsx";
 import Table from "../../components/common/Table.jsx";
 import { formatDate, normalizeItems } from "../../utils/helpers.js";
-
-const logs = [
-  { id: "a1", user: "Ariana Admin", action: "Updated AI fallback message", ipAddress: "192.168.1.20", createdAt: "2026-05-26T08:20:00.000Z" },
-  { id: "a2", user: "Marco Agent", action: "Transferred chat chat-2", ipAddress: "192.168.1.21", createdAt: "2026-05-26T08:10:00.000Z" },
-  { id: "a3", user: "Clara Customer", action: "Created ticket tck-1004", ipAddress: "192.168.1.22", createdAt: "2026-05-25T16:12:00.000Z" },
-];
+import { demoStore } from "../../utils/demoStore.js";
 
 export default function ActivityLogs() {
-  const [items, setItems] = useState(logs);
+  const [items, setItems] = useState(demoStore.activityLogs());
   useEffect(() => {
-    api.get("/activity-logs").then(({ data }) => setItems(normalizeItems(data, logs))).catch(() => setItems(logs));
+    api.get("/activity-logs").then(({ data }) => setItems(normalizeItems(data, demoStore.activityLogs()))).catch(() => setItems(demoStore.activityLogs()));
   }, []);
   const columns = [
     { key: "user", label: "User", render: (row) => row.user?.name || row.user || "System" },

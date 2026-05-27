@@ -10,6 +10,7 @@ import { normalizeItems } from "../../utils/helpers.js";
 import Card from "../../components/common/Card.jsx";
 import Button from "../../components/common/Button.jsx";
 import { useTranslation } from "react-i18next";
+import { demoStore } from "../../utils/demoStore.js";
 
 export default function Chats() {
   const { user } = useAuth();
@@ -22,15 +23,25 @@ export default function Chats() {
   const [agents, setAgents] = useState([]);
   const [transferAgentId, setTransferAgentId] = useState("");
   const activeMessages = useMemo(() => active?.messages?.length ? active.messages : messages, [active]);
+  const queueStats = {
+    waiting: sessions.filter((session) => session.status === "WAITING").length,
+    active: sessions.filter((session) => session.status === "ACTIVE").length,
+    closed: sessions.filter((session) => session.status === "CLOSED").length,
+  };
 
   useEffect(() => {
     api.get("/chats").then(({ data }) => {
-      const rows = normalizeItems(data, chats);
+      const rows = normalizeItems(data, demoStore.chats());
       setSessions(rows);
       setActive(rows[0] || null);
       setMessagesByChat(Object.fromEntries(rows.map((row) => [row.id, row.messages || []])));
-    }).catch(() => null);
-    api.get("/reports/agents").then(({ data }) => setAgents(normalizeItems(data, []))).catch(() => setAgents([]));
+    }).catch(() => {
+      const rows = demoStore.chats();
+      setSessions(rows);
+      setActive(rows[0] || null);
+      setMessagesByChat(Object.fromEntries(rows.map((row) => [row.id, row.messages || []])));
+    });
+    api.get("/reports/agents").then(({ data }) => setAgents(normalizeItems(data, []))).catch(() => setAgents(demoStore.users().filter((item) => item.role === "AGENT")));
   }, []);
 
   useEffect(() => {
@@ -60,24 +71,47 @@ export default function Chats() {
     if (connected) {
       socket.emit("send_message", payload);
     } else {
-      const { data } = await api.post(`/chats/${active.id}/message`, payload);
-      const message = data.data || data;
+      let message;
+      try {
+        const { data } = await api.post(`/chats/${active.id}/message`, payload);
+        message = data.data || data;
+      } catch {
+        const result = demoStore.addChatMessage(active.id, { ...payload, mine: true });
+        message = result.message;
+        setActive(result.chat);
+        setSessions((current) => current.map((item) => item.id === result.chat.id ? result.chat : item));
+      }
       setMessagesByChat((current) => ({ ...current, [active.id]: [...(current[active.id] || []), message] }));
     }
   };
 
   const transferChat = async () => {
     if (!active?.id || !transferAgentId) return;
-    const { data } = await api.post(`/chats/${active.id}/transfer`, { agentId: transferAgentId });
-    const chat = data.data || data;
+    let chat;
+    try {
+      const { data } = await api.post(`/chats/${active.id}/transfer`, { agentId: transferAgentId });
+      chat = data.data || data;
+    } catch {
+      const agent = agents.find((item) => item.id === transferAgentId);
+      chat = demoStore.updateChat(active.id, { status: "TRANSFERRED", agentId: transferAgentId, agentName: agent?.name });
+      const event = demoStore.addChatEvent(active.id, `Admin transferred chat to ${agent?.name || "another agent"}.`).message;
+      setMessagesByChat((current) => ({ ...current, [active.id]: [...(current[active.id] || []), event] }));
+    }
     setActive(chat);
     setSessions((current) => current.map((item) => item.id === chat.id ? chat : item));
   };
 
   const closeChat = async () => {
     if (!active?.id) return;
-    const { data } = await api.put(`/chats/${active.id}/close`);
-    const chat = data.data || data;
+    let chat;
+    try {
+      const { data } = await api.put(`/chats/${active.id}/close`);
+      chat = data.data || data;
+    } catch {
+      chat = demoStore.updateChat(active.id, { status: "CLOSED" });
+      const event = demoStore.addChatEvent(active.id, "Admin closed the chat.").message;
+      setMessagesByChat((current) => ({ ...current, [active.id]: [...(current[active.id] || []), event] }));
+    }
     setActive(chat);
     setSessions((current) => current.map((item) => item.id === chat.id ? chat : item));
   };
@@ -102,6 +136,11 @@ export default function Chats() {
         </div>
         <Card className="p-5">
           <h2 className="font-semibold text-slate-950">{t("ticketsUi.workflow")}</h2>
+          <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
+            <div className="rounded-md bg-amber-50 p-2 font-semibold text-amber-700"><p>{queueStats.waiting}</p><p>Waiting</p></div>
+            <div className="rounded-md bg-emerald-50 p-2 font-semibold text-emerald-700"><p>{queueStats.active}</p><p>Active</p></div>
+            <div className="rounded-md bg-slate-100 p-2 font-semibold text-slate-700"><p>{queueStats.closed}</p><p>Closed</p></div>
+          </div>
           <label className="mt-4 block">
             <span className="text-sm font-semibold text-slate-700">{t("chat.transferTo")}</span>
             <select className="mt-1 h-11 w-full rounded-md border border-slate-200 px-3" value={transferAgentId} onChange={(event) => setTransferAgentId(event.target.value)}>
@@ -111,6 +150,15 @@ export default function Chats() {
           </label>
           <Button variant="secondary" className="mt-3 w-full" onClick={transferChat}>{t("buttons.transfer")}</Button>
           <Button variant="danger" className="mt-3 w-full" onClick={closeChat}>{t("buttons.close")}</Button>
+          <div className="mt-5 border-t border-slate-200 pt-4">
+            <h3 className="text-sm font-semibold text-slate-950">Visitor and security</h3>
+            <dl className="mt-3 space-y-2 text-sm">
+              <div><dt className="text-slate-500">Visitor page</dt><dd className="font-semibold">{active?.visitor?.page || "/support"}</dd></div>
+              <div><dt className="text-slate-500">Device</dt><dd className="font-semibold">{active?.visitor?.device || "Desktop Chrome"}</dd></div>
+              <div><dt className="text-slate-500">Channel</dt><dd className="font-semibold">{active?.channel || "Website chatbot"}</dd></div>
+              <div><dt className="text-slate-500">Encryption</dt><dd className="font-semibold">Enabled</dd></div>
+            </dl>
+          </div>
         </Card>
       </div>
     </>

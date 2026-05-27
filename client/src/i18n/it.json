@@ -2,7 +2,63 @@
   "appName": "Assistenza Clienti AI",
   "appShortName": "Supporto AI",
   "workspace": "Area di lavoro",
-  "dashboard": "Dashboard",
+  "dashboard": {
+    "admin": {
+      "title": "Dashboard amministratore",
+      "description": "Panoramica operativa su ticket, chat, automazione AI e soddisfazione."
+    },
+    "customer": {
+      "title": "Dashboard cliente",
+      "description": "Monitora richieste, continua chat live, rivedi la cronologia e valuta il supporto.",
+      "openLiveChat": "Apri chat live",
+      "recentSupportRequests": "Richieste recenti",
+      "viewAllTickets": "Vedi tutti i ticket"
+    },
+    "agent": {
+      "title": "Dashboard agente",
+      "description": "Carico assegnato, chat live, tempi di risposta e feedback clienti."
+    },
+    "stats": {
+      "totalTickets": "Ticket totali",
+      "openTickets": "Ticket aperti",
+      "resolvedTickets": "Ticket risolti",
+      "activeChats": "Chat attive",
+      "avgResponseTime": "Tempo medio risposta",
+      "agentRating": "Valutazione agente",
+      "customerSatisfaction": "Soddisfazione cliente",
+      "aiResolvedTickets": "Ticket risolti da AI",
+      "myTickets": "I miei ticket",
+      "avgResponse": "Risposta media",
+      "assignedTickets": "Ticket assegnati",
+      "pendingTickets": "Ticket in sospeso",
+      "resolvedToday": "Risolti oggi",
+      "liveChats": "Chat live",
+      "rating": "Valutazione"
+    },
+    "monitoring": {
+      "applicationServer": "Server applicazione",
+      "healthy": "Operativo",
+      "demoMode": "Modalita demo attiva",
+      "database": "Database",
+      "localStore": "Archivio locale",
+      "recordsLoaded": "{{count}} record recenti caricati",
+      "agentCoverage": "Copertura agenti",
+      "online": "{{count}} online",
+      "activeChatSessions": "{{count}} sessioni chat attive",
+      "securityPosture": "Stato sicurezza",
+      "protected": "Protetto",
+      "rbacEnabled": "RBAC e controlli audit attivi"
+    },
+    "sections": {
+      "systemMonitoring": "Monitoraggio sistema",
+      "monthlyTicketPerformance": "Andamento mensile ticket",
+      "customerSatisfaction": "Soddisfazione cliente",
+      "multiLanguageSupport": "Supporto multilingua",
+      "multiLanguageDescription": "Cambio lingua dinamico, traduzione AI e profili regionali.",
+      "aiTranslation": "Traduzione AI",
+      "recentTickets": "Ticket recenti"
+    }
+  },
   "tickets": "Ticket",
   "chats": "Chat",
   "analytics": "Analisi",
@@ -73,5 +129,198 @@
     "myTickets": "I miei ticket",
     "liveChat": "Chat live",
     "profile": "Profilo"
+  },
+  "common": {
+    "on": "attiva",
+    "off": "disattiva"
+  },
+  "reports": {
+    "title": "Analisi e report",
+    "description": "Analisi clienti, tempi di risposta, reclami e statistiche chat live.",
+    "summary": {
+      "openComplaints": "Reclami aperti",
+      "avgResponse": "Risposta media",
+      "resolvedThisMonth": "Risolti questo mese",
+      "newTicketsThisMonth": "Nuovi ticket questo mese",
+      "activeChats": "Chat attive",
+      "ratedChats": "Chat valutate",
+      "aiTransfers": "Trasferimenti AI"
+    },
+    "charts": {
+      "ticketStatus": "Grafico stato ticket",
+      "responseTime": "Andamento tempi risposta",
+      "complaintsByStatus": "Reclami per stato",
+      "priorityMix": "Mix priorita",
+      "customerAnalytics": "Analisi clienti per categoria",
+      "agentPerformance": "Report prestazioni agenti",
+      "liveChatComplaintDashboard": "Dashboard chat live e reclami"
+    },
+    "agentPerformance": {
+      "description": "Volume risoluzioni, soddisfazione clienti, risposta media e trend reclami.",
+      "resolvedTickets": "Ticket risolti",
+      "avgRating": "Valutazione media",
+      "complaints": "Reclami",
+      "monthlyResolution": "Volume risoluzioni mensili",
+      "responseAndRating": "Risposta e valutazione agente",
+      "performanceComplaintTracking": "Prestazioni agenti e reclami"
+    }
+  },
+  "pages": {
+    "activityLogs": {
+      "title": "Log attivita",
+      "description": "Controlla azioni utente, eventi sicurezza e modifiche operative."
+    },
+    "agents": {
+      "title": "Gestione agenti",
+      "description": "Monitora assegnazioni, disponibilita, carico e valutazioni."
+    },
+    "aiSettings": {
+      "title": "Impostazioni AI",
+      "description": "Configura identita bot, fallback, traduzione, riepiloghi e trasferimenti umani."
+    },
+    "assignedTickets": {
+      "title": "Ticket assegnati",
+      "description": "Gestisci ticket, rispondi ai clienti e aggiorna lo stato."
+    },
+    "chatMonitoring": {
+      "title": "Monitoraggio chat",
+      "description": "Monitora conversazioni live, passaggi AI-agente, code, notifiche e visitatori."
+    },
+    "createTicket": {
+      "title": "Crea ticket",
+      "description": "Invia una richiesta con priorita, categoria e file o immagini opzionali."
+    },
+    "customerLiveChat": {
+      "title": null,
+      "description": "Avvia una chat sicura assistita da AI, condividi file e valuta l esperienza."
+    },
+    "customers": {
+      "title": "Gestione clienti",
+      "description": "Visualizza profili cliente, cronologia supporto e salute account."
+    },
+    "integrations": {
+      "title": "Impostazioni integrazioni",
+      "description": "Configura WhatsApp, chatbot sito web e canali email."
+    },
+    "liveChatQueue": {
+      "title": "Coda chat live",
+      "description": "Accetta chat live, trasferisci conversazioni, vedi cronologia e invia messaggi sicuri."
+    },
+    "myTickets": {
+      "title": "I miei ticket",
+      "description": "Monitora richieste, stati, risposte e allegati."
+    },
+    "profile": {
+      "title": "Profilo",
+      "description": "Gestisci dettagli cliente, lingua, sicurezza e richieste privacy."
+    },
+    "security": {
+      "title": "Impostazioni sicurezza",
+      "description": "Autenticazione, conformita, sicurezza API, audit e resilienza."
+    },
+    "ticketManagement": {
+      "title": "Gestione ticket",
+      "description": "Rivedi, assegna, prioritizza, rispondi e risolvi ticket."
+    },
+    "users": {
+      "title": "Gestione utenti",
+      "description": "Crea, modifica, disattiva e controlla utenti piattaforma."
+    },
+    "ticketDetails": {
+      "adminDescription": "Assegna agenti, cambia stato, rivedi cronologia e rispondi al cliente.",
+      "agentDescription": "Dettagli ticket, profilo cliente, cronologia risposte, allegati e controlli stato.",
+      "customerDescription": "Tracciamento ticket, dettagli, cronologia chat, feedback e risposte supporto."
+    }
+  },
+  "integrations": {
+    "active": "Attiva",
+    "inactive": "Inattiva",
+    "actions": {
+      "save": "Salva impostazioni",
+      "test": "Test connessione",
+      "check": "Controlla setup",
+      "pause": "Pausa canale demo",
+      "enable": "Abilita canale demo"
+    },
+    "items": {
+      "whatsapp": {
+        "title": "API WhatsApp",
+        "text": "Numero business, webhook, token accesso, sincronizzazione template"
+      },
+      "chatbot": {
+        "title": "Chatbot sito web",
+        "text": "Chiave embed, domini, trigger passaggio AI, tracking visitatori"
+      },
+      "email": {
+        "title": "Sistema email",
+        "text": "Host SMTP, mittente, email test, creazione ticket"
+      }
+    },
+    "fields": {
+      "phoneNumberId": "ID numero telefono",
+      "webhookUrl": "URL webhook",
+      "accessToken": "Token accesso",
+      "templateNamespace": "Namespace template",
+      "embedKey": "Chiave embed",
+      "allowedDomains": "Domini consentiti",
+      "handoffTrigger": "Parole trigger passaggio AI",
+      "visitorTracking": "Tracking visitatori",
+      "smtpHost": "Host SMTP",
+      "smtpPort": "Porta SMTP",
+      "senderEmail": "Email mittente",
+      "inboundAddress": "Indirizzo ticket in ingresso"
+    }
+  },
+  "security": {
+    "enabled": "Abilitato",
+    "enable": "Abilita",
+    "states": {
+      "Active": "Attivo",
+      "Ready": "Pronto",
+      "Planned": "Pianificato"
+    },
+    "actions": {
+      "backup": "Esegui backup sicuro",
+      "gdprExport": "Prepara export GDPR",
+      "securityCheck": "Esegui controllo sicurezza"
+    },
+    "items": {
+      "auth": {
+        "title": "Autenticazione sicura",
+        "detail": "Sessioni JWT, hash password, blocco utenti inattivi"
+      },
+      "roles": {
+        "title": "Controllo accesso per ruoli",
+        "detail": "Permessi route per admin, agente e cliente"
+      },
+      "encryption": {
+        "title": "Crittografia dati",
+        "detail": "Trasporto cifrato e indicatori messaggi sicuri"
+      },
+      "twoFactor": {
+        "title": "Autenticazione a due fattori",
+        "detail": "Flag profilo pronto per provider OTP"
+      },
+      "backup": {
+        "title": "Backup cloud sicuro",
+        "detail": "Azione backup manuale disponibile in demo"
+      },
+      "activity": {
+        "title": "Log attivita",
+        "detail": "Modifiche admin ed eventi auth verificabili"
+      },
+      "gdpr": {
+        "title": "Conformita GDPR",
+        "detail": "Placeholder export e cancellazione dati"
+      },
+      "firewall": {
+        "title": "Protezione firewall",
+        "detail": "Header Helmet, CORS e rate limit"
+      },
+      "apiSecurity": {
+        "title": "Sicurezza API",
+        "detail": "Route API protette e limitazione richieste"
+      }
+    }
   }
 }

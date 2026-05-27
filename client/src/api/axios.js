@@ -33,8 +33,18 @@ export async function uploadFile(file, extra = {}) {
   Object.entries(extra).forEach(([key, value]) => {
     if (value !== undefined && value !== null) formData.append(key, value);
   });
-  const { data } = await api.post("/uploads", formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
-  return data.data || data;
+  try {
+    const { data } = await api.post("/uploads", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return data.data || data;
+  } catch {
+    return {
+      fileName: file.name,
+      fileUrl: "#",
+      fileType: file.type,
+      fileSize: file.size,
+      ...extra,
+    };
+  }
 }

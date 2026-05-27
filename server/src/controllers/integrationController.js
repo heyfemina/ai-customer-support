@@ -15,6 +15,7 @@ export async function updateIntegration(req, res, next) {
       update: { config: req.body.config || req.body, isActive: Boolean(req.body.isActive) },
       create: { type: req.params.type.toUpperCase(), config: req.body.config || req.body, isActive: Boolean(req.body.isActive) },
     });
+    await prisma.activityLog.create({ data: { userId: req.user?.id, action: `Updated ${integration.type} integration`, ipAddress: req.ip } });
     success(res, integration, "Integration updated");
   } catch (error) { next(error); }
 }
@@ -28,4 +29,8 @@ export async function testEmail(req, res, next) {
 
 export async function testWhatsapp(req, res) {
   success(res, { delivered: true, provider: "WhatsApp API placeholder" }, "WhatsApp test accepted");
+}
+
+export async function testChatbot(req, res) {
+  success(res, { embedReady: true, provider: "Website chatbot placeholder" }, "Website chatbot test accepted");
 }

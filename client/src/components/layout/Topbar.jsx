@@ -36,10 +36,10 @@ export default function Topbar({ onMenu }) {
           onChange={(event) => changeLanguage(event.target.value)}
           className="h-10 rounded-md border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700"
         >
-          <option value="en">EN</option>
-          <option value="it">IT</option>
-          <option value="es">ES</option>
-          <option value="fr">FR</option>
+          <option value="en">EN - English</option>
+          <option value="it">IT - Italian</option>
+          <option value="es">ES - Spanish</option>
+          <option value="fr">FR - French</option>
         </select>
         <button className="relative grid h-10 w-10 place-items-center rounded-md border border-slate-200 text-slate-600 hover:bg-slate-50" title={notifications[0]?.message || t("chat.notifications")} onClick={clearNotifications}>
           <Bell className="h-4 w-4" />

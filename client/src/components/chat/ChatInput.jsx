@@ -21,7 +21,7 @@ export default function ChatInput({ onSend, onTyping, onStopTyping }) {
     <form onSubmit={submit} className="flex items-end gap-3 border-t border-slate-200 bg-white p-4">
       <label className="grid h-10 w-10 cursor-pointer place-items-center rounded-md border border-slate-200 text-slate-500 hover:bg-slate-50">
         <Paperclip className="h-4 w-4" />
-        <input type="file" className="hidden" onChange={(event) => setFile(event.target.files?.[0] || null)} />
+        <input type="file" accept="image/*,.pdf,.doc,.docx,.txt" className="hidden" onChange={(event) => setFile(event.target.files?.[0] || null)} />
       </label>
       <textarea
         value={content}
