@@ -44,10 +44,10 @@ export default function PageHeader({ title, description, actions }) {
   const translatedDescription = descriptionKeys[description] ? t(descriptionKeys[description]) : description;
 
   return (
-    <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-950">{translatedTitle}</h1>
-        {translatedDescription ? <p className="mt-1 text-sm text-slate-500">{translatedDescription}</p> : null}
+    <div className="mb-6 flex flex-col gap-4 border-b border-slate-200/80 pb-5 md:flex-row md:items-end md:justify-between">
+      <div className="min-w-0">
+        <h1 className="text-2xl font-bold tracking-normal text-slate-950">{translatedTitle}</h1>
+        {translatedDescription ? <p className="mt-1 max-w-3xl text-sm leading-6 text-slate-500">{translatedDescription}</p> : null}
       </div>
       {actions ? <div className="flex flex-wrap gap-3">{actions}</div> : null}
     </div>

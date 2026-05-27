@@ -11,10 +11,12 @@ import { chats, messages } from "../../utils/dummyData.js";
 import { normalizeItems } from "../../utils/helpers.js";
 import { useTranslation } from "react-i18next";
 import { demoStore } from "../../utils/demoStore.js";
+import { useLanguage } from "../../context/LanguageContext.jsx";
 
 export default function CustomerLiveChat() {
   const { user } = useAuth();
   const { t } = useTranslation();
+  const { language } = useLanguage();
   const { socket, connected } = useSocket();
   const [sessions, setSessions] = useState(chats.slice(0, 1));
   const [active, setActive] = useState(chats[0]);
@@ -44,16 +46,16 @@ export default function CustomerLiveChat() {
   const startChat = async () => {
     let session;
     try {
-      const { data } = await api.post("/chats/start", { language: "en" });
+      const { data } = await api.post("/chats/start", { language });
       session = data.data || data;
     } catch {
-      session = { id: `chat-${Date.now()}`, customerName: user?.name || "Customer", status: "WAITING", language: "en", lastMessage: "New chat started", updatedAt: new Date().toISOString(), messages: [{ id: `welcome-${Date.now()}`, senderId: "ai", content: "Thanks for contacting support. An agent can join this chat if needed.", createdAt: new Date().toISOString() }] };
+      session = { id: `chat-${Date.now()}`, customerName: user?.name || "Customer", status: "WAITING", language, lastMessage: t("chat.newChatStarted"), updatedAt: new Date().toISOString(), messages: [{ id: `welcome-${Date.now()}`, senderId: "ai", content: t("chat.welcomeMessage"), createdAt: new Date().toISOString() }] };
       demoStore.saveChats([session, ...demoStore.chats()]);
     }
     setSessions((current) => [session, ...current]);
     setActive(session);
     setMessagesByChat((current) => ({ ...current, [session.id]: session.messages || [] }));
-    setNotice("Live chat started.");
+    setNotice(t("chat.liveChatStarted"));
   };
 
   useEffect(() => {

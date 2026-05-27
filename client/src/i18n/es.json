@@ -97,7 +97,10 @@
     "ratingTitle": "Calificacion y feedback",
     "ratingHelp": "Califica al agente y deja feedback al cerrar.",
     "feedback": "Feedback",
-    "transferTo": "Transferir a agente"
+    "transferTo": "Transferir a agente",
+    "newChatStarted": "Nuevo chat iniciado",
+    "welcomeMessage": "Gracias por contactar soporte. Un agente puede unirse al chat si es necesario.",
+    "liveChatStarted": "Chat en vivo iniciado."
   },
   "ticketsUi": {
     "workflow": "Flujo",
@@ -133,6 +136,56 @@
   "common": {
     "on": "activa",
     "off": "inactiva"
+  },
+  "aiSettings": {
+    "actions": {
+      "save": "Guardar ajustes"
+    },
+    "fields": {
+      "botName": "Nombre del bot",
+      "aiActive": "AI activa",
+      "aiTranslationSupport": "Soporte de traduccion AI",
+      "handoffAfterFailedReplies": "Transferencia a agente tras respuestas fallidas",
+      "welcomeMessage": "Mensaje de bienvenida",
+      "fallbackMessage": "Mensaje fallback",
+      "regionalProfile": "Perfil regional de {{language}}",
+      "regionalNotes": "Notas de personalizacion regional"
+    },
+    "states": {
+      "enabled": "Activado",
+      "disabled": "Desactivado"
+    },
+    "sections": {
+      "languageCoverage": "Cobertura de idiomas",
+      "regionalCustomization": "Personalizacion regional de idioma"
+    },
+    "languages": {
+      "en": "Ingles",
+      "it": "Italiano",
+      "es": "Espanol",
+      "fr": "Frances"
+    },
+    "regions": {
+      "en": "Ingles de EE. UU., tono de soporte conciso",
+      "it": "Italiano, tono formal para facturacion",
+      "es": "Espanol, tono regional neutral",
+      "fr": "Frances, manejo cortes de reclamos"
+    },
+    "previews": {
+      "en": "How can we help you today?",
+      "it": "Come possiamo aiutarla oggi?",
+      "es": "Como podemos ayudarte hoy?",
+      "fr": "Comment pouvons-nous vous aider aujourd'hui?"
+    },
+    "placeholders": {
+      "regionalNotes": "Ejemplo: usa italiano formal para facturacion e ingles conciso para soporte tecnico."
+    },
+    "validation": {
+      "botNameRequired": "El nombre del bot es obligatorio."
+    },
+    "notices": {
+      "saved": "Ajustes guardados"
+    }
   },
   "reports": {
     "title": "Analitica e informes",

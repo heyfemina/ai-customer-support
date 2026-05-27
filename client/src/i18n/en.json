@@ -97,7 +97,10 @@
     "ratingTitle": "Chat rating and feedback",
     "ratingHelp": "Rate your agent and leave feedback after a chat is closed.",
     "feedback": "Feedback",
-    "transferTo": "Transfer to agent"
+    "transferTo": "Transfer to agent",
+    "newChatStarted": "New chat started",
+    "welcomeMessage": "Thanks for contacting support. An agent can join this chat if needed.",
+    "liveChatStarted": "Live chat started."
   },
   "ticketsUi": {
     "workflow": "Workflow",
@@ -133,6 +136,56 @@
   "common": {
     "on": "on",
     "off": "off"
+  },
+  "aiSettings": {
+    "actions": {
+      "save": "Save settings"
+    },
+    "fields": {
+      "botName": "Bot name",
+      "aiActive": "AI active",
+      "aiTranslationSupport": "AI translation support",
+      "handoffAfterFailedReplies": "Agent transfer after failed replies",
+      "welcomeMessage": "Welcome message",
+      "fallbackMessage": "Fallback message",
+      "regionalProfile": "{{language}} regional profile",
+      "regionalNotes": "Regional customization notes"
+    },
+    "states": {
+      "enabled": "Enabled",
+      "disabled": "Disabled"
+    },
+    "sections": {
+      "languageCoverage": "Language coverage",
+      "regionalCustomization": "Regional language customization"
+    },
+    "languages": {
+      "en": "English",
+      "it": "Italian",
+      "es": "Spanish",
+      "fr": "French"
+    },
+    "regions": {
+      "en": "US English, concise support tone",
+      "it": "Italian, formal billing tone",
+      "es": "Spanish, neutral regional tone",
+      "fr": "French, polite complaint handling"
+    },
+    "previews": {
+      "en": "How can we help you today?",
+      "it": "Come possiamo aiutarla oggi?",
+      "es": "Como podemos ayudarte hoy?",
+      "fr": "Comment pouvons-nous vous aider aujourd'hui?"
+    },
+    "placeholders": {
+      "regionalNotes": "Example: Use formal Italian for billing, concise English for technical support."
+    },
+    "validation": {
+      "botNameRequired": "Bot name is required."
+    },
+    "notices": {
+      "saved": "Settings saved"
+    }
   },
   "reports": {
     "title": "Analytics and reports",

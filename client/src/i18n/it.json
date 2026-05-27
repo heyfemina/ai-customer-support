@@ -97,7 +97,10 @@
     "ratingTitle": "Valutazione e feedback chat",
     "ratingHelp": "Valuta l'agente e lascia un feedback dopo la chiusura.",
     "feedback": "Feedback",
-    "transferTo": "Trasferisci ad agente"
+    "transferTo": "Trasferisci ad agente",
+    "newChatStarted": "Nuova chat avviata",
+    "welcomeMessage": "Grazie per aver contattato il supporto. Un agente puo unirsi alla chat se necessario.",
+    "liveChatStarted": "Chat live avviata."
   },
   "ticketsUi": {
     "workflow": "Flusso",
@@ -133,6 +136,56 @@
   "common": {
     "on": "attiva",
     "off": "disattiva"
+  },
+  "aiSettings": {
+    "actions": {
+      "save": "Salva impostazioni"
+    },
+    "fields": {
+      "botName": "Nome bot",
+      "aiActive": "AI attiva",
+      "aiTranslationSupport": "Supporto traduzione AI",
+      "handoffAfterFailedReplies": "Trasferimento ad agente dopo risposte fallite",
+      "welcomeMessage": "Messaggio di benvenuto",
+      "fallbackMessage": "Messaggio fallback",
+      "regionalProfile": "Profilo regionale {{language}}",
+      "regionalNotes": "Note personalizzazione regionale"
+    },
+    "states": {
+      "enabled": "Abilitato",
+      "disabled": "Disabilitato"
+    },
+    "sections": {
+      "languageCoverage": "Copertura lingue",
+      "regionalCustomization": "Personalizzazione lingua regionale"
+    },
+    "languages": {
+      "en": "Inglese",
+      "it": "Italiano",
+      "es": "Spagnolo",
+      "fr": "Francese"
+    },
+    "regions": {
+      "en": "Inglese USA, tono di supporto conciso",
+      "it": "Italiano, tono formale per fatturazione",
+      "es": "Spagnolo, tono regionale neutro",
+      "fr": "Francese, gestione reclami cortese"
+    },
+    "previews": {
+      "en": "How can we help you today?",
+      "it": "Come possiamo aiutarla oggi?",
+      "es": "Como podemos ayudarte hoy?",
+      "fr": "Comment pouvons-nous vous aider aujourd'hui?"
+    },
+    "placeholders": {
+      "regionalNotes": "Esempio: usa italiano formale per fatturazione e inglese conciso per supporto tecnico."
+    },
+    "validation": {
+      "botNameRequired": "Il nome bot e obbligatorio."
+    },
+    "notices": {
+      "saved": "Impostazioni salvate"
+    }
   },
   "reports": {
     "title": "Analisi e report",

@@ -74,6 +74,29 @@ export default function AdminDashboard() {
   return (
     <>
       <PageHeader title={t("dashboard.admin.title")} description={t("dashboard.admin.description")} />
+      <section className="mb-6 rounded-lg border border-slate-200 bg-slate-950 p-5 text-white shadow-sm">
+        <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
+          <div>
+            <p className="text-sm font-semibold text-sky-200">{t("dashboard.sections.systemMonitoring")}</p>
+            <h2 className="mt-2 text-2xl font-bold">{t("dashboard.admin.title")}</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">{t("dashboard.admin.description")}</p>
+          </div>
+          <div className="grid grid-cols-3 gap-3 text-center">
+            <div className="rounded-md bg-white/10 px-4 py-3">
+              <p className="text-2xl font-bold">{report.tickets}</p>
+              <p className="text-xs font-semibold text-slate-300">{t("dashboard.stats.totalTickets")}</p>
+            </div>
+            <div className="rounded-md bg-white/10 px-4 py-3">
+              <p className="text-2xl font-bold">{report.csat}%</p>
+              <p className="text-xs font-semibold text-slate-300">{t("dashboard.stats.customerSatisfaction")}</p>
+            </div>
+            <div className="rounded-md bg-white/10 px-4 py-3">
+              <p className="text-2xl font-bold">{report.aiResolved}%</p>
+              <p className="text-xs font-semibold text-slate-300">{t("dashboard.stats.aiResolvedTickets")}</p>
+            </div>
+          </div>
+        </div>
+      </section>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {liveStats.map((stat, index) => <StatCard key={stat.title} {...stat} icon={icons[index]} tone={tones[index]} />)}
       </div>
@@ -98,7 +121,13 @@ export default function AdminDashboard() {
       </div>
       <div className="mt-6 grid gap-6 xl:grid-cols-[1.5fr_1fr]">
         <Card className="p-5">
-          <h2 className="mb-4 font-semibold text-slate-950">{t("dashboard.sections.monthlyTicketPerformance")}</h2>
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <div>
+              <h2 className="font-semibold text-slate-950">{t("dashboard.sections.monthlyTicketPerformance")}</h2>
+              <p className="text-sm text-slate-500">{t("reports.charts.responseTime")}</p>
+            </div>
+            <span className="rounded-md bg-emerald-50 px-2.5 py-1 text-xs font-bold text-emerald-700">{report.avgResponseTime}</span>
+          </div>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData}>
@@ -113,7 +142,10 @@ export default function AdminDashboard() {
           </div>
         </Card>
         <Card className="p-5">
-          <h2 className="mb-4 font-semibold text-slate-950">{t("dashboard.sections.customerSatisfaction")}</h2>
+          <div className="mb-4">
+            <h2 className="font-semibold text-slate-950">{t("dashboard.sections.customerSatisfaction")}</h2>
+            <p className="text-sm text-slate-500">{t("reports.summary.ratedChats")}</p>
+          </div>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>

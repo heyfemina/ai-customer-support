@@ -1,1 +1,0 @@
-import{m as e}from"./index-DbZW_NSN.js";import{t}from"./Badge-BsucUD0U.js";var n=e(),r={OPEN:`blue`,IN_PROGRESS:`amber`,WAITING_CUSTOMER:`violet`,RESOLVED:`green`,CLOSED:`slate`};function i({status:e}){return(0,n.jsx)(t,{tone:r[e]||`slate`,children:String(e||`OPEN`).replaceAll(`_`,` `)})}export{i as t};

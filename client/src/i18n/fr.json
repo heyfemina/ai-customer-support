@@ -97,7 +97,10 @@
     "ratingTitle": "Note et feedback chat",
     "ratingHelp": "Notez l'agent et laissez un feedback apres fermeture.",
     "feedback": "Feedback",
-    "transferTo": "Transferer a un agent"
+    "transferTo": "Transferer a un agent",
+    "newChatStarted": "Nouveau chat demarre",
+    "welcomeMessage": "Merci d'avoir contacte le support. Un agent peut rejoindre ce chat si necessaire.",
+    "liveChatStarted": "Chat live demarre."
   },
   "ticketsUi": {
     "workflow": "Flux",
@@ -133,6 +136,56 @@
   "common": {
     "on": "activee",
     "off": "desactivee"
+  },
+  "aiSettings": {
+    "actions": {
+      "save": "Enregistrer"
+    },
+    "fields": {
+      "botName": "Nom du bot",
+      "aiActive": "IA active",
+      "aiTranslationSupport": "Support de traduction IA",
+      "handoffAfterFailedReplies": "Transfert agent apres reponses echouees",
+      "welcomeMessage": "Message de bienvenue",
+      "fallbackMessage": "Message fallback",
+      "regionalProfile": "Profil regional {{language}}",
+      "regionalNotes": "Notes de personnalisation regionale"
+    },
+    "states": {
+      "enabled": "Active",
+      "disabled": "Desactive"
+    },
+    "sections": {
+      "languageCoverage": "Couverture linguistique",
+      "regionalCustomization": "Personnalisation regionale de langue"
+    },
+    "languages": {
+      "en": "Anglais",
+      "it": "Italien",
+      "es": "Espagnol",
+      "fr": "Francais"
+    },
+    "regions": {
+      "en": "Anglais US, ton de support concis",
+      "it": "Italien, ton formel pour facturation",
+      "es": "Espagnol, ton regional neutre",
+      "fr": "Francais, traitement poli des reclamations"
+    },
+    "previews": {
+      "en": "How can we help you today?",
+      "it": "Come possiamo aiutarla oggi?",
+      "es": "Como podemos ayudarte hoy?",
+      "fr": "Comment pouvons-nous vous aider aujourd'hui?"
+    },
+    "placeholders": {
+      "regionalNotes": "Exemple : utilisez l'italien formel pour la facturation et l'anglais concis pour le support technique."
+    },
+    "validation": {
+      "botNameRequired": "Le nom du bot est obligatoire."
+    },
+    "notices": {
+      "saved": "Parametres enregistres"
+    }
   },
   "reports": {
     "title": "Analyses et rapports",

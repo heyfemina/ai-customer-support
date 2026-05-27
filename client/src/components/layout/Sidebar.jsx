@@ -56,25 +56,28 @@ export default function Sidebar({ open, onClose }) {
       <div className={cx("fixed inset-0 z-30 bg-slate-950/40 lg:hidden", open ? "block" : "hidden")} onClick={onClose} />
       <aside
         className={cx(
-          "fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-slate-200 bg-white transition-transform lg:static lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-slate-200/80 bg-white shadow-xl transition-transform lg:static lg:translate-x-0 lg:shadow-none",
           open ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="flex h-16 items-center justify-between border-b border-slate-200 px-5">
+        <div className="flex h-16 items-center justify-between border-b border-slate-200/80 px-5">
           <div className="flex items-center gap-3">
-            <div className="grid h-9 w-9 place-items-center rounded-md bg-sky-600 text-white">
+            <div className="grid h-10 w-10 place-items-center rounded-md bg-slate-950 text-white shadow-sm">
               <Bot className="h-5 w-5" />
             </div>
             <div>
               <p className="text-sm font-bold text-slate-950">{t("appShortName")}</p>
-              <p className="text-xs text-slate-500">{user?.role || t("workspace")}</p>
+              <p className="text-xs font-semibold uppercase text-slate-400">{user?.role || t("workspace")}</p>
             </div>
           </div>
-          <button className="rounded-md p-2 text-slate-500 hover:bg-slate-100 lg:hidden" onClick={onClose}>
+          <button className="rounded-md p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-950 lg:hidden" onClick={onClose}>
             <X className="h-5 w-5" />
           </button>
         </div>
-        <nav className="app-scrollbar flex-1 space-y-1 overflow-y-auto p-3">
+        <div className="px-5 pb-2 pt-4">
+          <p className="text-xs font-bold uppercase tracking-wide text-slate-400">{t("workspace")}</p>
+        </div>
+        <nav className="app-scrollbar flex-1 space-y-1 overflow-y-auto px-3 pb-3">
           {items.map((item) => (
             <NavLink
               key={item.to}
@@ -82,16 +85,24 @@ export default function Sidebar({ open, onClose }) {
               onClick={onClose}
               className={({ isActive }) =>
                 cx(
-                  "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-semibold transition",
-                  isActive ? "bg-sky-50 text-sky-700" : "text-slate-600 hover:bg-slate-100 hover:text-slate-950"
+                  "group relative flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-semibold transition before:absolute before:left-0 before:h-6 before:w-1 before:rounded-r-full",
+                  isActive ? "bg-sky-50 text-sky-800 shadow-sm ring-1 ring-sky-100 before:bg-sky-600" : "text-slate-600 before:bg-transparent hover:bg-slate-100 hover:text-slate-950"
                 )
               }
             >
-              <item.icon className="h-4 w-4" />
+              <span className="grid h-8 w-8 place-items-center rounded-md bg-slate-100 text-slate-500 transition group-hover:bg-white group-hover:text-slate-950">
+                <item.icon className="h-4 w-4" />
+              </span>
               {t(item.labelKey)}
             </NavLink>
           ))}
         </nav>
+        <div className="border-t border-slate-200/80 p-4">
+          <div className="rounded-lg bg-slate-50 p-3">
+            <p className="truncate text-sm font-semibold text-slate-950">{user?.name || t("workspace")}</p>
+            <p className="mt-1 truncate text-xs text-slate-500">{user?.email || user?.role}</p>
+          </div>
+        </div>
       </aside>
     </>
   );

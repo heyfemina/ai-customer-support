@@ -119,13 +119,18 @@ model Attachment {
 }
 
 model AIConfig {
-  id              String   @id @default(cuid())
-  botName         String   @default("Support AI")
-  welcomeMessage  String
-  fallbackMessage String
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                        String   @id @default(cuid())
+  botName                   String   @default("Support AI")
+  welcomeMessage            String
+  fallbackMessage           String
+  isActive                  Boolean  @default(true)
+  autoTranslate             Boolean  @default(true)
+  handoffAfterFailedReplies Int      @default(2)
+  supportedLanguages        String[] @default(["en", "it", "es", "fr"])
+  regionalNotes             String   @default("")
+  regionalProfiles          Json     @default("{}")
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
 }
 
 model ActivityLog {

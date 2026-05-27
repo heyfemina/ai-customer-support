@@ -25,6 +25,29 @@ export default function CustomerDashboard() {
   return (
     <>
       <PageHeader title={t("dashboard.customer.title")} description={t("dashboard.customer.description")} actions={<div className="flex flex-wrap gap-2"><Link to="/customer/live-chat"><Button variant="secondary" icon={MessageSquare}>{t("dashboard.customer.openLiveChat")}</Button></Link><Link to="/customer/tickets/create"><Button icon={PlusCircle}>{t("buttons.createTicket")}</Button></Link></div>} />
+      <section className="mb-6 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
+          <div>
+            <p className="text-sm font-semibold text-sky-700">{t("nav.myTickets")}</p>
+            <h2 className="mt-2 text-2xl font-bold text-slate-950">{t("dashboard.customer.title")}</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">{t("dashboard.customer.description")}</p>
+          </div>
+          <div className="grid grid-cols-2 gap-3 text-center sm:grid-cols-3">
+            <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3">
+              <p className="text-2xl font-bold text-slate-950">{items.length}</p>
+              <p className="text-xs font-semibold text-slate-500">{t("dashboard.stats.myTickets")}</p>
+            </div>
+            <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3">
+              <p className="text-2xl font-bold text-slate-950">{openTickets}</p>
+              <p className="text-xs font-semibold text-slate-500">{t("dashboard.stats.openTickets")}</p>
+            </div>
+            <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3">
+              <p className="text-2xl font-bold text-slate-950">{activeChats}</p>
+              <p className="text-xs font-semibold text-slate-500">{t("dashboard.stats.activeChats")}</p>
+            </div>
+          </div>
+        </div>
+      </section>
       <div className="grid gap-4 md:grid-cols-4"><StatCard title={t("dashboard.stats.myTickets")} value={items.length} icon={Ticket} /><StatCard title={t("dashboard.stats.openTickets")} value={openTickets} icon={Ticket} tone="amber" /><StatCard title={t("dashboard.stats.activeChats")} value={activeChats} icon={MessageSquare} tone="violet" /><StatCard title={t("dashboard.stats.avgResponse")} value="3m 05s" icon={Timer} tone="rose" /></div>
       <div className="mt-6 flex items-center justify-between gap-3">
         <h2 className="font-semibold text-slate-950">{t("dashboard.customer.recentSupportRequests")}</h2>

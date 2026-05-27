@@ -26,6 +26,29 @@ export default function AgentDashboard() {
   return (
     <>
       <PageHeader title={t("dashboard.agent.title")} description={t("dashboard.agent.description")} />
+      <section className="mb-6 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
+          <div>
+            <p className="text-sm font-semibold text-sky-700">{t("nav.performance")}</p>
+            <h2 className="mt-2 text-2xl font-bold text-slate-950">{t("dashboard.agent.title")}</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">{t("dashboard.agent.description")}</p>
+          </div>
+          <div className="grid grid-cols-3 gap-3 text-center">
+            <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3">
+              <p className="text-2xl font-bold text-slate-950">{pending}</p>
+              <p className="text-xs font-semibold text-slate-500">{t("dashboard.stats.pendingTickets")}</p>
+            </div>
+            <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3">
+              <p className="text-2xl font-bold text-slate-950">{resolved}</p>
+              <p className="text-xs font-semibold text-slate-500">{t("dashboard.stats.resolvedToday")}</p>
+            </div>
+            <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3">
+              <p className="text-2xl font-bold text-slate-950">{activeChats}</p>
+              <p className="text-xs font-semibold text-slate-500">{t("dashboard.stats.liveChats")}</p>
+            </div>
+          </div>
+        </div>
+      </section>
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
         <StatCard title={t("dashboard.stats.assignedTickets")} value={items.length} icon={Ticket} tone="sky" />
         <StatCard title={t("dashboard.stats.pendingTickets")} value={pending} icon={Ticket} tone="amber" />

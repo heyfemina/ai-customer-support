@@ -1,0 +1,1 @@
+import{i as e,m as t}from"./index-cRQVAjZN.js";var n=t();function r({children:t,className:r}){return(0,n.jsx)(`div`,{className:e(`rounded-lg border border-slate-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]`,r),children:t})}export{r as t};

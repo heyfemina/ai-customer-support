@@ -1,1 +1,0 @@
-import{i as e,m as t}from"./index-DbZW_NSN.js";var n=t();function r({children:t,className:r}){return(0,n.jsx)(`div`,{className:e(`rounded-lg border border-slate-200 bg-white shadow-sm`,r),children:t})}export{r as t};

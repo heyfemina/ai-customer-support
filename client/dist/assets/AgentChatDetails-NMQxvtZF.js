@@ -1,1 +1,0 @@
-import{m as e}from"./index-DbZW_NSN.js";import t from"./AgentLiveChats-DmYDfDya.js";var n=e();function r(){return(0,n.jsx)(t,{})}export{r as default};
