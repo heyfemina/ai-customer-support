@@ -4,14 +4,14 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
-  const password = await bcrypt.hash("admin123", 10);
+  const password = await bcrypt.hash("123456", 10);
   const agentPassword = await bcrypt.hash("agent123", 10);
   const customerPassword = await bcrypt.hash("customer123", 10);
   const etherealPassword = await bcrypt.hash("test123", 10);
 
   const admin = await prisma.user.upsert({
     where: { email: "admin@example.com" },
-    update: {},
+    update: { password },
     create: { name: "Ariana Admin", email: "admin@example.com", password, role: "ADMIN" },
   });
   const agent = await prisma.user.upsert({
