@@ -1,1 +1,0 @@
-import{m as e}from"./index-CSQAW_G8.js";import t from"./AgentLiveChats-BnUkoFJr.js";var n=e();function r(){return(0,n.jsx)(t,{})}export{r as default};
