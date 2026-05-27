@@ -1,0 +1,1 @@
+import{m as e}from"./index-D7yxin4c.js";import t from"./AgentLiveChats-DhRqS6D9.js";var n=e();function r(){return(0,n.jsx)(t,{})}export{r as default};
