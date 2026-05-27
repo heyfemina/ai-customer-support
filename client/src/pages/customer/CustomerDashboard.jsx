@@ -25,7 +25,7 @@ export default function CustomerDashboard() {
   return (
     <>
       <PageHeader title={t("dashboard.customer.title")} description={t("dashboard.customer.description")} actions={<div className="flex flex-wrap gap-2"><Link to="/customer/live-chat"><Button variant="secondary" icon={MessageSquare}>{t("dashboard.customer.openLiveChat")}</Button></Link><Link to="/customer/tickets/create"><Button icon={PlusCircle}>{t("buttons.createTicket")}</Button></Link></div>} />
-      <section className="mb-6 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+      <section className="mb-6 rounded-lg border border-white/70 bg-white/95 p-5 shadow-[0_18px_45px_rgba(15,23,42,0.07)] ring-1 ring-slate-900/[0.03]">
         <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
           <div>
             <p className="text-sm font-semibold text-sky-700">{t("nav.myTickets")}</p>
@@ -33,15 +33,15 @@ export default function CustomerDashboard() {
             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">{t("dashboard.customer.description")}</p>
           </div>
           <div className="grid grid-cols-2 gap-3 text-center sm:grid-cols-3">
-            <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3">
+            <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3 shadow-sm">
               <p className="text-2xl font-bold text-slate-950">{items.length}</p>
               <p className="text-xs font-semibold text-slate-500">{t("dashboard.stats.myTickets")}</p>
             </div>
-            <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3">
+            <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3 shadow-sm">
               <p className="text-2xl font-bold text-slate-950">{openTickets}</p>
               <p className="text-xs font-semibold text-slate-500">{t("dashboard.stats.openTickets")}</p>
             </div>
-            <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3">
+            <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3 shadow-sm">
               <p className="text-2xl font-bold text-slate-950">{activeChats}</p>
               <p className="text-xs font-semibold text-slate-500">{t("dashboard.stats.activeChats")}</p>
             </div>

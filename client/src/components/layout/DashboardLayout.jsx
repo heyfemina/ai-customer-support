@@ -7,7 +7,7 @@ export default function DashboardLayout() {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#f6f8fb]">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.10),transparent_30rem),linear-gradient(180deg,#f8fafc_0%,#eef3f8_45%,#e9eef5_100%)] text-slate-950">
       <div className="flex min-h-screen">
         <Sidebar open={open} onClose={() => setOpen(false)} />
         <div className="flex min-w-0 flex-1 flex-col">

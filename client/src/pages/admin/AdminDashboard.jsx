@@ -74,7 +74,7 @@ export default function AdminDashboard() {
   return (
     <>
       <PageHeader title={t("dashboard.admin.title")} description={t("dashboard.admin.description")} />
-      <section className="mb-6 rounded-lg border border-slate-200 bg-slate-950 p-5 text-white shadow-sm">
+      <section className="mb-6 overflow-hidden rounded-lg border border-slate-900 bg-slate-950 p-5 text-white shadow-[0_22px_55px_rgba(15,23,42,0.20)]">
         <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
           <div>
             <p className="text-sm font-semibold text-sky-200">{t("dashboard.sections.systemMonitoring")}</p>
@@ -82,15 +82,15 @@ export default function AdminDashboard() {
             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-300">{t("dashboard.admin.description")}</p>
           </div>
           <div className="grid grid-cols-3 gap-3 text-center">
-            <div className="rounded-md bg-white/10 px-4 py-3">
+            <div className="rounded-md border border-white/10 bg-white/10 px-4 py-3 shadow-sm">
               <p className="text-2xl font-bold">{report.tickets}</p>
               <p className="text-xs font-semibold text-slate-300">{t("dashboard.stats.totalTickets")}</p>
             </div>
-            <div className="rounded-md bg-white/10 px-4 py-3">
+            <div className="rounded-md border border-white/10 bg-white/10 px-4 py-3 shadow-sm">
               <p className="text-2xl font-bold">{report.csat}%</p>
               <p className="text-xs font-semibold text-slate-300">{t("dashboard.stats.customerSatisfaction")}</p>
             </div>
-            <div className="rounded-md bg-white/10 px-4 py-3">
+            <div className="rounded-md border border-white/10 bg-white/10 px-4 py-3 shadow-sm">
               <p className="text-2xl font-bold">{report.aiResolved}%</p>
               <p className="text-xs font-semibold text-slate-300">{t("dashboard.stats.aiResolvedTickets")}</p>
             </div>

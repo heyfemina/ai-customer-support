@@ -7,6 +7,7 @@ async function main() {
   const password = await bcrypt.hash("admin123", 10);
   const agentPassword = await bcrypt.hash("agent123", 10);
   const customerPassword = await bcrypt.hash("customer123", 10);
+  const etherealPassword = await bcrypt.hash("test123", 10);
 
   const admin = await prisma.user.upsert({
     where: { email: "admin@example.com" },
@@ -22,6 +23,11 @@ async function main() {
     where: { email: "customer@example.com" },
     update: {},
     create: { name: "Clara Customer", email: "customer@example.com", password: customerPassword, role: "CUSTOMER" },
+  });
+  await prisma.user.upsert({
+    where: { email: "mathilde8@ethereal.email" },
+    update: {},
+    create: { name: "Mathilde Ethereal", email: "mathilde8@ethereal.email", password: etherealPassword, role: "CUSTOMER" },
   });
 
   const ticket = await prisma.ticket.create({

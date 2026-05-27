@@ -46,6 +46,8 @@ model User {
   name          String
   email         String         @unique
   password      String
+  resetPasswordToken   String?
+  resetPasswordExpires DateTime?
   role          Role           @default(CUSTOMER)
   language      String         @default("en")
   isActive      Boolean        @default(true)

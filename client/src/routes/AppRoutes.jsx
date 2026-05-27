@@ -9,6 +9,7 @@ import RoleRoute from "./RoleRoute.jsx";
 const Login = lazy(() => import("../pages/auth/Login.jsx"));
 const Register = lazy(() => import("../pages/auth/Register.jsx"));
 const ForgotPassword = lazy(() => import("../pages/auth/ForgotPassword.jsx"));
+const ResetPassword = lazy(() => import("../pages/auth/ResetPassword.jsx"));
 const Home = lazy(() => import("../pages/public/Home.jsx"));
 const NotFound = lazy(() => import("../pages/public/NotFound.jsx"));
 const AdminDashboard = lazy(() => import("../pages/admin/AdminDashboard.jsx"));
@@ -45,6 +46,7 @@ export default function AppRoutes() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
         </Route>
         <Route element={<ProtectedRoute />}>
           <Route element={<DashboardLayout />}>

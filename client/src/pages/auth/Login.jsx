@@ -21,7 +21,7 @@ export default function Login() {
       const user = await login(form);
       navigate(roleHome[user.role], { replace: true });
     } catch {
-      setError("Invalid credentials. Try one of the demo accounts.");
+      setError("Invalid email or password. Use a demo account, create an account, or reset your password.");
     } finally {
       setLoading(false);
     }

@@ -22,8 +22,8 @@ export async function updateIntegration(req, res, next) {
 
 export async function testEmail(req, res, next) {
   try {
-    await sendTestEmail(req.body.to);
-    success(res, null, "Test email queued");
+    const emailResult = await sendTestEmail(req.body.to);
+    success(res, emailResult, "Test email captured by Ethereal");
   } catch (error) { next(error); }
 }
 
