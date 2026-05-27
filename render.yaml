@@ -3,7 +3,7 @@ services:
     name: ai-customer-support-api
     env: node
     rootDir: server
-    buildCommand: npm ci && npm exec prisma generate
+    buildCommand: npm ci && npm run prisma:generate
     startCommand: npm start
     envVars:
       - key: NODE_ENV
