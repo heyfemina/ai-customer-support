@@ -4,7 +4,6 @@ import PageHeader from "../../components/common/PageHeader.jsx";
 import Card from "../../components/common/Card.jsx";
 import Button from "../../components/common/Button.jsx";
 import api, { uploadFile } from "../../api/axios.js";
-import { demoStore } from "../../utils/demoStore.js";
 
 export default function CreateTicket() {
   const navigate = useNavigate();
@@ -27,12 +26,10 @@ export default function CreateTicket() {
     setError("");
     try {
       const attachments = file ? [await uploadFile(file)] : [];
-      try {
-        await api.post("/tickets", { ...form, attachments });
-      } catch {
-        demoStore.createTicket({ ...form, attachments });
-      }
+      await api.post("/tickets", { ...form, attachments });
       navigate("/customer/tickets");
+    } catch (error) {
+      setError(error.friendlyMessage || "Ticket was not created. Please check the API connection and try again.");
     } finally {
       setLoading(false);
     }

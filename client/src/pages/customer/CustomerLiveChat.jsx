@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useLocation } from "react-router-dom";
 import api, { uploadFile } from "../../api/axios.js";
 import PageHeader from "../../components/common/PageHeader.jsx";
 import ChatSidebar from "../../components/chat/ChatSidebar.jsx";
@@ -7,56 +8,66 @@ import Card from "../../components/common/Card.jsx";
 import Button from "../../components/common/Button.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useSocket } from "../../context/SocketContext.jsx";
-import { chats, messages } from "../../utils/dummyData.js";
 import { normalizeItems } from "../../utils/helpers.js";
 import { useTranslation } from "react-i18next";
-import { demoStore } from "../../utils/demoStore.js";
 import { useLanguage } from "../../context/LanguageContext.jsx";
+
+const appendMessage = (current, chatId, message) => {
+  const existing = current[chatId] || [];
+  if (existing.some((item) => item.id === message.id)) return current;
+  return { ...current, [chatId]: [...existing, message] };
+};
 
 export default function CustomerLiveChat() {
   const { user } = useAuth();
+  const location = useLocation();
   const { t } = useTranslation();
   const { language } = useLanguage();
   const { socket, connected, pushNotification } = useSocket();
-  const [sessions, setSessions] = useState(chats.slice(0, 1));
-  const [active, setActive] = useState(chats[0]);
+  const [sessions, setSessions] = useState([]);
+  const [active, setActive] = useState(null);
   const [messagesByChat, setMessagesByChat] = useState({});
   const [typingUsers, setTypingUsers] = useState([]);
   const [rating, setRating] = useState(5);
   const [feedback, setFeedback] = useState("");
   const [notice, setNotice] = useState("");
-  const activeMessages = useMemo(() => active?.messages?.length ? active.messages : messages, [active]);
-
+  const activeMessages = useMemo(() => active?.messages || [], [active]);
+  const preferredChatId = location.state?.chatId;
   const loadChats = () => api.get("/chats").then(({ data }) => {
-    const rows = normalizeItems(data, demoStore.chats().slice(0, 1));
+    const rows = normalizeItems(data, []);
+    const selected = rows.find((row) => row.id === preferredChatId) || rows[0] || null;
     setSessions(rows);
-    setActive(rows[0] || null);
+    setActive(selected);
     setMessagesByChat(Object.fromEntries(rows.map((row) => [row.id, row.messages || []])));
   }).catch(() => {
-    const rows = demoStore.chats().slice(0, 1);
-    setSessions(rows);
-    setActive(rows[0] || null);
-    setMessagesByChat(Object.fromEntries(rows.map((row) => [row.id, row.messages || []])));
+    setSessions([]);
+    setActive(null);
+    setMessagesByChat({});
   });
 
   useEffect(() => {
     loadChats();
-  }, []);
+  }, [preferredChatId]);
 
   const startChat = async () => {
-    let session;
     try {
-      const { data } = await api.post("/chats/start", { language });
-      session = data.data || data;
-    } catch {
-      session = { id: `chat-${Date.now()}`, customerName: user?.name || "Customer", status: "WAITING", language, lastMessage: t("chat.newChatStarted"), updatedAt: new Date().toISOString(), messages: [{ id: `welcome-${Date.now()}`, senderId: "ai", content: t("chat.welcomeMessage"), createdAt: new Date().toISOString() }] };
-      demoStore.saveChats([session, ...demoStore.chats()]);
+      const visits = Number(localStorage.getItem("visitorVisits") || 0) + 1;
+      localStorage.setItem("visitorVisits", String(visits));
+      const { data } = await api.post("/chats/start", {
+        language,
+        visitorPage: window.location.pathname,
+        visitorDevice: navigator.userAgent,
+        visitorVisits: visits,
+      });
+      const session = data.data || data;
+      setSessions((current) => [session, ...current]);
+      setActive(session);
+      setMessagesByChat((current) => ({ ...current, [session.id]: session.messages || [] }));
+      setNotice(t("chat.liveChatStarted"));
+      pushNotification({ message: "New customer chat added to the live queue.", type: "chat" });
+    } catch (error) {
+      setNotice(error.friendlyMessage || "Could not start chat. Please check backend connection.");
     }
-    setSessions((current) => [session, ...current]);
-    setActive(session);
-    setMessagesByChat((current) => ({ ...current, [session.id]: session.messages || [] }));
-    setNotice(t("chat.liveChatStarted"));
-    pushNotification({ message: "New customer chat added to the live queue.", type: "chat" });
   };
 
   useEffect(() => {
@@ -64,50 +75,83 @@ export default function CustomerLiveChat() {
     socket.emit("join_chat", active.id);
     const receive = (message) => {
       if (message.chatSessionId !== active.id) return;
-      setMessagesByChat((current) => ({ ...current, [active.id]: [...(current[active.id] || []), message] }));
+      setMessagesByChat((current) => appendMessage(current, active.id, message));
+    };
+    const chatUpdate = (chat) => {
+      const updated = chat.chat || chat;
+      if (updated.id !== active.id) return;
+      setActive(updated);
+      setSessions((current) => current.map((item) => item.id === updated.id ? updated : item));
+      setMessagesByChat((current) => ({ ...current, [updated.id]: updated.messages || current[updated.id] || [] }));
     };
     const typing = (payload) => payload.user?.id !== user?.id && setTypingUsers([payload.user]);
     const stopTyping = (payload) => payload.user?.id !== user?.id && setTypingUsers([]);
     socket.on("receive_message", receive);
+    socket.on("agent_transfer", chatUpdate);
+    socket.on("chat_queue_updated", chatUpdate);
     socket.on("typing", typing);
     socket.on("stop_typing", stopTyping);
     return () => {
       socket.emit("leave_chat", active.id);
       socket.off("receive_message", receive);
+      socket.off("agent_transfer", chatUpdate);
+      socket.off("chat_queue_updated", chatUpdate);
       socket.off("typing", typing);
       socket.off("stop_typing", stopTyping);
     };
   }, [socket, active?.id, user?.id]);
 
   const sendMessage = async ({ content, file }) => {
+    if (!active?.id) return;
     let filePayload = {};
     if (file) filePayload = await uploadFile(file);
-    const payload = { content: content || filePayload.fileName || "Attachment", ...filePayload, chatSessionId: active.id, senderId: user?.id };
+    const payload = { content: content || filePayload.fileName || "Attachment", ...filePayload, chatSessionId: active.id, senderId: user?.id, senderName: user?.name };
     if (connected) {
-      socket.emit("send_message", payload);
+      socket.emit("send_message", payload, (response) => {
+        if (!response?.success) {
+          setNotice(response?.message || "Message failed.");
+          return;
+        }
+        const { message, aiMessage } = response.data || {};
+        setMessagesByChat((current) => {
+          const withMessage = message ? appendMessage(current, active.id, message) : current;
+          return aiMessage ? appendMessage(withMessage, active.id, aiMessage) : withMessage;
+        });
+      });
     } else {
       let message;
+      let aiMessage;
       try {
         const { data } = await api.post(`/chats/${active.id}/message`, payload);
-        message = data.data || data;
-      } catch {
-        const result = demoStore.addChatMessage(active.id, { ...payload, mine: true });
-        message = result.message;
-        setActive(result.chat);
-        setSessions((current) => current.map((item) => item.id === result.chat.id ? result.chat : item));
-        pushNotification({ message: "Customer sent a live chat message.", type: "chat" });
+        message = data.data?.message || data.message || data.data || data;
+        aiMessage = data.data?.aiMessage || data.aiMessage;
+      } catch (error) {
+        setNotice(error.friendlyMessage || "Message failed.");
+        return;
       }
-      setMessagesByChat((current) => ({ ...current, [active.id]: [...(current[active.id] || []), message] }));
+      setMessagesByChat((current) => {
+        const withMessage = appendMessage(current, active.id, message);
+        return aiMessage ? appendMessage(withMessage, active.id, aiMessage) : withMessage;
+      });
+      setSessions((current) => current.map((item) => item.id === active.id ? { ...item, lastMessage: (aiMessage || message)?.content, updatedAt: new Date().toISOString() } : item));
     }
   };
 
   const requestAgent = async () => {
     if (!active?.id) return;
-    const { message } = demoStore.addChatEvent(active.id, "AI transferred this conversation to the agent queue.");
-    const updated = demoStore.updateChat(active.id, { status: "TRANSFERRED", queuePosition: 1, lastMessage: message.content });
+    let updated;
+    let message;
+    try {
+      const { data } = await api.post(`/chats/${active.id}/transfer`, { agentId: null });
+      updated = data.data || data;
+      message = updated.messages?.at(-1);
+    } catch (error) {
+      setNotice(error.friendlyMessage || "Transfer failed.");
+      return;
+    }
     setActive(updated);
     setSessions((current) => current.map((item) => item.id === updated.id ? updated : item));
-    setMessagesByChat((current) => ({ ...current, [active.id]: [...(current[active.id] || []), message] }));
+    if (message) setMessagesByChat((current) => appendMessage(current, active.id, message));
     setNotice("An agent transfer was requested.");
     pushNotification({ message: "AI-to-agent transfer requested.", type: "transfer" });
   };
@@ -118,8 +162,9 @@ export default function CustomerLiveChat() {
     try {
       const { data } = await api.put(`/chats/${active.id}/close`);
       chat = data.data || data;
-    } catch {
-      chat = demoStore.updateChat(active.id, { status: "CLOSED" });
+    } catch (error) {
+      setNotice(error.friendlyMessage || "Close failed.");
+      return;
     }
     setActive(chat);
     setSessions((current) => current.map((item) => item.id === chat.id ? chat : item));
@@ -133,8 +178,9 @@ export default function CustomerLiveChat() {
     try {
       const { data } = await api.post(`/chats/${active.id}/rating`, { rating: Number(rating), feedback });
       chat = data.data || data;
-    } catch {
-      chat = demoStore.updateChat(active.id, { rating: Number(rating), feedback });
+    } catch (error) {
+      setNotice(error.friendlyMessage || "Rating failed.");
+      return;
     }
     setActive(chat);
     setSessions((current) => current.map((item) => item.id === chat.id ? chat : item));

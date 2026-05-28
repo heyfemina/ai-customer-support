@@ -6,8 +6,10 @@
   "scripts": {
     "dev": "nodemon --config nodemon.json src/server.js",
     "start": "node src/server.js",
+    "build": "node node_modules/prisma/build/index.js generate",
+    "postinstall": "node node_modules/prisma/build/index.js generate",
     "prisma:generate": "node node_modules/prisma/build/index.js generate",
-    "prisma:migrate": "prisma migrate dev --name init",
+    "prisma:migrate": "node node_modules/prisma/build/index.js migrate deploy",
     "prisma:seed": "node prisma/seed.js"
   },
   "dependencies": {
@@ -22,6 +24,7 @@
     "morgan": "latest",
     "multer": "latest",
     "nodemailer": "latest",
+    "openai": "^6.39.0",
     "prisma": "^6.19.3",
     "socket.io": "latest",
     "zod": "latest"

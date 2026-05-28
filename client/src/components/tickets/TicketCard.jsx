@@ -9,7 +9,7 @@ export default function TicketCard({ ticket, basePath = "/customer/tickets" }) {
     <Card className="p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <Link to={`${basePath}/${ticket.id}`} className="font-semibold text-slate-950 hover:text-sky-700">
+          <Link to={`${basePath}/${ticket.id}`} className="font-semibold text-slate-900 hover:text-teal-700">
             {ticket.subject}
           </Link>
           <p className="mt-1 line-clamp-2 text-sm text-slate-500">{ticket.description}</p>

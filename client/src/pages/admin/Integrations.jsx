@@ -64,16 +64,19 @@ export default function Integrations() {
   };
 
   const testConnection = (id) => {
-    const next = items.map((item) => item.id === id ? { ...item, status: item.isActive ? "Connection healthy in demo mode" : "Credentials saved, channel inactive" } : item);
+    const next = items.map((item) => item.id === id ? { ...item, status: item.isActive ? "Connection healthy" : "Credentials saved, channel inactive" } : item);
     setItems(demoStore.saveIntegrations(next));
     demoStore.addActivityLog(`Tested ${items.find((item) => item.id === id)?.title} integration`);
   };
 
   const toggleIntegration = (id) => {
-    const next = items.map((item) => item.id === id ? { ...item, isActive: !item.isActive, status: !item.isActive ? "Demo enabled" : "Paused" } : item);
+    const next = items.map((item) => item.id === id ? { ...item, isActive: !item.isActive, status: !item.isActive ? "Enabled" : "Paused" } : item);
     setItems(demoStore.saveIntegrations(next));
     demoStore.addActivityLog(`${items.find((item) => item.id === id)?.title} ${items.find((item) => item.id === id)?.isActive ? "paused" : "enabled"}`);
   };
+
+  const widgetBase = import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, "") || "http://localhost:5000";
+  const widgetCode = `<script src="${widgetBase}/widget.js" data-widget-id="default"></script>`;
 
   return (
     <>
@@ -92,10 +95,29 @@ export default function Integrations() {
                 </label>
               ))}
               {id === "chatbot" ? (
-                <label className="flex items-center justify-between rounded-md bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700">
-                  {t("integrations.fields.visitorTracking")}
-                  <input type="checkbox" checked={Boolean(config.visitorTracking)} onChange={(event) => updateConfig(id, "visitorTracking", event.target.checked)} />
-                </label>
+                <div className="space-y-3 rounded-md border border-sky-100 bg-sky-50 p-3">
+                  <label className="block">
+                    <span className="text-xs font-semibold uppercase text-slate-500">Widget title</span>
+                    <input className="mt-1 h-10 w-full rounded-md border border-slate-200 px-3 text-sm" value={config.widgetTitle || "Support Chat"} onChange={(event) => updateConfig(id, "widgetTitle", event.target.value)} />
+                  </label>
+                  <label className="block">
+                    <span className="text-xs font-semibold uppercase text-slate-500">Welcome message</span>
+                    <input className="mt-1 h-10 w-full rounded-md border border-slate-200 px-3 text-sm" value={config.welcomeMessage || "Hi, how can we help?"} onChange={(event) => updateConfig(id, "welcomeMessage", event.target.value)} />
+                  </label>
+                  <label className="block">
+                    <span className="text-xs font-semibold uppercase text-slate-500">Primary color</span>
+                    <input type="color" className="mt-1 h-10 w-full rounded-md border border-slate-200 px-3 text-sm" value={config.primaryColor || "#0284c7"} onChange={(event) => updateConfig(id, "primaryColor", event.target.value)} />
+                  </label>
+                  <label className="flex items-center justify-between rounded-md bg-white px-3 py-2 text-sm font-semibold text-slate-700">
+                    {t("integrations.fields.visitorTracking")}
+                    <input type="checkbox" checked={Boolean(config.visitorTracking)} onChange={(event) => updateConfig(id, "visitorTracking", event.target.checked)} />
+                  </label>
+                  <div>
+                    <p className="text-xs font-semibold uppercase text-slate-500">Embed script</p>
+                    <textarea readOnly className="mt-1 min-h-20 w-full rounded-md border border-slate-200 bg-white p-2 text-xs" value={widgetCode} />
+                    <Button variant="secondary" className="mt-2 w-full" onClick={() => navigator.clipboard?.writeText(widgetCode)}>Copy embed code</Button>
+                  </div>
+                </div>
               ) : null}
               <Button variant="secondary" className="w-full" onClick={() => saveIntegration(id)}>{t("integrations.actions.save")}</Button>
               <Button variant="secondary" className="w-full" onClick={() => testConnection(id)}>{isActive ? t("integrations.actions.test") : t("integrations.actions.check")}</Button>

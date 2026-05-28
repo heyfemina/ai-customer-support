@@ -6,7 +6,7 @@ import { formatDate } from "../../utils/helpers.js";
 
 export default function TicketTable({ tickets, basePath = "/admin/tickets" }) {
   const columns = [
-    { key: "subject", labelKey: "table.subject", render: (row) => <Link className="font-semibold text-sky-700" to={`${basePath}/${row.id}`}>{row.subject}</Link> },
+    { key: "subject", labelKey: "table.subject", render: (row) => <Link className="font-semibold text-teal-700 hover:text-teal-800" to={`${basePath}/${row.id}`}>{row.subject}</Link> },
     { key: "customer", labelKey: "table.customer", render: (row) => row.customer?.name || row.customerName || "Customer" },
     { key: "agent", labelKey: "table.agent", render: (row) => row.agent?.name || row.agentName || "Unassigned" },
     { key: "priority", labelKey: "table.priority", render: (row) => <Badge tone={row.priority === "URGENT" || row.priority === "HIGH" ? "red" : "slate"}>{row.priority}</Badge> },

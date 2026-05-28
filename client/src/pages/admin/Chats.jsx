@@ -5,24 +5,29 @@ import ChatSidebar from "../../components/chat/ChatSidebar.jsx";
 import ChatWindow from "../../components/chat/ChatWindow.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useSocket } from "../../context/SocketContext.jsx";
-import { chats, messages } from "../../utils/dummyData.js";
 import { normalizeItems } from "../../utils/helpers.js";
 import Card from "../../components/common/Card.jsx";
 import Button from "../../components/common/Button.jsx";
 import { useTranslation } from "react-i18next";
-import { demoStore } from "../../utils/demoStore.js";
+
+const appendMessage = (current, chatId, message) => {
+  const existing = current[chatId] || [];
+  if (existing.some((item) => item.id === message.id)) return current;
+  return { ...current, [chatId]: [...existing, message] };
+};
 
 export default function Chats() {
   const { user } = useAuth();
   const { t } = useTranslation();
   const { socket, connected, pushNotification } = useSocket();
-  const [sessions, setSessions] = useState(chats);
-  const [active, setActive] = useState(chats[0]);
+  const [sessions, setSessions] = useState([]);
+  const [active, setActive] = useState(null);
   const [messagesByChat, setMessagesByChat] = useState({});
   const [typingUsers, setTypingUsers] = useState([]);
   const [agents, setAgents] = useState([]);
   const [transferAgentId, setTransferAgentId] = useState("");
-  const activeMessages = useMemo(() => active?.messages?.length ? active.messages : messages, [active]);
+  const [notice, setNotice] = useState("");
+  const activeMessages = useMemo(() => active?.messages || [], [active]);
   const queueStats = {
     waiting: sessions.filter((session) => session.status === "WAITING").length,
     active: sessions.filter((session) => session.status === "ACTIVE").length,
@@ -31,17 +36,16 @@ export default function Chats() {
 
   useEffect(() => {
     api.get("/chats").then(({ data }) => {
-      const rows = normalizeItems(data, demoStore.chats());
+      const rows = normalizeItems(data, []);
       setSessions(rows);
       setActive(rows[0] || null);
       setMessagesByChat(Object.fromEntries(rows.map((row) => [row.id, row.messages || []])));
     }).catch(() => {
-      const rows = demoStore.chats();
-      setSessions(rows);
-      setActive(rows[0] || null);
-      setMessagesByChat(Object.fromEntries(rows.map((row) => [row.id, row.messages || []])));
+      setSessions([]);
+      setActive(null);
+      setMessagesByChat({});
     });
-    api.get("/reports/agents").then(({ data }) => setAgents(normalizeItems(data, []))).catch(() => setAgents(demoStore.users().filter((item) => item.role === "AGENT")));
+    api.get("/reports/agents").then(({ data }) => setAgents(normalizeItems(data, []))).catch(() => setAgents([]));
   }, []);
 
   useEffect(() => {
@@ -49,40 +53,72 @@ export default function Chats() {
     socket.emit("join_chat", active.id);
     const receive = (message) => {
       if (message.chatSessionId !== active.id) return;
-      setMessagesByChat((current) => ({ ...current, [active.id]: [...(current[active.id] || []), message] }));
+      setMessagesByChat((current) => appendMessage(current, active.id, message));
+    };
+    const chatUpdate = (chat) => {
+      const updated = chat.chat || chat;
+      setSessions((current) => {
+        const exists = current.some((item) => item.id === updated.id);
+        return exists ? current.map((item) => item.id === updated.id ? updated : item) : [updated, ...current];
+      });
+      if (updated.id === active.id) {
+        setActive(updated);
+        setMessagesByChat((current) => ({ ...current, [updated.id]: updated.messages || current[updated.id] || [] }));
+      }
     };
     const typing = (payload) => payload.user?.id !== user?.id && setTypingUsers([payload.user]);
     const stopTyping = (payload) => payload.user?.id !== user?.id && setTypingUsers([]);
     socket.on("receive_message", receive);
+    socket.on("agent_transfer", chatUpdate);
+    socket.on("chat_queue_updated", chatUpdate);
     socket.on("typing", typing);
     socket.on("stop_typing", stopTyping);
     return () => {
       socket.emit("leave_chat", active.id);
       socket.off("receive_message", receive);
+      socket.off("agent_transfer", chatUpdate);
+      socket.off("chat_queue_updated", chatUpdate);
       socket.off("typing", typing);
       socket.off("stop_typing", stopTyping);
     };
   }, [socket, active?.id, user?.id]);
 
   const sendMessage = async ({ content, file }) => {
+    if (!active?.id) return;
     let filePayload = {};
     if (file) filePayload = await uploadFile(file);
-    const payload = { content: content || filePayload.fileName || "Attachment", ...filePayload, chatSessionId: active.id, senderId: user?.id };
+    const payload = { content: content || filePayload.fileName || "Attachment", ...filePayload, chatSessionId: active.id, senderId: user?.id, senderName: user?.name };
     if (connected) {
-      socket.emit("send_message", payload);
+      socket.emit("send_message", payload, (response) => {
+        if (!response?.success) {
+          setNotice(response?.message || "Message failed. Please check the backend connection.");
+          return;
+        }
+        const message = response.data?.message;
+        const aiMessage = response.data?.aiMessage;
+        if (!message) return;
+        setMessagesByChat((current) => {
+          const withMessage = appendMessage(current, active.id, message);
+          return aiMessage ? appendMessage(withMessage, active.id, aiMessage) : withMessage;
+        });
+        setSessions((current) => current.map((item) => item.id === active.id ? { ...item, lastMessage: (aiMessage || message)?.content, updatedAt: new Date().toISOString() } : item));
+      });
     } else {
       let message;
+      let aiMessage;
       try {
         const { data } = await api.post(`/chats/${active.id}/message`, payload);
-        message = data.data || data;
-      } catch {
-        const result = demoStore.addChatMessage(active.id, { ...payload, mine: true });
-        message = result.message;
-        setActive(result.chat);
-        setSessions((current) => current.map((item) => item.id === result.chat.id ? result.chat : item));
-        pushNotification({ message: "Admin sent a secure chat message.", type: "chat" });
+        message = data.data?.message || data.message || data.data || data;
+        aiMessage = data.data?.aiMessage || data.aiMessage;
+      } catch (error) {
+        setNotice(error.friendlyMessage || "Message failed. Please check the backend connection.");
+        return;
       }
-      setMessagesByChat((current) => ({ ...current, [active.id]: [...(current[active.id] || []), message] }));
+      setMessagesByChat((current) => {
+        const withMessage = appendMessage(current, active.id, message);
+        return aiMessage ? appendMessage(withMessage, active.id, aiMessage) : withMessage;
+      });
+      setSessions((current) => current.map((item) => item.id === active.id ? { ...item, lastMessage: (aiMessage || message)?.content, updatedAt: new Date().toISOString() } : item));
     }
   };
 
@@ -92,11 +128,9 @@ export default function Chats() {
     try {
       const { data } = await api.post(`/chats/${active.id}/transfer`, { agentId: transferAgentId });
       chat = data.data || data;
-    } catch {
-      const agent = agents.find((item) => item.id === transferAgentId);
-      chat = demoStore.updateChat(active.id, { status: "TRANSFERRED", agentId: transferAgentId, agentName: agent?.name });
-      const event = demoStore.addChatEvent(active.id, `Admin transferred chat to ${agent?.name || "another agent"}.`).message;
-      setMessagesByChat((current) => ({ ...current, [active.id]: [...(current[active.id] || []), event] }));
+    } catch (error) {
+      setNotice(error.friendlyMessage || "Transfer failed. Please check the backend connection.");
+      return;
     }
     setActive(chat);
     setSessions((current) => current.map((item) => item.id === chat.id ? chat : item));
@@ -109,10 +143,9 @@ export default function Chats() {
     try {
       const { data } = await api.put(`/chats/${active.id}/close`);
       chat = data.data || data;
-    } catch {
-      chat = demoStore.updateChat(active.id, { status: "CLOSED" });
-      const event = demoStore.addChatEvent(active.id, "Admin closed the chat.").message;
-      setMessagesByChat((current) => ({ ...current, [active.id]: [...(current[active.id] || []), event] }));
+    } catch (error) {
+      setNotice(error.friendlyMessage || "Close failed. Please check the backend connection.");
+      return;
     }
     setActive(chat);
     setSessions((current) => current.map((item) => item.id === chat.id ? chat : item));
@@ -122,6 +155,7 @@ export default function Chats() {
   return (
     <>
       <PageHeader title="Chat monitoring" description="Monitor live conversations, AI-to-agent handoffs, queues, notifications, and visitor sessions." />
+      {notice ? <p className="mb-4 rounded-md bg-amber-50 p-3 text-sm font-semibold text-amber-800">{notice}</p> : null}
       <div className="grid gap-6 xl:grid-cols-[1fr_320px]">
         <div className="flex flex-col overflow-hidden rounded-lg border border-slate-200 md:flex-row">
           <ChatSidebar sessions={sessions} activeId={active?.id} onSelect={setActive} />

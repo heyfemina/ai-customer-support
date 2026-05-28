@@ -17,7 +17,7 @@ export default function Home() {
           <h1 className="text-4xl font-bold leading-tight md:text-6xl">AI Customer Support System</h1>
           <p className="mt-5 max-w-2xl text-lg text-slate-300">A complete SaaS support workspace with role-based dashboards, ticketing, live chat, AI handoff, analytics, security controls, and multilingual customer journeys.</p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link to="/login"><Button>Try demo login</Button></Link>
+            <Link to="/login"><Button>Sign in</Button></Link>
             <Link to="/register"><Button variant="secondary">Create customer account</Button></Link>
           </div>
         </div>

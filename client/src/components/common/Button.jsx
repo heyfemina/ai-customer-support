@@ -2,10 +2,10 @@ import { Loader2 } from "lucide-react";
 import { cx } from "../../utils/helpers.js";
 
 const variants = {
-  primary: "bg-slate-950 text-white shadow-[0_10px_20px_rgba(15,23,42,0.16)] hover:bg-slate-800 focus:ring-slate-300",
-  secondary: "border border-slate-200 bg-white text-slate-700 shadow-sm hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 focus:ring-slate-200",
+  primary: "bg-teal-600 text-white shadow-[0_10px_20px_rgba(13,148,136,0.16)] hover:bg-teal-700 focus:ring-teal-200",
+  secondary: "border border-slate-200 bg-white text-slate-700 shadow-sm hover:border-teal-200 hover:bg-teal-50 hover:text-teal-800 focus:ring-teal-100",
   danger: "bg-rose-600 text-white shadow-[0_10px_20px_rgba(225,29,72,0.16)] hover:bg-rose-700 focus:ring-rose-200",
-  ghost: "bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-950 focus:ring-slate-200",
+  ghost: "bg-transparent text-slate-600 hover:bg-teal-50 hover:text-teal-800 focus:ring-teal-100",
 };
 
 export default function Button({ children, className, variant = "primary", loading = false, icon: Icon, ...props }) {

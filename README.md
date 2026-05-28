@@ -23,6 +23,10 @@ DATABASE_URL="postgresql://postgres:your_password@your_host:5432/postgres"
 JWT_SECRET="your_super_secret_key"
 CLIENT_URL="http://localhost:5173"
 OPENAI_API_KEY="your_openai_or_gemini_key"
+AI_PROVIDER=openai
+OPENAI_MODEL=gpt-5.4-mini
+ENCRYPTION_SECRET="generate_strong_32_byte_secret_here"
+ENCRYPTION_VERSION=v1
 EMAIL_HOST="smtp.gmail.com"
 EMAIL_PORT=587
 EMAIL_USER="your_email@gmail.com"
@@ -116,6 +120,61 @@ Reports:
 - `GET /reports/agents`
 - `GET /reports/customers`
 - `GET /reports/response-time`
+- `GET /reports/sla`
+
+Production modules:
+- `GET /api/health`
+- `GET /api/admin/system-health`
+- `GET /api/admin/alerts`
+- `POST /api/backups/create`
+- `GET /api/backups`
+- `GET /api/backups/:id/download`
+- `POST /api/gdpr/export-request`
+- `GET /api/gdpr/export/:userId`
+- `POST /api/gdpr/delete-request`
+- `GET /api/gdpr/requests`
+- `POST /api/widget/session`
+- `POST /api/widget/message`
+- `GET /widget.js`
+
+## Render Deployment
+
+Backend:
+- Root Directory: `server`
+- Build Command: `npm install && npx prisma generate`
+- Start Command: `npm start`
+- After schema changes run: `npm run prisma:migrate`
+
+Frontend:
+- Root Directory: `client`
+- Build Command: `npm install && npm run build`
+- Publish Directory: `dist`
+- React Router rewrite: source `/*`, destination `/index.html`, action `Rewrite`
+
+Backend environment variables:
+
+```env
+NODE_ENV=production
+DATABASE_URL=
+DIRECT_URL=
+JWT_SECRET=
+CLIENT_URL=
+AI_PROVIDER=openai
+OPENAI_API_KEY=
+OPENAI_MODEL=gpt-5.4-mini
+ENCRYPTION_SECRET=
+ENCRYPTION_VERSION=v1
+SUPABASE_URL=
+SUPABASE_SERVICE_ROLE_KEY=
+SUPABASE_BACKUP_BUCKET=backups
+```
+
+Frontend environment variables:
+
+```env
+VITE_API_URL=https://your-backend.onrender.com/api
+VITE_SOCKET_URL=https://your-backend.onrender.com
+```
 
 Integrations:
 - `GET /integrations`

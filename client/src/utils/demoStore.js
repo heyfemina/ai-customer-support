@@ -9,9 +9,17 @@ const keys = {
   security: "demo:security",
 };
 
+const chatSyncEvent = "demo:chats-updated";
+
 const defaults = {
   aiSettings: {
     botName: "Support AI",
+    apiProvider: "gemini",
+    model: "gemini-2.5-flash",
+    apiKey: "",
+    apiKeyEnabled: false,
+    apiKeyMasked: "",
+    hasApiKey: false,
     welcomeMessage: "Hello, I can help with tickets, account questions, and quick troubleshooting.",
     fallbackMessage: "I will transfer you to an agent so we can resolve this properly.",
     isActive: true,
@@ -28,7 +36,7 @@ const defaults = {
   },
   integrations: [
     { id: "whatsapp", title: "WhatsApp API", text: "Business number, webhook URL, access token, template sync", isActive: false, status: "Pending API keys", config: { phoneNumberId: "", webhookUrl: "", accessToken: "", templateNamespace: "" } },
-    { id: "chatbot", title: "Website chatbot", text: "Embed key, domains, AI handoff trigger, visitor tracking", isActive: true, status: "Demo widget ready", config: { embedKey: "demo-widget-key", allowedDomains: "localhost, example.com", handoffTrigger: "human, agent, billing", visitorTracking: true } },
+    { id: "chatbot", title: "Website chatbot", text: "Embed key, domains, AI handoff trigger, visitor tracking", isActive: true, status: "Widget settings ready", config: { embedKey: "default", allowedDomains: "localhost", handoffTrigger: "human, agent, billing", visitorTracking: true } },
     { id: "email", title: "Email system", text: "SMTP host, sender address, test mail, ticket ingestion", isActive: false, status: "Pending SMTP details", config: { smtpHost: "", smtpPort: "587", senderEmail: "", inboundAddress: "" } },
   ],
   security: [
@@ -36,20 +44,18 @@ const defaults = {
     { id: "roles", title: "Role-based access control", state: "Active", enabled: true, detail: "Admin, agent, and customer route permissions" },
     { id: "encryption", title: "Data encryption", state: "Ready", enabled: true, detail: "Encrypted transport and encrypted-message indicators" },
     { id: "twoFactor", title: "Two-factor authentication", state: "Ready", enabled: false, detail: "User profile flag ready for OTP provider setup" },
-    { id: "backup", title: "Secure cloud backup", state: "Ready", enabled: true, detail: "Manual secure backup action available in demo mode" },
+    { id: "backup", title: "Secure cloud backup", state: "Ready", enabled: true, detail: "Manual secure backup action available" },
     { id: "activity", title: "Activity logs", state: "Active", enabled: true, detail: "Admin changes and auth events are auditable" },
     { id: "gdpr", title: "GDPR compliance", state: "Ready", enabled: true, detail: "Data export and deletion workflow placeholders" },
     { id: "firewall", title: "Firewall protection", state: "Ready", enabled: true, detail: "Helmet headers, CORS policy, and rate limiting" },
     { id: "apiSecurity", title: "API security", state: "Active", enabled: true, detail: "Protected API routes and request throttling" },
   ],
   activityLogs: [
-    { id: "a1", user: "Ariana Admin", action: "Updated AI fallback message", ipAddress: "192.168.1.20", createdAt: "2026-05-26T08:20:00.000Z" },
-    { id: "a2", user: "Marco Agent", action: "Transferred chat chat-2", ipAddress: "192.168.1.21", createdAt: "2026-05-26T08:10:00.000Z" },
-    { id: "a3", user: "Clara Customer", action: "Created ticket tck-1004", ipAddress: "192.168.1.22", createdAt: "2026-05-25T16:12:00.000Z" },
   ],
 };
 
 function read(key, fallback) {
+  if ([keys.tickets, keys.users, keys.chats, "demo:activity-logs"].includes(key)) return fallback;
   try {
     const stored = localStorage.getItem(key);
     return stored ? JSON.parse(stored) : fallback;
@@ -59,7 +65,11 @@ function read(key, fallback) {
 }
 
 function write(key, value) {
+  if ([keys.tickets, keys.users, keys.chats, "demo:activity-logs"].includes(key)) return value;
   localStorage.setItem(key, JSON.stringify(value));
+  if (key === keys.chats) {
+    window.dispatchEvent(new CustomEvent(chatSyncEvent, { detail: value }));
+  }
   return value;
 }
 
@@ -87,7 +97,7 @@ export const demoStore = {
     const ticket = {
       id: `tck-${Date.now()}`,
       status: "OPEN",
-      customerName: "Clara Customer",
+      customerName: "Customer",
       agentName: "Unassigned",
       createdAt: new Date().toISOString(),
       messages: [],
@@ -129,6 +139,19 @@ export const demoStore = {
     messages: index === 0 ? messages : [],
   })))),
   saveChats: (items) => write(keys.chats, items),
+  subscribeChats: (callback) => {
+    const notify = () => callback(demoStore.chats());
+    const handleStorage = (event) => {
+      if (event.key === keys.chats) notify();
+    };
+    const handleLocal = () => notify();
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener(chatSyncEvent, handleLocal);
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener(chatSyncEvent, handleLocal);
+    };
+  },
   updateChat: (id, updates) => {
     let nextChat = null;
     const updated = demoStore.chats().map((chat) => {
@@ -156,7 +179,7 @@ export const demoStore = {
   security: () => read(keys.security, defaults.security),
   saveSecurity: (items) => write(keys.security, items),
   activityLogs: () => read("demo:activity-logs", defaults.activityLogs),
-  addActivityLog: (action, user = "Ariana Admin") => {
+  addActivityLog: (action, user = "Admin") => {
     const logs = demoStore.activityLogs();
     return write("demo:activity-logs", [{ id: `log-${Date.now()}`, user, action, ipAddress: "127.0.0.1", createdAt: new Date().toISOString() }, ...logs]);
   },

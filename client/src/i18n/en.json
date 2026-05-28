@@ -38,7 +38,7 @@
     "monitoring": {
       "applicationServer": "Application server",
       "healthy": "Healthy",
-      "demoMode": "Demo mode active",
+      "demoMode": "Live mode active",
       "database": "Database",
       "localStore": "Local store",
       "recordsLoaded": "{{count}} recent records loaded",
@@ -356,7 +356,7 @@
       },
       "backup": {
         "title": "Secure cloud backup",
-        "detail": "Manual secure backup action available in demo mode"
+        "detail": "Manual secure backup action available"
       },
       "activity": {
         "title": "Activity logs",

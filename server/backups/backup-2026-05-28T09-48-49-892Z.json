@@ -1,0 +1,1504 @@
+{
+  "exportedAt": "2026-05-28T09:48:52.046Z",
+  "users": [
+    {
+      "id": "cmpmhj2zf0001vrmke54qf1q6",
+      "name": "Marco Agent",
+      "email": "agent@example.com",
+      "role": "AGENT",
+      "language": "en",
+      "isActive": true,
+      "twoFactorOn": false,
+      "createdAt": "2026-05-26T10:21:08.187Z",
+      "updatedAt": "2026-05-26T10:21:08.187Z"
+    },
+    {
+      "id": "cmpmhzfvo0000vrbcj40zoj2w",
+      "name": "Femina",
+      "email": "femina29@gmail.com",
+      "role": "CUSTOMER",
+      "language": "en",
+      "isActive": true,
+      "twoFactorOn": false,
+      "createdAt": "2026-05-26T10:33:51.397Z",
+      "updatedAt": "2026-05-26T10:33:51.397Z"
+    },
+    {
+      "id": "cmpmhj3is0002vrmk9as6e30j",
+      "name": "cera",
+      "email": "cera@gmail.com",
+      "role": "CUSTOMER",
+      "language": "en",
+      "isActive": true,
+      "twoFactorOn": false,
+      "createdAt": "2026-05-26T10:21:08.885Z",
+      "updatedAt": "2026-05-27T05:28:27.457Z"
+    },
+    {
+      "id": "cmpnx1oz60000vr582qj4vx3j",
+      "name": "testing",
+      "email": "mathilde8@ethereal.email",
+      "role": "CUSTOMER",
+      "language": "en",
+      "isActive": true,
+      "twoFactorOn": false,
+      "createdAt": "2026-05-27T10:23:16.914Z",
+      "updatedAt": "2026-05-27T10:40:57.112Z"
+    },
+    {
+      "id": "cmpo1ccgh0002vr34kiq203yr",
+      "name": "Clara Customer",
+      "email": "customer@example.com",
+      "role": "CUSTOMER",
+      "language": "en",
+      "isActive": true,
+      "twoFactorOn": false,
+      "createdAt": "2026-05-27T12:23:32.369Z",
+      "updatedAt": "2026-05-27T12:23:32.369Z"
+    },
+    {
+      "id": "cmpmhj24k0000vrmkjy6fbyh0",
+      "name": "Ariana Admin",
+      "email": "admin@example.com",
+      "role": "ADMIN",
+      "language": "en",
+      "isActive": true,
+      "twoFactorOn": false,
+      "createdAt": "2026-05-26T10:21:07.075Z",
+      "updatedAt": "2026-05-28T05:23:41.267Z"
+    },
+    {
+      "id": "cmpp9dq6h0004vrygthd5ajuh",
+      "name": "Codex OpenAI Check",
+      "email": "codex-openai-check-20260528142619@example.com",
+      "role": "CUSTOMER",
+      "language": "en",
+      "isActive": false,
+      "twoFactorOn": false,
+      "createdAt": "2026-05-28T08:56:19.914Z",
+      "updatedAt": "2026-05-28T08:58:03.815Z"
+    }
+  ],
+  "tickets": [
+    {
+      "id": "cmpmhj41y0004vrmky38no35l",
+      "subject": "Billing invoice mismatch",
+      "description": "The enterprise invoice includes duplicate seats for the April billing cycle.",
+      "status": "OPEN",
+      "priority": "HIGH",
+      "category": "Billing",
+      "customerId": "cmpmhj3is0002vrmk9as6e30j",
+      "agentId": "cmpmhj2zf0001vrmke54qf1q6",
+      "createdAt": "2026-05-26T10:21:09.575Z",
+      "updatedAt": "2026-05-26T10:21:09.575Z",
+      "firstResponseAt": null,
+      "resolvedAt": null,
+      "firstResponseMinutes": null,
+      "resolutionMinutes": null,
+      "slaBreached": false,
+      "attachments": []
+    },
+    {
+      "id": "cmpo1cdmw0005vr34h63gofry",
+      "subject": "Billing invoice mismatch",
+      "description": "The enterprise invoice includes duplicate seats for the April billing cycle.",
+      "status": "OPEN",
+      "priority": "HIGH",
+      "category": "Billing",
+      "customerId": "cmpo1ccgh0002vr34kiq203yr",
+      "agentId": "cmpmhj2zf0001vrmke54qf1q6",
+      "createdAt": "2026-05-27T12:23:33.896Z",
+      "updatedAt": "2026-05-27T12:23:33.896Z",
+      "firstResponseAt": null,
+      "resolvedAt": null,
+      "firstResponseMinutes": null,
+      "resolutionMinutes": null,
+      "slaBreached": false,
+      "attachments": []
+    },
+    {
+      "id": "cmpp3b894000hvrloq2r75mi3",
+      "subject": "new ticket raise urgent and solve this [properly pleasenew ticket raise urgent and solve this [properly please ",
+      "description": "no new ticket raise urgent and solve this [properly please new ticket raise urgent and solve this [properly please",
+      "status": "OPEN",
+      "priority": "HIGH",
+      "category": "AI",
+      "customerId": "cmpo1ccgh0002vr34kiq203yr",
+      "agentId": null,
+      "createdAt": "2026-05-28T06:06:25.672Z",
+      "updatedAt": "2026-05-28T06:06:25.672Z",
+      "firstResponseAt": null,
+      "resolvedAt": null,
+      "firstResponseMinutes": null,
+      "resolutionMinutes": null,
+      "slaBreached": false,
+      "attachments": [
+        {
+          "id": "cmpp3b894000ivrloyj8v6xj3",
+          "fileName": "AIchatsupportsystem (4).docx",
+          "fileUrl": "/uploads/1779948385497-AIchatsupportsystem-(4).docx",
+          "fileType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "ticketId": "cmpp3b894000hvrloq2r75mi3",
+          "createdAt": "2026-05-28T06:06:25.672Z"
+        }
+      ]
+    }
+  ],
+  "chatSessions": [
+    {
+      "id": "cmpmhj4ho0008vrmkx4sn6192",
+      "customerId": "cmpmhj3is0002vrmk9as6e30j",
+      "agentId": "cmpmhj2zf0001vrmke54qf1q6",
+      "status": "ACTIVE",
+      "rating": 5,
+      "feedback": "Helpful and fast.",
+      "language": "en",
+      "channel": "Website chatbot",
+      "encrypted": true,
+      "lastMessage": null,
+      "visitorIp": null,
+      "visitorPage": null,
+      "visitorDevice": null,
+      "visitorVisits": 1,
+      "visitorId": null,
+      "visitorDomain": null,
+      "visitorReferrer": null,
+      "widgetId": null,
+      "createdAt": "2026-05-26T10:21:10.141Z",
+      "updatedAt": "2026-05-26T10:57:24.217Z"
+    },
+    {
+      "id": "cmpo1ce2h0009vr34r8zp6yh4",
+      "customerId": "cmpo1ccgh0002vr34kiq203yr",
+      "agentId": "cmpmhj2zf0001vrmke54qf1q6",
+      "status": "TRANSFERRED",
+      "rating": 5,
+      "feedback": "Helpful and fast.",
+      "language": "en",
+      "channel": "Website chatbot",
+      "encrypted": true,
+      "lastMessage": "Sure! I will transfer your chat to an agent now. Please hold on for a moment.",
+      "visitorIp": null,
+      "visitorPage": null,
+      "visitorDevice": null,
+      "visitorVisits": 1,
+      "visitorId": null,
+      "visitorDomain": null,
+      "visitorReferrer": null,
+      "widgetId": null,
+      "createdAt": "2026-05-27T12:23:34.458Z",
+      "updatedAt": "2026-05-28T09:11:39.947Z"
+    },
+    {
+      "id": "cmpp9dqo20008vryght40wa87",
+      "customerId": "cmpp9dq6h0004vrygthd5ajuh",
+      "agentId": null,
+      "status": "CLOSED",
+      "rating": null,
+      "feedback": null,
+      "language": "en",
+      "channel": "Website chatbot",
+      "encrypted": true,
+      "lastMessage": "Yes, the customer chatbot is powered by OpenAI.",
+      "visitorIp": "::1",
+      "visitorPage": "/support",
+      "visitorDevice": "Mozilla/5.0 (Windows NT; Windows NT 10.0; en-US) WindowsPowerShell/5.1.19041.6456",
+      "visitorVisits": 1,
+      "visitorId": null,
+      "visitorDomain": null,
+      "visitorReferrer": null,
+      "widgetId": null,
+      "createdAt": "2026-05-28T08:56:20.546Z",
+      "updatedAt": "2026-05-28T08:58:04.846Z"
+    }
+  ],
+  "messages": [
+    {
+      "id": "cmpmhj49u0006vrmkhab8yzg0",
+      "content": "I can help review this invoice.",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpmhj2zf0001vrmke54qf1q6",
+      "ticketId": "cmpmhj41y0004vrmky38no35l",
+      "chatSessionId": null,
+      "isAI": false,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-26T10:21:09.858Z"
+    },
+    {
+      "id": "cmpmhj4pk000avrmkfwr36jnw",
+      "content": "Hello, I need help with my account.",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpmhj3is0002vrmk9as6e30j",
+      "ticketId": null,
+      "chatSessionId": "cmpmhj4ho0008vrmkx4sn6192",
+      "isAI": false,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-26T10:21:10.424Z"
+    },
+    {
+      "id": "cmpminwrw0005vr6k5yri2kqb",
+      "content": "dd",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpmhj2zf0001vrmke54qf1q6",
+      "ticketId": null,
+      "chatSessionId": "cmpmhj4ho0008vrmkx4sn6192",
+      "isAI": false,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-26T10:52:53.036Z"
+    },
+    {
+      "id": "cmpmitpwh000bvr6k0sceblzz",
+      "content": "may i know whats the purpose ?\n\n",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpmhj2zf0001vrmke54qf1q6",
+      "ticketId": null,
+      "chatSessionId": "cmpmhj4ho0008vrmkx4sn6192",
+      "isAI": false,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-26T10:57:24.065Z"
+    },
+    {
+      "id": "cmpo1cduq0007vr34b1znbqev",
+      "content": "I can help review this invoice.",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpmhj2zf0001vrmke54qf1q6",
+      "ticketId": "cmpo1cdmw0005vr34h63gofry",
+      "chatSessionId": null,
+      "isAI": false,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-27T12:23:34.178Z"
+    },
+    {
+      "id": "cmpo1cean000bvr34uw14z2ym",
+      "content": "Hello, I need help with my account.",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpo1ccgh0002vr34kiq203yr",
+      "ticketId": null,
+      "chatSessionId": "cmpo1ce2h0009vr34r8zp6yh4",
+      "isAI": false,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-27T12:23:34.751Z"
+    },
+    {
+      "id": "cmpp0vlzs0003vrl0c376bdia",
+      "content": "hi",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpo1ccgh0002vr34kiq203yr",
+      "ticketId": null,
+      "chatSessionId": "cmpo1ce2h0009vr34r8zp6yh4",
+      "isAI": false,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-28T04:58:17.585Z"
+    },
+    {
+      "id": "cmpp1zu6l000gvrf4u8qy19fo",
+      "content": "hellllllllo",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpo1ccgh0002vr34kiq203yr",
+      "ticketId": null,
+      "chatSessionId": "cmpo1ce2h0009vr34r8zp6yh4",
+      "isAI": false,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-28T05:29:34.605Z"
+    },
+    {
+      "id": "cmpp20bnz000kvrf4riya1hrn",
+      "content": "hiii",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpmhj2zf0001vrmke54qf1q6",
+      "ticketId": null,
+      "chatSessionId": "cmpo1ce2h0009vr34r8zp6yh4",
+      "isAI": false,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-28T05:29:57.117Z"
+    },
+    {
+      "id": "cmpp2exxg0001vrwco5fl5xd6",
+      "content": "hi",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpmhj2zf0001vrmke54qf1q6",
+      "ticketId": null,
+      "chatSessionId": "cmpo1ce2h0009vr34r8zp6yh4",
+      "isAI": false,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-28T05:41:19.300Z"
+    },
+    {
+      "id": "cmpp2xhm50009vrlo16zcgc4k",
+      "content": "enc:v1:PchJEU5uOkCbXPw7.kXYhudx5a8rHZoA+6EI84A==.u26V1qM=",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpo1ccgh0002vr34kiq203yr",
+      "ticketId": null,
+      "chatSessionId": "cmpo1ce2h0009vr34r8zp6yh4",
+      "isAI": false,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-28T05:55:44.622Z"
+    },
+    {
+      "id": "cmpp2xjrl000bvrlo8osp8gz2",
+      "content": "enc:v1:9WfIyYWwh1e2/btV.I2GMYM26VHoRNYaGaeZTKQ==.IO47ocAwjYIchuXAz16otitq021VH0zefDDPUoFi2VYg7cHfLnihnFgPCKjJkpAeUh+oEsbwrYU7AHBx9771QQvdSWJ/hIYpDURhE2LAOhsHi5B7JTrUoPes+TMWh3kxyA==",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpo1ccgh0002vr34kiq203yr",
+      "ticketId": null,
+      "chatSessionId": "cmpo1ce2h0009vr34r8zp6yh4",
+      "isAI": true,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-28T05:55:47.409Z"
+    },
+    {
+      "id": "cmpp2y8iw000dvrlox78ieygl",
+      "content": "enc:v1:Jg9aoWX5ZPVuPuKL.xgDjGdtmF7Bdqc/UyIGgNg==.hF6wwNfIcm/RxMibAgkLQM69BpDQgEgPAxot",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpo1ccgh0002vr34kiq203yr",
+      "ticketId": null,
+      "chatSessionId": "cmpo1ce2h0009vr34r8zp6yh4",
+      "isAI": false,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-28T05:56:19.496Z"
+    },
+    {
+      "id": "cmpp2y9yd000fvrlohmza4jy4",
+      "content": "enc:v1:b8wr6YBLceunlj9M.QBzRD4DLsS2AEdnQJZL3KA==.RNajqtwosNj/B2X7r8QzFtWTMBKQo49benYRxLE90PAHPUpKpk22eRJe0Gz4oTpdVwWrM/dfFGuIA54FWv5jU3zZ/XF4KmD/u2/aCc/K0HvYoNPq9a+hjEUrnOW0kRMQeQ==",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpo1ccgh0002vr34kiq203yr",
+      "ticketId": null,
+      "chatSessionId": "cmpo1ce2h0009vr34r8zp6yh4",
+      "isAI": true,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-28T05:56:21.349Z"
+    },
+    {
+      "id": "cmpp42uuq0007vrvo9axqs45j",
+      "content": "enc:v1:e68Y/tzjEwSeEjMe.Oc5jwKwqNEsWoADDaHCzPQ==.D5E=",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpo1ccgh0002vr34kiq203yr",
+      "ticketId": null,
+      "chatSessionId": "cmpo1ce2h0009vr34r8zp6yh4",
+      "isAI": false,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-28T06:27:54.674Z"
+    },
+    {
+      "id": "cmpp42wvf0009vrvou07b8jhw",
+      "content": "enc:v1:7Y9PlfOBGdrDqX7Q.EDHOBmdSy3fYkmsIBoQ7JQ==.NTcQ7dBIbFGCsf6OERK3oNfiTD0uO9ZnxB2tInuTeX001Z1BHAVoWaKJQ+Ab/jvxGlEyKLvzmN2C7W8WnhWN0yY0zqFBdyaGyMZvwT5R3FlRVQzsmnlqlEeO3E7qOykt0g==",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpo1ccgh0002vr34kiq203yr",
+      "ticketId": null,
+      "chatSessionId": "cmpo1ce2h0009vr34r8zp6yh4",
+      "isAI": true,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-28T06:27:57.291Z"
+    },
+    {
+      "id": "cmpp456fk000bvrvomqs08il6",
+      "content": "enc:v1:MVNAqZJrG6WpXvue.dCHKiTFJypXG6CEGjVEhNA==.Jr+MPpcb8Cro2N3W9Fw=",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpo1ccgh0002vr34kiq203yr",
+      "ticketId": null,
+      "chatSessionId": "cmpo1ce2h0009vr34r8zp6yh4",
+      "isAI": false,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-28T06:29:42.992Z"
+    },
+    {
+      "id": "cmpp458hz000dvrvoyl3wrs0d",
+      "content": "enc:v1:q/zRgATCnO7lWumy.tg5aRNvSBCSoLIn/EiGiZg==.KrAwr5cdW5GaCZf+C70NHQfqHkeqsGs05i5kmqKvtdjg2u93E/W9uN53etrgq+uNKIs777u072sCho0qeKnf2i+8i7hRxqdNd/VfGpziTTJGBbTollKXUszMP7KnI45i4w==",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpo1ccgh0002vr34kiq203yr",
+      "ticketId": null,
+      "chatSessionId": "cmpo1ce2h0009vr34r8zp6yh4",
+      "isAI": true,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-28T06:29:45.671Z"
+    },
+    {
+      "id": "cmpp486d8000fvrvoh8c22yye",
+      "content": "enc:v1:8hZ6axIylNC1RrUz.JGkUAlvTMnSU9uQaZ3yKtw==.D4HhZOS2yC6kRqKM1OqVKFv5kp2UpPkG9Ooefjf3vnZlTQ==",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpo1ccgh0002vr34kiq203yr",
+      "ticketId": null,
+      "chatSessionId": "cmpo1ce2h0009vr34r8zp6yh4",
+      "isAI": false,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-28T06:32:02.876Z"
+    },
+    {
+      "id": "cmpp4bgqq000hvrvoe7r0eqxy",
+      "content": "enc:v1:blCkIkBe7WaEtZj+.9kDF2MgKemwb7V5G94/qyw==.ypTANkzVpVEXioNPQd0=",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpo1ccgh0002vr34kiq203yr",
+      "ticketId": null,
+      "chatSessionId": "cmpo1ce2h0009vr34r8zp6yh4",
+      "isAI": false,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-28T06:34:36.290Z"
+    },
+    {
+      "id": "cmpp4biic000jvrvou1it9gd6",
+      "content": "enc:v1:2fx2KW234gwjiXB0.czDdL8/iuvsN9x/s/xRB3Q==.O6vQOnXaGCxXEgMywoFonuSwwux/bdn4dbVgKUPmOYyI8rhTdoMJGczVZPmbW3Jt6mRh8M4IfqxJO5ewQkqVZiwXMmhZqgSwHYRIb6RrXVAIGdXZ3g3hrJid+4kKn9OIzQ==",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpo1ccgh0002vr34kiq203yr",
+      "ticketId": null,
+      "chatSessionId": "cmpo1ce2h0009vr34r8zp6yh4",
+      "isAI": true,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-28T06:34:38.580Z"
+    },
+    {
+      "id": "cmpp60wea000ivroksjiok3tl",
+      "content": "enc:v1:hQTi8dDqWfwVP0nL.lmINjoXsQS8v4dWHZmzkgA==.DjunUqQXoTBEmCK61ZS6OWnekBK6ndWx9a+BsucQZw==",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpo1ccgh0002vr34kiq203yr",
+      "ticketId": null,
+      "chatSessionId": "cmpo1ce2h0009vr34r8zp6yh4",
+      "isAI": false,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-28T07:22:22.594Z"
+    },
+    {
+      "id": "cmpp6117h000kvrokun4wt5yz",
+      "content": "enc:v1:j3658NxXQL/aQHXb.zzPRpRIVeXByNv+iKoG/QQ==.n9O6BW0zYAUeESffXTjdX664XYTyrEzQhcu4+tgFj+QGfRhqkEbohjDevA9bh7wtv27Lsi2+s6VwXLo23HsyZye55cBrFiysdABfa+8DZgS/8aujIcYJtALsT8km123SdgD+dOZSfZUWkHgAzfuCosXDosHm44sFVJtfog0+82hk",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpo1ccgh0002vr34kiq203yr",
+      "ticketId": null,
+      "chatSessionId": "cmpo1ce2h0009vr34r8zp6yh4",
+      "isAI": true,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-28T07:22:28.829Z"
+    },
+    {
+      "id": "cmpp8l6jt000svrokmf8vgynm",
+      "content": "enc:v1:QQyDPQVicElGW9sM.oBLQvt6ZRDYxTfPfLL/5yg==.+bNs7oNcx0ZV",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpo1ccgh0002vr34kiq203yr",
+      "ticketId": null,
+      "chatSessionId": "cmpo1ce2h0009vr34r8zp6yh4",
+      "isAI": false,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-28T08:34:08.105Z"
+    },
+    {
+      "id": "cmpp8lbnt000uvrokvvh4sbge",
+      "content": "enc:v1:0w6y8glONY+SnioP.CMp9uiOoQ1GMcvcOjyP/hA==.JR8DxRaEFR6jwoNZYtSidkMwhNZFceWJWGAyl9lf7PYDhGpVojrfUBtvKpf9MCCs9Nd1J4THC8qAoUpq4vgcBF4=",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpo1ccgh0002vr34kiq203yr",
+      "ticketId": null,
+      "chatSessionId": "cmpo1ce2h0009vr34r8zp6yh4",
+      "isAI": true,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-28T08:34:14.729Z"
+    },
+    {
+      "id": "cmpp8luab000wvrokmoe9il8k",
+      "content": "enc:v1:U8DH1THJKSst/EBj.4a41JfMrWkVVNE4m95FcJA==.8BVK0lV82OlMVUJj0JH3sJ64NIQ0PteqZ+Ej6r3KbcW00LKeKnD9JE8=",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpo1ccgh0002vr34kiq203yr",
+      "ticketId": null,
+      "chatSessionId": "cmpo1ce2h0009vr34r8zp6yh4",
+      "isAI": false,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-28T08:34:38.868Z"
+    },
+    {
+      "id": "cmpp8lxjc000yvrokpknot0wo",
+      "content": "enc:v1:hCs60S1+7qWDsm4m.zfNSeQvITm8U3a6AIt2CgQ==.phmp4pqod74i7+pGIEo1kSX8KFusopIMI3Y2Pwdm7f/6iR1gBlq4MekTdMUn0EH5N5TSism3sp4VQpQgxlfh8p9cyB59d0el6XkhL2F6o4guAWIbjt0i0whbV0O+vILhR4UBRNexrJikH9OqvLqYO8RAqkQWsxnWOsta0SPk9Wi0mWtuCghKZOGyNtxdXqOHFRXc92hUyPWtA4PYqTwBX34I3AY6PcNjut1bqs8I9TphoMqbZwZjcyc=",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpo1ccgh0002vr34kiq203yr",
+      "ticketId": null,
+      "chatSessionId": "cmpo1ce2h0009vr34r8zp6yh4",
+      "isAI": true,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-28T08:34:43.080Z"
+    },
+    {
+      "id": "cmpp8mfaf0010vrok3jwhyyn8",
+      "content": "enc:v1:VFl0Clr2c5c8BPAd.vts9yt0XX8MUez4mkE1Hew==.20ZISNJztV4zvBwj6kQ=",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpo1ccgh0002vr34kiq203yr",
+      "ticketId": null,
+      "chatSessionId": "cmpo1ce2h0009vr34r8zp6yh4",
+      "isAI": false,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-28T08:35:06.088Z"
+    },
+    {
+      "id": "cmpp8mje50012vrokawrxufxf",
+      "content": "enc:v1:DIMLeVdHhR5lcyVw.PGRDfF84nPBLL8Rnb6+rMA==./iPXu6d/3utJI9ABnFjoM3tWZRvH83C0GKM2glSRdd9pAzpdPRQMOvguiEDKJwBsaqeuQT+kg8zd53scvAzL2XnM+LfJ/TN/QdOPlS13wE3dekE5fz9WA7yt/1ux/ALfnEki6c22JD8xlRQlAjgkD29Gd1zYVjE2J1dRnsb1H4F1d1QbxI2MRHz1YQ==",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpo1ccgh0002vr34kiq203yr",
+      "ticketId": null,
+      "chatSessionId": "cmpo1ce2h0009vr34r8zp6yh4",
+      "isAI": true,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-28T08:35:11.405Z"
+    },
+    {
+      "id": "cmpp8mzqv0014vrok7994903g",
+      "content": "enc:v1:37FCpi24sJZXFSA+.DjnEHMqGGHV4NQTUn6Ba4Q==.6OfwlA+dbaHX30PriCKfbA==",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpo1ccgh0002vr34kiq203yr",
+      "ticketId": null,
+      "chatSessionId": "cmpo1ce2h0009vr34r8zp6yh4",
+      "isAI": false,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-28T08:35:32.599Z"
+    },
+    {
+      "id": "cmpp8n5360016vrokpjiev2z8",
+      "content": "enc:v1:/syo0Ccu0zb9j6J5.reS0iXdvRysWcob3I1NHXA==.Wj3W2rINbeSUuHByZ+PK5Dk9R5O7QbslqXQw0zIXZ7y4hn7Wpm8KOcnYeK+6mc13PUthXLVa/jUO2vAkm9r4uPNa1Kq8Rerr86ZnE3cDtG3jja7IgJtfjYM9fZZ/9jyihi4WDK0XDMlG3BlmphFWrvNhAz2OMIU3LPYb",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpo1ccgh0002vr34kiq203yr",
+      "ticketId": null,
+      "chatSessionId": "cmpo1ce2h0009vr34r8zp6yh4",
+      "isAI": true,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-28T08:35:39.522Z"
+    },
+    {
+      "id": "cmpp8njy60018vrokewuhlg8o",
+      "content": "enc:v1:7/NUWsGYYzgZ6xrG.5quTyVgcFYXr8Oh3CxbXDw==.Fw5vUWPdWGu/jx+Dx9m5t5p6zoEjbpnpPYhy",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpo1ccgh0002vr34kiq203yr",
+      "ticketId": null,
+      "chatSessionId": "cmpo1ce2h0009vr34r8zp6yh4",
+      "isAI": false,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-28T08:35:58.782Z"
+    },
+    {
+      "id": "cmpp8nmpv001avrok69xssqhn",
+      "content": "enc:v1:MFSNemzLIDb0qBO6.RpAsgipCdfwNLq43QnNiug==.SpNqb7Ui92EgL3QxdluRGmjEOikbBbdsnnVTPerT1ymmHdP2O1TS584V1/ivUiNyWug+kL3j52jS49NhX67oDme2DnwEuNQqV8QsQOE9csXmwOx9kI91z4eaaWqwW6nSPqdg7ImS5e89iA/dqQ==",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpo1ccgh0002vr34kiq203yr",
+      "ticketId": null,
+      "chatSessionId": "cmpo1ce2h0009vr34r8zp6yh4",
+      "isAI": true,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-28T08:36:02.371Z"
+    },
+    {
+      "id": "cmpp8nvx8001cvrokrlysob0h",
+      "content": "enc:v1:9rXfbuKX93dH+jOl.XgxMN/81aZI3VWNy96XZpg==.MwOklQ==",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpo1ccgh0002vr34kiq203yr",
+      "ticketId": null,
+      "chatSessionId": "cmpo1ce2h0009vr34r8zp6yh4",
+      "isAI": false,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-28T08:36:14.301Z"
+    },
+    {
+      "id": "cmpp8nzty001evrokdombfirc",
+      "content": "enc:v1:QJwo7Tum2AQlYYuj.jxWrhyRVF4dbZu4Q65qRHQ==.8wEUe26Z1aIHx/o8N2g4hFf94SBMDP4P897lTkFgn4o=",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpo1ccgh0002vr34kiq203yr",
+      "ticketId": null,
+      "chatSessionId": "cmpo1ce2h0009vr34r8zp6yh4",
+      "isAI": true,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-28T08:36:18.300Z"
+    },
+    {
+      "id": "cmpp9dsdc000avryg0ao3bm9u",
+      "content": "enc:v1:SWVgJoWMfMi/ua/J.I0mlC5/GXQHoLhQxFFgymA==.Rh+uEddV/5zJaXaOkKQfTwNs02EZZtZAF125SlVPvLSa75lUJ9MyZUgskMnf/4Z5vXNa1siqogEtRG2Z3nBnk57S+lg075/QvmXSNgHZrGxfoBwMRA==",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpp9dq6h0004vrygthd5ajuh",
+      "ticketId": null,
+      "chatSessionId": "cmpp9dqo20008vryght40wa87",
+      "isAI": false,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-28T08:56:22.753Z"
+    },
+    {
+      "id": "cmpp9dvyf000cvrygjwpwe6yy",
+      "content": "enc:v1:N/8yyYIitV4nk30D./vXJEPjz5ojv5Tr0/QwQDw==.JVnUQU8rkPmJElxCRcGWm5IhtXgmKtvC5wERR2GkQs5DA813+uZXYFjlsyRsNRk=",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpp9dq6h0004vrygthd5ajuh",
+      "ticketId": null,
+      "chatSessionId": "cmpp9dqo20008vryght40wa87",
+      "isAI": true,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-28T08:56:27.400Z"
+    },
+    {
+      "id": "cmpp9k6tv000ivrygs0t61x6l",
+      "content": "enc:v1:1iG5T6yshK9sdDOQ.R0wulfF/NlNXrhuHVEjGcQ==.HIdAS/w=",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpo1ccgh0002vr34kiq203yr",
+      "ticketId": null,
+      "chatSessionId": "cmpo1ce2h0009vr34r8zp6yh4",
+      "isAI": false,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-28T09:01:21.428Z"
+    },
+    {
+      "id": "cmpp9kbas000kvryg5epfp4of",
+      "content": "enc:v1:b3UKMjIhuMjS2Vm8.heSE/SODHe9m5awHYVXCkw==.2+Y0OS+4P5GVpaDJU9c5yg2Y4KK1ecyVDoMgsu3uFbBuQw==",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpo1ccgh0002vr34kiq203yr",
+      "ticketId": null,
+      "chatSessionId": "cmpo1ce2h0009vr34r8zp6yh4",
+      "isAI": true,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-28T09:01:27.080Z"
+    },
+    {
+      "id": "cmpp9w50q0012vrygp6wf4d4t",
+      "content": "enc:v1:sMtoUVpMe4v2dghQ.cZnFhsykDxUPq6FmJO+P2g==.HFJ6iqKaSl1R8VSt+LimhnxnVH6xeeF3zw==",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpo1ccgh0002vr34kiq203yr",
+      "ticketId": null,
+      "chatSessionId": "cmpo1ce2h0009vr34r8zp6yh4",
+      "isAI": false,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-28T09:10:38.955Z"
+    },
+    {
+      "id": "cmpp9w9ae0014vrygtwwjrsgv",
+      "content": "enc:v1:pwOX3mcHiUlYp1L9.XnISe9j1m8d9Am0hz9aEEw==.KJ04/XHteqPTXuzIZwb9vv0iEpfa2iGq4BunDKjqtXjZSLICtzW7n763P1wAqapyX16K+RLN8sgcoqK2sgZXqvLdEs8y0ctvLaTwlLs=",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpo1ccgh0002vr34kiq203yr",
+      "ticketId": null,
+      "chatSessionId": "cmpo1ce2h0009vr34r8zp6yh4",
+      "isAI": true,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-28T09:10:44.487Z"
+    },
+    {
+      "id": "cmpp9xgki0018vryg0mjxj6li",
+      "content": "enc:v1:27E3O+fUK5psqpp5.GO7393omwK4m8xA6t1IpxQ==.L3Uhd5dVuKt2SZVgM4QqGY5XmzRgtUGVl7OqF6EcuI0gsQ==",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpmhj2zf0001vrmke54qf1q6",
+      "ticketId": null,
+      "chatSessionId": "cmpo1ce2h0009vr34r8zp6yh4",
+      "isAI": false,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-28T09:11:40.578Z"
+    },
+    {
+      "id": "cmpp9xhc8001avrygwkye6s8a",
+      "content": "enc:v1:QJkRMMk31JK/fdrp.UBdWlQZLoDkJvt4y4P45jg==.xo3ueOh6q6VmTynxoZuybsZ7XgCT8e79SLbLQ2Du1414sw==",
+      "originalContent": null,
+      "translatedContent": null,
+      "sourceLanguage": null,
+      "targetLanguage": null,
+      "senderId": "cmpmhj2zf0001vrmke54qf1q6",
+      "ticketId": null,
+      "chatSessionId": "cmpo1ce2h0009vr34r8zp6yh4",
+      "isAI": false,
+      "fileUrl": null,
+      "messageType": "TEXT",
+      "createdAt": "2026-05-28T09:11:41.576Z"
+    }
+  ],
+  "attachments": [
+    {
+      "id": "cmpp3b894000ivrloyj8v6xj3",
+      "fileName": "AIchatsupportsystem (4).docx",
+      "fileUrl": "/uploads/1779948385497-AIchatsupportsystem-(4).docx",
+      "fileType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "ticketId": "cmpp3b894000hvrloq2r75mi3",
+      "createdAt": "2026-05-28T06:06:25.672Z"
+    }
+  ],
+  "aiConfig": [
+    {
+      "id": "cmpmhj4xi000bvrmkhqt0qn5n",
+      "botName": "Support AI",
+      "welcomeMessage": "Hello, I can help with tickets, account questions, and hand you to an agent when needed.",
+      "fallbackMessage": "I am transferring this conversation to a support agent.",
+      "isActive": true,
+      "autoTranslate": true,
+      "handoffAfterFailedReplies": 2,
+      "supportedLanguages": [
+        "en",
+        "it",
+        "es",
+        "fr"
+      ],
+      "regionalNotes": "",
+      "regionalProfiles": {},
+      "createdAt": "2026-05-26T10:21:10.710Z",
+      "updatedAt": "2026-05-26T10:21:10.710Z"
+    },
+    {
+      "id": "cmpo1ceih000cvr341ogots7s",
+      "botName": "Support AI",
+      "welcomeMessage": "Hello, I can help with tickets, account questions, and hand you to an agent when needed.",
+      "fallbackMessage": "I am transferring this conversation to a support agent.",
+      "isActive": true,
+      "autoTranslate": true,
+      "handoffAfterFailedReplies": 2,
+      "supportedLanguages": [
+        "en",
+        "it",
+        "es",
+        "fr"
+      ],
+      "regionalNotes": "",
+      "regionalProfiles": {},
+      "createdAt": "2026-05-27T12:23:35.033Z",
+      "updatedAt": "2026-05-27T12:23:35.033Z"
+    }
+  ],
+  "integrations": [
+    {
+      "id": "cmpmhj55e000cvrmkju7evvw6",
+      "type": "WHATSAPP",
+      "isActive": false,
+      "createdAt": "2026-05-26T10:21:10.994Z",
+      "updatedAt": "2026-05-26T10:21:10.994Z"
+    },
+    {
+      "id": "cmpmhj55e000dvrmkg2q8beih",
+      "type": "CHATBOT",
+      "isActive": false,
+      "createdAt": "2026-05-26T10:21:10.994Z",
+      "updatedAt": "2026-05-26T10:21:10.994Z"
+    },
+    {
+      "id": "cmpmhj55e000evrmkv1p4powb",
+      "type": "EMAIL",
+      "isActive": false,
+      "createdAt": "2026-05-26T10:21:10.994Z",
+      "updatedAt": "2026-05-26T10:21:10.994Z"
+    },
+    {
+      "id": "cmpp4ljlb0000vr3gze0tnqky",
+      "type": "AI_PROVIDER",
+      "isActive": true,
+      "createdAt": "2026-05-28T06:42:26.543Z",
+      "updatedAt": "2026-05-28T08:51:01.778Z"
+    }
+  ],
+  "activityLogs": [
+    {
+      "id": "cmpmhj5kp000gvrmkmdyhhtus",
+      "userId": "cmpmhj24k0000vrmkjy6fbyh0",
+      "action": "Seeded demo workspace",
+      "ipAddress": "127.0.0.1",
+      "createdAt": "2026-05-26T10:21:11.545Z"
+    },
+    {
+      "id": "cmpmhzg3l0002vrbcdywamijg",
+      "userId": "cmpmhzfvo0000vrbcj40zoj2w",
+      "action": "Registered account",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-26T10:33:51.681Z"
+    },
+    {
+      "id": "cmpmhzifx0004vrbcsp5qlgz6",
+      "userId": "cmpmhj24k0000vrmkjy6fbyh0",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-26T10:33:54.718Z"
+    },
+    {
+      "id": "cmpmi0eou0006vrbc8h2qi6ga",
+      "userId": "cmpmhj24k0000vrmkjy6fbyh0",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-26T10:34:36.511Z"
+    },
+    {
+      "id": "cmpmi1a5d0008vrbc6aav4w68",
+      "userId": "cmpmhj24k0000vrmkjy6fbyh0",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-26T10:35:17.281Z"
+    },
+    {
+      "id": "cmpmib12v0001vr6kvlnt8i3e",
+      "userId": "cmpmhj24k0000vrmkjy6fbyh0",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-26T10:42:52.088Z"
+    },
+    {
+      "id": "cmpminqyt0003vr6k1qfp56b8",
+      "userId": "cmpmhj2zf0001vrmke54qf1q6",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-26T10:52:45.509Z"
+    },
+    {
+      "id": "cmpmirvf00007vr6kplp74a62",
+      "userId": "cmpmhj3is0002vrmk9as6e30j",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-26T10:55:57.901Z"
+    },
+    {
+      "id": "cmpmit8ci0009vr6kqujygtit",
+      "userId": "cmpmhj2zf0001vrmke54qf1q6",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-26T10:57:01.314Z"
+    },
+    {
+      "id": "cmpmj4yn90001vrjs6v08v7hj",
+      "userId": "cmpmhj24k0000vrmkjy6fbyh0",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-26T11:06:08.613Z"
+    },
+    {
+      "id": "cmpmj57z90003vrjsqzd6jxl2",
+      "userId": "cmpmhj3is0002vrmk9as6e30j",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-26T11:06:20.709Z"
+    },
+    {
+      "id": "cmpmjdp2z0005vrjsc89st7h1",
+      "userId": "cmpmhj24k0000vrmkjy6fbyh0",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-26T11:12:56.123Z"
+    },
+    {
+      "id": "cmpmkd1qo0001vroofs74155e",
+      "userId": "cmpmhj24k0000vrmkjy6fbyh0",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-26T11:40:25.488Z"
+    },
+    {
+      "id": "cmpmkep840003vroolstmc284",
+      "userId": "cmpmhj24k0000vrmkjy6fbyh0",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-26T11:41:42.581Z"
+    },
+    {
+      "id": "cmpnlvtmi0001vro06m8nj4n9",
+      "userId": "cmpmhj2zf0001vrmke54qf1q6",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-27T05:10:47.225Z"
+    },
+    {
+      "id": "cmpnmavcu0003vro0su54umbe",
+      "userId": "cmpmhj24k0000vrmkjy6fbyh0",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-27T05:22:29.310Z"
+    },
+    {
+      "id": "cmpnmj12f0005vro0u41sab6i",
+      "userId": "cmpmhj24k0000vrmkjy6fbyh0",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-27T05:28:49.960Z"
+    },
+    {
+      "id": "cmpnmjbsw0007vro037avb9mz",
+      "userId": "cmpmhj24k0000vrmkjy6fbyh0",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-27T05:29:03.872Z"
+    },
+    {
+      "id": "cmpnngdvx0009vro0nw9ugv13",
+      "userId": "cmpmhj2zf0001vrmke54qf1q6",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-27T05:54:46.221Z"
+    },
+    {
+      "id": "cmpnnpknx000bvro04caokx79",
+      "userId": "cmpmhj24k0000vrmkjy6fbyh0",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-27T06:01:54.909Z"
+    },
+    {
+      "id": "cmpnoeg2q0001vrmswbvpb2uq",
+      "userId": "cmpmhj24k0000vrmkjy6fbyh0",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-27T06:21:15.363Z"
+    },
+    {
+      "id": "cmpnqsc5a0003vrms9dqt5sxo",
+      "userId": "cmpmhj2zf0001vrmke54qf1q6",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-27T07:28:02.687Z"
+    },
+    {
+      "id": "cmpnsnlxj0005vrmsji348jqf",
+      "userId": "cmpmhj24k0000vrmkjy6fbyh0",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-27T08:20:21.320Z"
+    },
+    {
+      "id": "cmpnsnn0a0007vrmstb4g6pvl",
+      "userId": "cmpmhj24k0000vrmkjy6fbyh0",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-27T08:20:22.715Z"
+    },
+    {
+      "id": "cmpnsnoij0009vrmsmuwlhm3w",
+      "userId": "cmpmhj24k0000vrmkjy6fbyh0",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-27T08:20:24.668Z"
+    },
+    {
+      "id": "cmpnx1p7m0002vr58bxbsqbjp",
+      "userId": "cmpnx1oz60000vr582qj4vx3j",
+      "action": "Registered account",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-27T10:23:17.219Z"
+    },
+    {
+      "id": "cmpnx246v0004vr58gjs1wdka",
+      "userId": "cmpnx1oz60000vr582qj4vx3j",
+      "action": "Requested password reset",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-27T10:23:36.481Z"
+    },
+    {
+      "id": "cmpnxjuqq0001vr389741bor9",
+      "userId": "cmpnx1oz60000vr582qj4vx3j",
+      "action": "Requested password reset",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-27T10:37:24.194Z"
+    },
+    {
+      "id": "cmpnxkdc20003vr38g3ugwzs3",
+      "userId": "cmpnx1oz60000vr582qj4vx3j",
+      "action": "Reset password",
+      "ipAddress": "::ffff:127.0.0.1",
+      "createdAt": "2026-05-27T10:37:48.290Z"
+    },
+    {
+      "id": "cmpnxklu90005vr38r8cpyonf",
+      "userId": "cmpnx1oz60000vr582qj4vx3j",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-27T10:37:59.313Z"
+    },
+    {
+      "id": "cmpnxloj70007vr38fq5fwt6c",
+      "userId": "cmpnx1oz60000vr582qj4vx3j",
+      "action": "Requested password reset",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-27T10:38:49.460Z"
+    },
+    {
+      "id": "cmpnxmo4e0009vr389cctp17j",
+      "userId": "cmpnx1oz60000vr582qj4vx3j",
+      "action": "Reset password",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-27T10:39:35.582Z"
+    },
+    {
+      "id": "cmpnxnrsp000bvr386ir7iywd",
+      "userId": "cmpnx1oz60000vr582qj4vx3j",
+      "action": "Requested password reset",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-27T10:40:27.001Z"
+    },
+    {
+      "id": "cmpnxof53000dvr38aynx08ci",
+      "userId": "cmpnx1oz60000vr582qj4vx3j",
+      "action": "Reset password",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-27T10:40:57.255Z"
+    },
+    {
+      "id": "cmpnxolaf000fvr3885zqkbdb",
+      "userId": "cmpnx1oz60000vr582qj4vx3j",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-27T10:41:05.223Z"
+    },
+    {
+      "id": "cmpnxpgrk000hvr383t778qvy",
+      "userId": "cmpnx1oz60000vr582qj4vx3j",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-27T10:41:46.016Z"
+    },
+    {
+      "id": "cmpnym090000jvr38dvldkvmq",
+      "userId": "cmpmhj24k0000vrmkjy6fbyh0",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-27T11:07:04.261Z"
+    },
+    {
+      "id": "cmpo1cf64000hvr348uo02gc7",
+      "userId": "cmpmhj24k0000vrmkjy6fbyh0",
+      "action": "Seeded demo workspace",
+      "ipAddress": "127.0.0.1",
+      "createdAt": "2026-05-27T12:23:35.884Z"
+    },
+    {
+      "id": "cmpp0ueqi0001vrl0xmy2xe6n",
+      "userId": "cmpo1ccgh0002vr34kiq203yr",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T04:57:21.691Z"
+    },
+    {
+      "id": "cmpp0vrpz0005vrl0cun1asdp",
+      "userId": "cmpmhj2zf0001vrmke54qf1q6",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T04:58:25.175Z"
+    },
+    {
+      "id": "cmpp1qhu40002vrf4pe1mone0",
+      "userId": null,
+      "action": "Registered account",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T05:22:18.701Z"
+    },
+    {
+      "id": "cmpp1qi940004vrf4iotue6xp",
+      "userId": null,
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T05:22:19.241Z"
+    },
+    {
+      "id": "cmpp1sn3b0006vrf4x5fpcujf",
+      "userId": "cmpmhj24k0000vrmkjy6fbyh0",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T05:23:58.823Z"
+    },
+    {
+      "id": "cmpp1wyvb0008vrf4qynuvht7",
+      "userId": "cmpmhj2zf0001vrmke54qf1q6",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T05:27:20.712Z"
+    },
+    {
+      "id": "cmpp1x1cy000avrf4066enm5c",
+      "userId": "cmpmhj2zf0001vrmke54qf1q6",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T05:27:23.938Z"
+    },
+    {
+      "id": "cmpp1x8nr000cvrf4ystkwabk",
+      "userId": "cmpo1ccgh0002vr34kiq203yr",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T05:27:33.399Z"
+    },
+    {
+      "id": "cmpp1xg8t000evrf49mlb561o",
+      "userId": "cmpmhj24k0000vrmkjy6fbyh0",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T05:27:43.230Z"
+    },
+    {
+      "id": "cmpp2033z000ivrf4h45naopu",
+      "userId": "cmpmhj2zf0001vrmke54qf1q6",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T05:29:46.175Z"
+    },
+    {
+      "id": "cmpp2faq30003vrwcf1gi54j1",
+      "userId": "cmpmhj24k0000vrmkjy6fbyh0",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T05:41:35.883Z"
+    },
+    {
+      "id": "cmpp2g2620005vrwcyuygosam",
+      "userId": "cmpo1ccgh0002vr34kiq203yr",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T05:42:11.450Z"
+    },
+    {
+      "id": "cmpp2w0jo0001vrloaa9i0qg1",
+      "userId": "cmpo1ccgh0002vr34kiq203yr",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T05:54:35.844Z"
+    },
+    {
+      "id": "cmpp3f9yi000kvrloas10llvo",
+      "userId": "cmpmhj2zf0001vrmke54qf1q6",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T06:09:34.506Z"
+    },
+    {
+      "id": "cmpp3nqij0001vrhs70bo31gi",
+      "userId": "cmpmhj24k0000vrmkjy6fbyh0",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T06:16:09.211Z"
+    },
+    {
+      "id": "cmpp3z7cw0001vrvo5p3fi92a",
+      "userId": "cmpmhj24k0000vrmkjy6fbyh0",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T06:25:04.256Z"
+    },
+    {
+      "id": "cmpp3zy590003vrvo6y8c5qd5",
+      "userId": "cmpmhj24k0000vrmkjy6fbyh0",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T06:25:38.973Z"
+    },
+    {
+      "id": "cmpp406510005vrvo9lzxjmz4",
+      "userId": "cmpo1ccgh0002vr34kiq203yr",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T06:25:49.193Z"
+    },
+    {
+      "id": "cmpp4mdmr0001vrokvefufm07",
+      "userId": "cmpmhj24k0000vrmkjy6fbyh0",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T06:43:05.476Z"
+    },
+    {
+      "id": "cmpp4mjej0003vrokqfr7mjvx",
+      "userId": "cmpmhj24k0000vrmkjy6fbyh0",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T06:43:12.955Z"
+    },
+    {
+      "id": "cmpp4moj90005vrokig2hso23",
+      "userId": "cmpmhj24k0000vrmkjy6fbyh0",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T06:43:19.605Z"
+    },
+    {
+      "id": "cmpp4ncik0008vrokenol1hdu",
+      "userId": null,
+      "action": "Registered account",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T06:43:50.684Z"
+    },
+    {
+      "id": "cmpp60eb7000gvrokyuqfx5ma",
+      "userId": "cmpmhj2zf0001vrmke54qf1q6",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T07:21:59.156Z"
+    },
+    {
+      "id": "cmpp8k85z000mvrok6tunpub3",
+      "userId": "cmpmhj2zf0001vrmke54qf1q6",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T08:33:23.543Z"
+    },
+    {
+      "id": "cmpp8keye000ovrokzq9uplhd",
+      "userId": "cmpo1ccgh0002vr34kiq203yr",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T08:33:32.342Z"
+    },
+    {
+      "id": "cmpp8kjvq000qvroktuyvjjnf",
+      "userId": "cmpmhj24k0000vrmkjy6fbyh0",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T08:33:38.727Z"
+    },
+    {
+      "id": "cmpp9c4je0001vrygs4gxwi7g",
+      "userId": "cmpmhj24k0000vrmkjy6fbyh0",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T08:55:05.210Z"
+    },
+    {
+      "id": "cmpp9ddjf0003vrygkofxx467",
+      "userId": "cmpmhj24k0000vrmkjy6fbyh0",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T08:56:03.532Z"
+    },
+    {
+      "id": "cmpp9dqet0006vrygqxx1ew18",
+      "userId": "cmpp9dq6h0004vrygthd5ajuh",
+      "action": "Registered account",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T08:56:20.213Z"
+    },
+    {
+      "id": "cmpp9fxp2000evrygrial4j8e",
+      "userId": "cmpmhj24k0000vrmkjy6fbyh0",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T08:58:02.966Z"
+    },
+    {
+      "id": "cmpp9jrcb000gvryg5lkfjwpe",
+      "userId": "cmpo1ccgh0002vr34kiq203yr",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T09:01:01.355Z"
+    },
+    {
+      "id": "cmpp9pt9p000mvrygiu155uj1",
+      "userId": "cmpmhj24k0000vrmkjy6fbyh0",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T09:05:43.789Z"
+    },
+    {
+      "id": "cmpp9ptqe000ovryggqsnmslr",
+      "userId": "cmpmhj2zf0001vrmke54qf1q6",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T09:05:44.391Z"
+    },
+    {
+      "id": "cmpp9pu1h000qvrygtt19sbfa",
+      "userId": "cmpo1ccgh0002vr34kiq203yr",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T09:05:44.789Z"
+    },
+    {
+      "id": "cmpp9q55b000svryg5m64f3ac",
+      "userId": "cmpmhj24k0000vrmkjy6fbyh0",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T09:05:59.183Z"
+    },
+    {
+      "id": "cmpp9q5vf000uvrygioqbxmvj",
+      "userId": "cmpmhj2zf0001vrmke54qf1q6",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T09:06:00.124Z"
+    },
+    {
+      "id": "cmpp9q6xg000wvrygx8ilts1b",
+      "userId": "cmpo1ccgh0002vr34kiq203yr",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T09:06:01.492Z"
+    },
+    {
+      "id": "cmpp9rmaw000yvrygmraql5xt",
+      "userId": "cmpmhj24k0000vrmkjy6fbyh0",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T09:07:08.073Z"
+    },
+    {
+      "id": "cmpp9vi9f0010vryggeukk8h2",
+      "userId": "cmpo1ccgh0002vr34kiq203yr",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T09:10:09.459Z"
+    },
+    {
+      "id": "cmpp9wt2x0016vrygl3cwu75n",
+      "userId": "cmpmhj2zf0001vrmke54qf1q6",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T09:11:10.138Z"
+    },
+    {
+      "id": "cmppb8sed0001vrkwx87rlzjl",
+      "userId": "cmpmhj24k0000vrmkjy6fbyh0",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T09:48:28.741Z"
+    },
+    {
+      "id": "cmppb98cm0004vrkw7wmvlsx4",
+      "userId": "cmpmhj24k0000vrmkjy6fbyh0",
+      "action": "Logged in",
+      "ipAddress": "::1",
+      "createdAt": "2026-05-28T09:48:49.415Z"
+    }
+  ]
+}

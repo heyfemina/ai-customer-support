@@ -41,6 +41,31 @@ enum ChatStatus {
   CLOSED
 }
 
+enum BackupStatus {
+  SUCCESS
+  FAILED
+  IN_PROGRESS
+}
+
+enum GDPRRequestType {
+  EXPORT
+  DELETE
+}
+
+enum GDPRRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+enum AlertSeverity {
+  INFO
+  WARNING
+  ERROR
+  CRITICAL
+}
+
 model User {
   id            String         @id @default(cuid())
   name          String
@@ -61,6 +86,11 @@ model User {
   agentChats    ChatSession[]  @relation("AgentChats")
   logs          ActivityLog[]
   notifications Notification[]
+  twoFactorTokens TwoFactorToken[]
+  recoveryCodes RecoveryCode[]
+  backupLogs    BackupLog[]
+  gdprRequests  GDPRRequest[] @relation("GDPRRequestUser")
+  gdprReviews   GDPRRequest[] @relation("GDPRReviewUser")
 }
 
 model Ticket {
@@ -74,6 +104,11 @@ model Ticket {
   agentId     String?
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
+  firstResponseAt DateTime?
+  resolvedAt   DateTime?
+  firstResponseMinutes Int?
+  resolutionMinutes Int?
+  slaBreached Boolean        @default(false)
   customer    User           @relation("CustomerTickets", fields: [customerId], references: [id])
   agent       User?          @relation("AgentTickets", fields: [agentId], references: [id])
   messages    Message[]
@@ -83,6 +118,11 @@ model Ticket {
 model Message {
   id            String       @id @default(cuid())
   content       String
+  originalContent String?
+  translatedContent String?
+  sourceLanguage String?
+  targetLanguage String?
+  encryptionVersion String?
   senderId      String
   ticketId      String?
   chatSessionId String?
@@ -103,6 +143,17 @@ model ChatSession {
   rating     Int?
   feedback   String?
   language   String     @default("en")
+  channel    String     @default("Website chatbot")
+  encrypted  Boolean    @default(true)
+  lastMessage String?
+  visitorIp  String?
+  visitorPage String?
+  visitorDevice String?
+  visitorVisits Int     @default(1)
+  visitorId  String?
+  visitorDomain String?
+  visitorReferrer String?
+  widgetId String?
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
   customer   User       @relation("CustomerChats", fields: [customerId], references: [id])
@@ -161,4 +212,79 @@ model IntegrationSetting {
   isActive  Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model TwoFactorToken {
+  id                 String   @id @default(cuid())
+  userId             String
+  tokenHash          String
+  tempLoginTokenHash String   @unique
+  expiresAt          DateTime
+  attempts           Int      @default(0)
+  used               Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  user               User     @relation(fields: [userId], references: [id])
+}
+
+model RecoveryCode {
+  id        String    @id @default(cuid())
+  userId    String
+  codeHash  String
+  used      Boolean   @default(false)
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id])
+}
+
+model BackupLog {
+  id           String       @id @default(cuid())
+  fileName     String
+  filePath     String?
+  provider     String       @default("local")
+  status       BackupStatus @default(IN_PROGRESS)
+  sizeBytes    Int          @default(0)
+  createdById  String?
+  errorMessage String?
+  createdAt    DateTime     @default(now())
+  createdBy    User?        @relation(fields: [createdById], references: [id])
+}
+
+model GDPRRequest {
+  id           String            @id @default(cuid())
+  userId       String
+  type         GDPRRequestType
+  status       GDPRRequestStatus @default(PENDING)
+  requestedById String?
+  reviewedById String?
+  reason       String?
+  adminNote    String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  completedAt  DateTime?
+  user         User              @relation("GDPRRequestUser", fields: [userId], references: [id])
+  reviewedBy   User?             @relation("GDPRReviewUser", fields: [reviewedById], references: [id])
+}
+
+model AIUsageLog {
+  id          String   @id @default(cuid())
+  provider    String
+  model       String
+  endpoint    String
+  success     Boolean  @default(true)
+  tokensIn    Int      @default(0)
+  tokensOut   Int      @default(0)
+  errorMessage String?
+  userId      String?
+  createdAt   DateTime @default(now())
+}
+
+model SystemAlert {
+  id         String        @id @default(cuid())
+  type       String
+  severity   AlertSeverity @default(INFO)
+  title      String
+  message    String
+  isResolved Boolean       @default(false)
+  resolvedAt DateTime?
+  createdAt  DateTime      @default(now())
 }

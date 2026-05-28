@@ -4,12 +4,14 @@ import Loader from "../components/common/Loader.jsx";
 import AuthLayout from "../components/layout/AuthLayout.jsx";
 import DashboardLayout from "../components/layout/DashboardLayout.jsx";
 import ProtectedRoute from "./ProtectedRoute.jsx";
+import RoleHomeRedirect from "./RoleHomeRedirect.jsx";
 import RoleRoute from "./RoleRoute.jsx";
 
 const Login = lazy(() => import("../pages/auth/Login.jsx"));
 const Register = lazy(() => import("../pages/auth/Register.jsx"));
 const ForgotPassword = lazy(() => import("../pages/auth/ForgotPassword.jsx"));
 const ResetPassword = lazy(() => import("../pages/auth/ResetPassword.jsx"));
+const VerifyOtp = lazy(() => import("../pages/auth/VerifyOtp.jsx"));
 const Home = lazy(() => import("../pages/public/Home.jsx"));
 const NotFound = lazy(() => import("../pages/public/NotFound.jsx"));
 const AdminDashboard = lazy(() => import("../pages/admin/AdminDashboard.jsx"));
@@ -47,9 +49,11 @@ export default function AppRoutes() {
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
+          <Route path="/verify-otp" element={<VerifyOtp />} />
         </Route>
         <Route element={<ProtectedRoute />}>
           <Route element={<DashboardLayout />}>
+            <Route path="/dashboard" element={<RoleHomeRedirect />} />
             <Route element={<RoleRoute roles={["ADMIN"]} />}>
               <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />

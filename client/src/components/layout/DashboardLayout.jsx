@@ -7,7 +7,7 @@ export default function DashboardLayout() {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.10),transparent_30rem),linear-gradient(180deg,#f8fafc_0%,#eef3f8_45%,#e9eef5_100%)] text-slate-950">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(45,212,191,0.12),transparent_30rem),radial-gradient(circle_at_top_right,rgba(125,211,252,0.14),transparent_28rem),linear-gradient(180deg,#fbfdff_0%,#f6f8fb_46%,#eef4f8_100%)] text-slate-900">
       <div className="flex min-h-screen">
         <Sidebar open={open} onClose={() => setOpen(false)} />
         <div className="flex min-w-0 flex-1 flex-col">
@@ -19,6 +19,7 @@ export default function DashboardLayout() {
           </main>
         </div>
       </div>
+      {/* AI bot popup is disabled for now to avoid OpenAI API usage. */}
     </div>
   );
 }

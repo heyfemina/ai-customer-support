@@ -19,6 +19,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
+      window.dispatchEvent(new Event("auth:logout"));
     }
     error.friendlyMessage = error.response?.data?.message || error.message || "Something went wrong";
     return Promise.reject(error);

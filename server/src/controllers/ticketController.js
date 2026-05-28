@@ -1,6 +1,8 @@
 import { z } from "zod";
 import prisma from "../config/prisma.js";
 import { success } from "../utils/responseHandler.js";
+import { calculateFirstResponse, calculateResolution } from "../services/slaService.js";
+import { translateText } from "../services/aiService.js";
 
 export const ticketSchema = z.object({
   body: z.object({
@@ -76,21 +78,38 @@ export async function updateTicket(req, res, next) {
   try {
     const allowed = ["subject", "description", "status", "priority", "category", "agentId"];
     const data = Object.fromEntries(Object.entries(req.body).filter(([key]) => allowed.includes(key)));
+    if (["RESOLVED", "CLOSED"].includes(data.status)) {
+      const current = await prisma.ticket.findUnique({ where: { id: req.params.id } });
+      if (current && !current.resolvedAt) Object.assign(data, calculateResolution(current));
+    }
     success(res, await prisma.ticket.update({ where: { id: req.params.id }, data, include }), "Ticket updated");
   } catch (error) { next(error); }
 }
 
 export async function updateTicketStatus(req, res, next) {
   try {
-    success(res, await prisma.ticket.update({ where: { id: req.params.id }, data: { status: req.body.status }, include }), "Ticket status updated");
+    const current = await prisma.ticket.findUnique({ where: { id: req.params.id } });
+    const data = { status: req.body.status };
+    if (current && ["RESOLVED", "CLOSED"].includes(req.body.status) && !current.resolvedAt) Object.assign(data, calculateResolution(current));
+    success(res, await prisma.ticket.update({ where: { id: req.params.id }, data, include }), "Ticket status updated");
   } catch (error) { next(error); }
 }
 
 export async function replyTicket(req, res, next) {
   try {
+    const ticket = await prisma.ticket.findUnique({ where: { id: req.params.id }, include: { customer: true, agent: true } });
+    if (!ticket) return res.status(404).json({ success: false, message: "Ticket not found" });
+    const content = req.body.content || req.body.fileName || "Attachment";
+    const sourceLanguage = req.body.sourceLanguage || req.user.language || "en";
+    const targetLanguage = req.body.targetLanguage || (req.user.role === "CUSTOMER" ? ticket.agent?.language || "English" : ticket.customer?.language || "English");
+    const translatedContent = sourceLanguage !== targetLanguage ? await translateText(content, targetLanguage, { userId: req.user.id }) : null;
     const message = await prisma.message.create({
       data: {
-        content: req.body.content || req.body.fileName || "Attachment",
+        content,
+        originalContent: content,
+        translatedContent,
+        sourceLanguage,
+        targetLanguage,
         senderId: req.user.id,
         ticketId: req.params.id,
         fileUrl: req.body.fileUrl,
@@ -98,6 +117,9 @@ export async function replyTicket(req, res, next) {
       },
       include: { sender: { select: { id: true, name: true, role: true } } },
     });
+    if (["ADMIN", "AGENT"].includes(req.user.role) && !ticket.firstResponseAt) {
+      await prisma.ticket.update({ where: { id: ticket.id }, data: calculateFirstResponse(ticket) });
+    }
     success(res, message, "Reply added", 201);
   } catch (error) { next(error); }
 }

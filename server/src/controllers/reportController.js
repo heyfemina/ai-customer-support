@@ -136,5 +136,56 @@ export async function customerReport(req, res, next) {
 }
 
 export async function responseTimeReport(req, res) {
-  success(res, [{ month: "Jan", minutes: 4.2 }, { month: "Feb", minutes: 3.6 }, { month: "Mar", minutes: 2.8 }, { month: "Apr", minutes: 2.4 }, { month: "May", minutes: 2.1 }]);
+  const tickets = await prisma.ticket.findMany({
+    where: { firstResponseMinutes: { not: null } },
+    select: { createdAt: true, firstResponseMinutes: true, resolutionMinutes: true, priority: true, status: true, agentId: true },
+  });
+  const monthly = new Map();
+  for (const ticket of tickets) {
+    const month = monthKey(ticket.createdAt);
+    const row = monthly.get(month) || { month, count: 0, minutes: 0, resolutionMinutes: 0 };
+    row.count += 1;
+    row.minutes += ticket.firstResponseMinutes || 0;
+    row.resolutionMinutes += ticket.resolutionMinutes || 0;
+    monthly.set(month, row);
+  }
+  success(res, Array.from(monthly.values()).map((row) => ({
+    month: row.month,
+    minutes: row.count ? Number((row.minutes / row.count).toFixed(1)) : 0,
+    resolutionMinutes: row.count ? Number((row.resolutionMinutes / row.count).toFixed(1)) : 0,
+  })));
+}
+
+export async function slaReport(req, res, next) {
+  try {
+    const tickets = await prisma.ticket.findMany({
+      include: {
+        agent: { select: { id: true, name: true, email: true } },
+        customer: { select: { id: true, name: true, email: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+    const responded = tickets.filter((ticket) => ticket.firstResponseMinutes !== null);
+    const resolved = tickets.filter((ticket) => ticket.resolutionMinutes !== null);
+    const averageFirstResponseMinutes = responded.length ? responded.reduce((sum, ticket) => sum + Number(ticket.firstResponseMinutes || 0), 0) / responded.length : 0;
+    const averageResolutionMinutes = resolved.length ? resolved.reduce((sum, ticket) => sum + Number(ticket.resolutionMinutes || 0), 0) / resolved.length : 0;
+    success(res, {
+      totalTickets: tickets.length,
+      breached: tickets.filter((ticket) => ticket.slaBreached).length,
+      averageFirstResponseMinutes: Number(averageFirstResponseMinutes.toFixed(1)),
+      averageResolutionMinutes: Number(averageResolutionMinutes.toFixed(1)),
+      tickets: tickets.map((ticket) => ({
+        id: ticket.id,
+        subject: ticket.subject,
+        priority: ticket.priority,
+        status: ticket.status,
+        agent: ticket.agent,
+        customer: ticket.customer,
+        firstResponseMinutes: ticket.firstResponseMinutes,
+        resolutionMinutes: ticket.resolutionMinutes,
+        slaBreached: ticket.slaBreached,
+        createdAt: ticket.createdAt,
+      })),
+    });
+  } catch (error) { next(error); }
 }
