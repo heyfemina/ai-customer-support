@@ -17,7 +17,7 @@ export default function CustomerLiveChat() {
   const { user } = useAuth();
   const { t } = useTranslation();
   const { language } = useLanguage();
-  const { socket, connected } = useSocket();
+  const { socket, connected, pushNotification } = useSocket();
   const [sessions, setSessions] = useState(chats.slice(0, 1));
   const [active, setActive] = useState(chats[0]);
   const [messagesByChat, setMessagesByChat] = useState({});
@@ -56,6 +56,7 @@ export default function CustomerLiveChat() {
     setActive(session);
     setMessagesByChat((current) => ({ ...current, [session.id]: session.messages || [] }));
     setNotice(t("chat.liveChatStarted"));
+    pushNotification({ message: "New customer chat added to the live queue.", type: "chat" });
   };
 
   useEffect(() => {
@@ -94,6 +95,7 @@ export default function CustomerLiveChat() {
         message = result.message;
         setActive(result.chat);
         setSessions((current) => current.map((item) => item.id === result.chat.id ? result.chat : item));
+        pushNotification({ message: "Customer sent a live chat message.", type: "chat" });
       }
       setMessagesByChat((current) => ({ ...current, [active.id]: [...(current[active.id] || []), message] }));
     }
@@ -107,6 +109,7 @@ export default function CustomerLiveChat() {
     setSessions((current) => current.map((item) => item.id === updated.id ? updated : item));
     setMessagesByChat((current) => ({ ...current, [active.id]: [...(current[active.id] || []), message] }));
     setNotice("An agent transfer was requested.");
+    pushNotification({ message: "AI-to-agent transfer requested.", type: "transfer" });
   };
 
   const closeChat = async () => {
@@ -121,6 +124,7 @@ export default function CustomerLiveChat() {
     setActive(chat);
     setSessions((current) => current.map((item) => item.id === chat.id ? chat : item));
     setNotice("Chat closed.");
+    pushNotification({ message: "Customer chat closed and saved to history.", type: "chat" });
   };
 
   const submitRating = async () => {
@@ -135,6 +139,7 @@ export default function CustomerLiveChat() {
     setActive(chat);
     setSessions((current) => current.map((item) => item.id === chat.id ? chat : item));
     setNotice("Thanks, your feedback was saved.");
+    pushNotification({ message: `Customer submitted a ${rating}/5 chat rating.`, type: "rating" });
   };
 
   return (

@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { getSocket } from "../socket/socket.js";
 import { useAuth } from "./AuthContext.jsx";
 
@@ -26,9 +26,13 @@ export function SocketProvider({ children }) {
     };
   }, [socket, token]);
 
+  const pushNotification = useCallback((notification) => {
+    setNotifications((current) => [{ id: Date.now(), ...notification }, ...current].slice(0, 8));
+  }, []);
+
   const clearNotifications = () => setNotifications([]);
 
-  return <SocketContext.Provider value={{ socket, connected, notifications, clearNotifications }}>{children}</SocketContext.Provider>;
+  return <SocketContext.Provider value={{ socket, connected, notifications, pushNotification, clearNotifications }}>{children}</SocketContext.Provider>;
 }
 
 export function useSocket() {

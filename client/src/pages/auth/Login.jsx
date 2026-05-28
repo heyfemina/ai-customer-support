@@ -9,7 +9,7 @@ import { roleHome } from "../../utils/constants.js";
 export default function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ email: "admin@example.com", password: "123456" });
+  const [form, setForm] = useState({ email: "admin@example.com", password: "admin123" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 

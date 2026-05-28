@@ -4,7 +4,7 @@ import { formatDate } from "../../utils/helpers.js";
 export default function ChatMessage({ message, currentUserId }) {
   const mine = message.senderId === currentUserId || message.mine;
   const system = message.senderId === "system";
-  const fileHref = message.fileUrl === "#" ? "#" : message.fileUrl?.startsWith("http") ? message.fileUrl : `http://localhost:5000${message.fileUrl}`;
+  const fileHref = message.fileUrl === "#" ? "#" : message.fileUrl?.startsWith("http") || message.fileUrl?.startsWith("data:") ? message.fileUrl : `http://localhost:5000${message.fileUrl}`;
   const imageFile = message.fileType?.startsWith("image/") || /\.(png|jpe?g|gif|webp)$/i.test(message.fileName || "");
 
   if (system) {

@@ -15,7 +15,7 @@ import { demoStore } from "../../utils/demoStore.js";
 export default function AgentLiveChats() {
   const { user } = useAuth();
   const { t } = useTranslation();
-  const { socket, connected } = useSocket();
+  const { socket, connected, pushNotification } = useSocket();
   const [sessions, setSessions] = useState(chats);
   const [active, setActive] = useState(chats[0]);
   const [messagesByChat, setMessagesByChat] = useState({});
@@ -81,6 +81,7 @@ export default function AgentLiveChats() {
         message = result.message;
         setActive(result.chat);
         setSessions((current) => current.map((item) => item.id === result.chat.id ? result.chat : item));
+        pushNotification({ message: "Agent sent a secure chat message.", type: "chat" });
       }
       setMessagesByChat((current) => ({ ...current, [active.id]: [...(current[active.id] || []), message] }));
     }
@@ -100,6 +101,7 @@ export default function AgentLiveChats() {
     setActive(chat);
     setSessions((current) => current.map((item) => item.id === chat.id ? chat : item));
     setNotice("Chat accepted. Customer can continue in real time.");
+    pushNotification({ message: "Agent accepted a waiting chat.", type: "queue" });
   };
 
   const transferChat = async () => {
@@ -117,6 +119,7 @@ export default function AgentLiveChats() {
     setActive(chat);
     setSessions((current) => current.map((item) => item.id === chat.id ? chat : item));
     setNotice("Chat transferred.");
+    pushNotification({ message: "Chat transferred to another agent.", type: "transfer" });
   };
 
   const closeChat = async () => {
@@ -133,6 +136,7 @@ export default function AgentLiveChats() {
     setActive(chat);
     setSessions((current) => current.map((item) => item.id === chat.id ? chat : item));
     setNotice("Chat closed and stored in history.");
+    pushNotification({ message: "Chat closed and stored in history.", type: "chat" });
   };
 
   return (

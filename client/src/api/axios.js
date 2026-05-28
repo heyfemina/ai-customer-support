@@ -27,6 +27,19 @@ api.interceptors.response.use(
 
 export default api;
 
+function readLocalFileUrl(file) {
+  return new Promise((resolve) => {
+    if (!file || file.size > 5 * 1024 * 1024) {
+      resolve("#");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => resolve("#");
+    reader.readAsDataURL(file);
+  });
+}
+
 export async function uploadFile(file, extra = {}) {
   const formData = new FormData();
   formData.append("file", file);
@@ -39,9 +52,10 @@ export async function uploadFile(file, extra = {}) {
     });
     return data.data || data;
   } catch {
+    const fileUrl = await readLocalFileUrl(file);
     return {
       fileName: file.name,
-      fileUrl: "#",
+      fileUrl,
       fileType: file.type,
       fileSize: file.size,
       ...extra,

@@ -15,7 +15,7 @@ import { demoStore } from "../../utils/demoStore.js";
 export default function Chats() {
   const { user } = useAuth();
   const { t } = useTranslation();
-  const { socket, connected } = useSocket();
+  const { socket, connected, pushNotification } = useSocket();
   const [sessions, setSessions] = useState(chats);
   const [active, setActive] = useState(chats[0]);
   const [messagesByChat, setMessagesByChat] = useState({});
@@ -80,6 +80,7 @@ export default function Chats() {
         message = result.message;
         setActive(result.chat);
         setSessions((current) => current.map((item) => item.id === result.chat.id ? result.chat : item));
+        pushNotification({ message: "Admin sent a secure chat message.", type: "chat" });
       }
       setMessagesByChat((current) => ({ ...current, [active.id]: [...(current[active.id] || []), message] }));
     }
@@ -99,6 +100,7 @@ export default function Chats() {
     }
     setActive(chat);
     setSessions((current) => current.map((item) => item.id === chat.id ? chat : item));
+    pushNotification({ message: "Admin transferred a chat.", type: "transfer" });
   };
 
   const closeChat = async () => {
@@ -114,6 +116,7 @@ export default function Chats() {
     }
     setActive(chat);
     setSessions((current) => current.map((item) => item.id === chat.id ? chat : item));
+    pushNotification({ message: "Admin closed a chat transcript.", type: "chat" });
   };
 
   return (
