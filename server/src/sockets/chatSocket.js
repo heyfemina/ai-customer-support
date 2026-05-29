@@ -55,7 +55,7 @@ export default function chatSocket(io) {
       const token = socket.handshake.auth?.token;
       if (!token || token.startsWith("demo-")) return next();
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const user = await prisma.user.findUnique({ where: { id: decoded.id }, select: { id: true, name: true, role: true } });
+      const user = await prisma.user.findUnique({ where: { id: decoded.id }, select: { id: true, name: true, role: true, language: true } });
       if (user) socket.user = user;
       next();
     } catch {
@@ -76,6 +76,18 @@ export default function chatSocket(io) {
     });
 
     socket.on("leave_chat", (chatId) => socket.leave(chatId));
+    socket.on("join_internal_chat", async (chatId, callback) => {
+      const chat = await prisma.internalChat.findUnique({ where: { id: chatId }, include: { participants: true } });
+      const allowed = socket.user?.role === "ADMIN" || chat?.participants?.some((participant) => participant.userId === socket.user?.id);
+      if (!allowed) {
+        callback?.({ success: false, message: "Access denied" });
+        return;
+      }
+      socket.join(`internal:${chatId}`);
+      callback?.({ success: true });
+    });
+
+    socket.on("leave_internal_chat", (chatId) => socket.leave(`internal:${chatId}`));
 
     socket.on("send_message", async (payload, callback) => {
       try {

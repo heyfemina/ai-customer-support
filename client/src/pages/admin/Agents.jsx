@@ -3,13 +3,12 @@ import api from "../../api/axios.js";
 import PageHeader from "../../components/common/PageHeader.jsx";
 import Table from "../../components/common/Table.jsx";
 import Badge from "../../components/common/Badge.jsx";
-import { users } from "../../utils/dummyData.js";
 import { normalizeItems } from "../../utils/helpers.js";
 
 export default function Agents() {
-  const [agents, setAgents] = useState(users.filter((user) => user.role === "AGENT"));
+  const [agents, setAgents] = useState([]);
   useEffect(() => {
-    api.get("/reports/agents").then(({ data }) => setAgents(normalizeItems(data, agents))).catch(() => null);
+    api.get("/reports/agents").then(({ data }) => setAgents(normalizeItems(data, []))).catch(() => setAgents([]));
   }, []);
   const columns = [
     { key: "name", label: "Agent" },

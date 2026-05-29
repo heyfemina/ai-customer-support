@@ -20,6 +20,7 @@ import backupRoutes from "./routes/backupRoutes.js";
 import gdprRoutes from "./routes/gdprRoutes.js";
 import widgetRoutes from "./routes/widgetRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import internalChatRoutes from "./routes/internalChatRoutes.js";
 import { health } from "./controllers/healthController.js";
 import { widgetScript } from "./controllers/widgetController.js";
 import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
@@ -60,6 +61,7 @@ app.use("/api/backups", backupRoutes);
 app.use("/api/gdpr", gdprRoutes);
 app.use("/api/widget", widgetRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/internal-chats", internalChatRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

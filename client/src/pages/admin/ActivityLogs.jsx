@@ -3,12 +3,11 @@ import api from "../../api/axios.js";
 import PageHeader from "../../components/common/PageHeader.jsx";
 import Table from "../../components/common/Table.jsx";
 import { formatDate, normalizeItems } from "../../utils/helpers.js";
-import { demoStore } from "../../utils/demoStore.js";
 
 export default function ActivityLogs() {
-  const [items, setItems] = useState(demoStore.activityLogs());
+  const [items, setItems] = useState([]);
   useEffect(() => {
-    api.get("/activity-logs").then(({ data }) => setItems(normalizeItems(data, demoStore.activityLogs()))).catch(() => setItems(demoStore.activityLogs()));
+    api.get("/activity-logs").then(({ data }) => setItems(normalizeItems(data, []))).catch(() => setItems([]));
   }, []);
   const columns = [
     { key: "user", label: "User", render: (row) => row.user?.name || row.user || "System" },

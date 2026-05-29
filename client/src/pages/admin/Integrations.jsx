@@ -6,7 +6,12 @@ import Card from "../../components/common/Card.jsx";
 import Button from "../../components/common/Button.jsx";
 import Badge from "../../components/common/Badge.jsx";
 import { normalizeItems } from "../../utils/helpers.js";
-import { demoStore } from "../../utils/demoStore.js";
+
+const defaultIntegrations = [
+  { id: "whatsapp", title: "WhatsApp API", text: "Business number, webhook URL, access token, template sync", isActive: false, status: "Not configured", config: {} },
+  { id: "chatbot", title: "Website chatbot", text: "Embed key, domains, AI handoff trigger, visitor tracking", isActive: false, status: "Not configured", config: {} },
+  { id: "email", title: "Email system", text: "SMTP host, sender address, test mail, ticket ingestion", isActive: false, status: "Not configured", config: {} },
+];
 
 const fields = {
   whatsapp: [
@@ -30,49 +35,58 @@ const fields = {
 
 export default function Integrations() {
   const { t } = useTranslation();
-  const [items, setItems] = useState(demoStore.integrations());
+  const [items, setItems] = useState(defaultIntegrations);
+  const [notice, setNotice] = useState("");
   useEffect(() => {
     api.get("/integrations").then(({ data }) => {
       const rows = normalizeItems(data, []);
-      if (rows.length) {
-        setItems(rows.map((row) => ({
-          id: row.type.toLowerCase(),
-          title: row.type,
-          text: JSON.stringify(row.config),
-          isActive: row.isActive,
-          status: row.isActive ? "Connected" : "Pending API keys",
-          config: row.config || {},
-        })));
-      }
-    }).catch(() => setItems(demoStore.integrations()));
+      const mapped = rows.map((row) => ({
+        ...(defaultIntegrations.find((item) => item.id === row.type.toLowerCase()) || {}),
+        id: row.type.toLowerCase(),
+        title: row.type,
+        isActive: row.isActive,
+        status: row.isActive ? "Connected" : "Configured, inactive",
+        config: row.config || {},
+      }));
+      setItems(defaultIntegrations.map((item) => mapped.find((row) => row.id === item.id) || item));
+    }).catch((error) => setNotice(error.friendlyMessage || "Unable to load integrations."));
   }, []);
 
   const updateConfig = (id, key, value) => {
     const next = items.map((item) => item.id === id ? { ...item, config: { ...(item.config || {}), [key]: value } } : item);
-    setItems(demoStore.saveIntegrations(next));
+    setItems(next);
   };
 
   const saveIntegration = async (id) => {
     const current = items.find((item) => item.id === id);
-    const next = items.map((item) => item.id === id ? { ...item, status: "Saved locally" } : item);
     try {
-      await api.put(`/integrations/${id}`, { config: current.config, isActive: current.isActive });
-    } catch {
-      demoStore.addActivityLog(`Saved ${current.title} integration settings`);
+      const { data } = await api.put(`/integrations/${id}`, { config: current.config, isActive: current.isActive });
+      const saved = data.data || data;
+      setItems((currentItems) => currentItems.map((item) => item.id === id ? { ...item, isActive: saved.isActive, status: "Saved", config: saved.config || item.config } : item));
+      setNotice(`${current.title} settings saved.`);
+    } catch (error) {
+      setNotice(error.friendlyMessage || `Unable to save ${current.title}.`);
     }
-    setItems(demoStore.saveIntegrations(next));
   };
 
-  const testConnection = (id) => {
-    const next = items.map((item) => item.id === id ? { ...item, status: item.isActive ? "Connection healthy" : "Credentials saved, channel inactive" } : item);
-    setItems(demoStore.saveIntegrations(next));
-    demoStore.addActivityLog(`Tested ${items.find((item) => item.id === id)?.title} integration`);
+  const testConnection = async (id) => {
+    try {
+      const { data } = await api.post(`/integrations/${id}/test`, items.find((item) => item.id === id)?.config || {});
+      setItems((currentItems) => currentItems.map((item) => item.id === id ? { ...item, status: data.message || "Connection tested" } : item));
+    } catch (error) {
+      setNotice(error.friendlyMessage || `Unable to test ${id}.`);
+    }
   };
 
-  const toggleIntegration = (id) => {
-    const next = items.map((item) => item.id === id ? { ...item, isActive: !item.isActive, status: !item.isActive ? "Enabled" : "Paused" } : item);
-    setItems(demoStore.saveIntegrations(next));
-    demoStore.addActivityLog(`${items.find((item) => item.id === id)?.title} ${items.find((item) => item.id === id)?.isActive ? "paused" : "enabled"}`);
+  const toggleIntegration = async (id) => {
+    const current = items.find((item) => item.id === id);
+    try {
+      const { data } = await api.put(`/integrations/${id}`, { config: current.config, isActive: !current.isActive });
+      const saved = data.data || data;
+      setItems((currentItems) => currentItems.map((item) => item.id === id ? { ...item, isActive: saved.isActive, status: saved.isActive ? "Enabled" : "Paused", config: saved.config || item.config } : item));
+    } catch (error) {
+      setNotice(error.friendlyMessage || `Unable to update ${current.title}.`);
+    }
   };
 
   const widgetBase = import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, "") || "http://localhost:5000";
@@ -81,6 +95,7 @@ export default function Integrations() {
   return (
     <>
       <PageHeader title="Integration settings" description="Configure WhatsApp, website chatbot, and email support channels." />
+      {notice ? <p className="mb-4 rounded-md bg-amber-50 p-3 text-sm font-semibold text-amber-800">{notice}</p> : null}
       <div className="grid gap-4 lg:grid-cols-3">
         {items.map(({ id, title, text, isActive, status, config = {} }) => (
           <Card key={id || title} className="p-5">

@@ -93,6 +93,38 @@
     "writeMessage": "Write a secure message",
     "selectSession": "Select a chat session to view messages.",
     "aiHandoffReady": "AI handoff ready",
+    "realTime": "Real-time",
+    "encrypted": "Encrypted",
+    "queueTeam": "Queue team",
+    "requestAgent": "Request agent",
+    "supportConversation": "{{channel}} support conversation",
+    "websiteChannel": "Website",
+    "customerFallback": "Customer",
+    "noHistory": "No chat history yet. Messages and shared files will be stored here.",
+    "waiting": "Waiting",
+    "total": "Total",
+    "active": "Active",
+    "closed": "Closed",
+    "transfers": "Transfers",
+    "queuePosition": "Queue #{{position}}",
+    "noLiveChats": "No live chats in queue.",
+    "manageSelectedConversation": "Manage the selected conversation.",
+    "multiAgentSupport": "Multi-agent support",
+    "noAgentsLoaded": "No agents loaded.",
+    "visitorTracking": "Visitor tracking",
+    "visitorAndSecurity": "Visitor and security",
+    "visitorPage": "Visitor page",
+    "page": "Page",
+    "device": "Device",
+    "visits": "Visits",
+    "security": "Security",
+    "channel": "Channel",
+    "encryption": "Encryption",
+    "attachment": "Attachment",
+    "sharedImage": "Shared image",
+    "aiBot": "AI Bot",
+    "showTranslation": "Show translation",
+    "showOriginal": "Show original",
     "notifications": "Notifications",
     "ratingTitle": "Chat rating and feedback",
     "ratingHelp": "Rate your agent and leave feedback after a chat is closed.",
@@ -126,6 +158,7 @@
     "security": "Security",
     "activityLogs": "Activity Logs",
     "integrations": "Integrations",
+    "internalChats": "Internal Chats",
     "assignedTickets": "Assigned Tickets",
     "liveChatQueue": "Live Chat Queue",
     "performance": "Performance",
@@ -135,7 +168,8 @@
   },
   "common": {
     "on": "on",
-    "off": "off"
+    "off": "off",
+    "trendThisMonth": "{{trend}} this month"
   },
   "aiSettings": {
     "actions": {
@@ -244,7 +278,7 @@
       "description": "Submit a support request with priority, category, and optional files or images."
     },
     "customerLiveChat": {
-      "title": null,
+      "title": "Live chat",
       "description": "Start a secure AI-assisted support chat, share files, and rate the experience."
     },
     "customers": {

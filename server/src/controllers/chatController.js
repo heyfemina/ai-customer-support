@@ -131,10 +131,41 @@ export async function startChat(req, res, next) {
   } catch (error) { next(error); }
 }
 
+export async function startTicketChat(req, res, next) {
+  try {
+    const ticket = await prisma.ticket.findUnique({ where: { id: req.params.ticketId }, include: { customer: true, agent: true } });
+    if (!ticket) return res.status(404).json({ success: false, message: "Ticket not found" });
+    const allowed =
+      req.user.role === "ADMIN" ||
+      ticket.customerId === req.user.id ||
+      ticket.agentId === req.user.id;
+    if (!allowed) return res.status(403).json({ success: false, message: "Access denied" });
+
+    const chat = await prisma.chatSession.create({
+      data: {
+        customerId: ticket.customerId,
+        agentId: req.user.role === "AGENT" ? req.user.id : ticket.agentId,
+        language: ticket.customer.language || req.body.language || "en",
+        channel: `Ticket live chat: ${ticket.id}`,
+        encrypted: true,
+        lastMessage: `Live chat opened for ticket: ${ticket.subject}`,
+        visitorPage: `/tickets/${ticket.id}`,
+        visitorDevice: req.headers["user-agent"] || "Browser",
+      },
+      include,
+    });
+
+    const shaped = shapeChat(chat);
+    req.app.get("io")?.emit("chat_queue_updated", shaped);
+    req.app.get("io")?.emit("chat_notification", { chatSessionId: chat.id, message: "Ticket chat opened", chat: shaped });
+    success(res, shaped, "Ticket chat opened", 201);
+  } catch (error) { next(error); }
+}
+
 export async function getChats(req, res, next) {
   try {
     const where = req.user.role === "CUSTOMER" ? { customerId: req.user.id } : req.user.role === "AGENT" ? { OR: [{ agentId: req.user.id }, { agentId: null }, { status: "TRANSFERRED" }] } : {};
-    const chats = await prisma.chatSession.findMany({ where, include, orderBy: [{ status: "desc" }, { updatedAt: "desc" }] });
+    const chats = await prisma.chatSession.findMany({ where, include, orderBy: { updatedAt: "desc" } });
     success(res, chats.map(shapeChat));
   } catch (error) { next(error); }
 }
@@ -176,11 +207,11 @@ export async function sendChatMessage(req, res, next) {
     await prisma.chatSession.update({ where: { id: req.params.id }, data: { status: "ACTIVE", lastMessage: content } });
     const shapedMessage = shapeMessage(message);
     req.app.get("io")?.to(req.params.id).emit("receive_message", shapedMessage);
-    req.app.get("io")?.emit("chat_queue_updated", shapeChat({ ...chat, status: "ACTIVE", lastMessage: content, messages: [...(chat.messages || []), message] }));
-    req.app.get("io")?.emit("chat_notification", { chatSessionId: req.params.id, message: "New live chat message" });
-
     const aiMessage = await maybeCreateAiReply({ req, chat, customerMessage: shapedMessage });
     if (aiMessage) req.app.get("io")?.to(req.params.id).emit("receive_message", aiMessage);
+    const updatedChat = await prisma.chatSession.findUnique({ where: { id: req.params.id }, include });
+    req.app.get("io")?.emit("chat_queue_updated", shapeChat(updatedChat));
+    req.app.get("io")?.emit("chat_notification", { chatSessionId: req.params.id, message: "New live chat message" });
 
     success(res, { message: shapedMessage, aiMessage }, "Message sent", 201);
   } catch (error) { next(error); }

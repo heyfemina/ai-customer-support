@@ -8,7 +8,6 @@ import PageHeader from "../../components/common/PageHeader.jsx";
 import StatCard from "../../components/common/StatCard.jsx";
 import TicketTable from "../../components/tickets/TicketTable.jsx";
 import { unwrapData } from "../../utils/helpers.js";
-import { demoStore } from "../../utils/demoStore.js";
 
 const icons = [Ticket, Ticket, CheckCircle2, MessageSquare, Clock, Star, TrendingUp, Bot];
 const tones = ["sky", "amber", "emerald", "violet", "rose", "sky", "emerald", "violet"];
@@ -64,7 +63,7 @@ export default function AdminDashboard() {
     { title: t("dashboard.monitoring.agentCoverage"), value: t("dashboard.monitoring.online", { count: report?.agentsOnline || 0 }), detail: t("dashboard.monitoring.activeChatSessions", { count: report?.chats || 0 }), icon: Users, tone: "violet" },
     { title: t("dashboard.monitoring.securityPosture"), value: t("dashboard.monitoring.protected"), detail: t("dashboard.monitoring.rbacEnabled"), icon: ShieldCheck, tone: "amber" },
   ];
-  const languageSettings = demoStore.aiSettings();
+  const languageSettings = report.aiSettings || {};
 
   return (
     <>

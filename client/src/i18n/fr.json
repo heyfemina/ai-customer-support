@@ -93,6 +93,38 @@
     "writeMessage": "Ecrire un message securise",
     "selectSession": "Selectionnez une session de chat.",
     "aiHandoffReady": "Transfert IA pret",
+    "realTime": "Temps reel",
+    "encrypted": "Chiffre",
+    "queueTeam": "Equipe file",
+    "requestAgent": "Demander un agent",
+    "supportConversation": "Conversation support {{channel}}",
+    "websiteChannel": "Site web",
+    "customerFallback": "Client",
+    "noHistory": "Aucun historique de chat. Les messages et fichiers partages seront stockes ici.",
+    "waiting": "En attente",
+    "total": "Total",
+    "active": "Actif",
+    "closed": "Ferme",
+    "transfers": "Transferts",
+    "queuePosition": "File #{{position}}",
+    "noLiveChats": "Aucun chat live dans la file.",
+    "manageSelectedConversation": "Gerez la conversation selectionnee.",
+    "multiAgentSupport": "Support multi-agent",
+    "noAgentsLoaded": "Aucun agent charge.",
+    "visitorTracking": "Suivi visiteurs",
+    "visitorAndSecurity": "Visiteur et securite",
+    "visitorPage": "Page visiteur",
+    "page": "Page",
+    "device": "Appareil",
+    "visits": "Visites",
+    "security": "Securite",
+    "channel": "Canal",
+    "encryption": "Chiffrement",
+    "attachment": "Piece jointe",
+    "sharedImage": "Image partagee",
+    "aiBot": "Bot IA",
+    "showTranslation": "Afficher la traduction",
+    "showOriginal": "Afficher l original",
     "notifications": "Notifications",
     "ratingTitle": "Note et feedback chat",
     "ratingHelp": "Notez l'agent et laissez un feedback apres fermeture.",
@@ -126,6 +158,7 @@
     "security": "Securite",
     "activityLogs": "Journaux d'activite",
     "integrations": "Integrations",
+    "internalChats": "Chats internes",
     "assignedTickets": "Tickets assignes",
     "liveChatQueue": "File de chat live",
     "performance": "Performance",
@@ -135,7 +168,8 @@
   },
   "common": {
     "on": "activee",
-    "off": "desactivee"
+    "off": "desactivee",
+    "trendThisMonth": "{{trend}} ce mois"
   },
   "aiSettings": {
     "actions": {
@@ -244,7 +278,7 @@
       "description": "Soumettez une demande avec priorite, categorie et fichiers ou images optionnels."
     },
     "customerLiveChat": {
-      "title": null,
+      "title": "Chat live",
       "description": "Demarrez un chat securise assiste par IA, partagez des fichiers et notez l experience."
     },
     "customers": {

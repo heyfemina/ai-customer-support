@@ -1,21 +1,20 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import api, { uploadFile } from "../../api/axios.js";
 import PageHeader from "../../components/common/PageHeader.jsx";
 import Card from "../../components/common/Card.jsx";
 import Button from "../../components/common/Button.jsx";
 import TicketStatusBadge from "../../components/tickets/TicketStatusBadge.jsx";
 import TicketTimeline from "../../components/tickets/TicketTimeline.jsx";
-import { tickets } from "../../utils/dummyData.js";
 import { normalizeItems } from "../../utils/helpers.js";
 import Badge from "../../components/common/Badge.jsx";
 import { useTranslation } from "react-i18next";
-import { demoStore } from "../../utils/demoStore.js";
 
 export default function AdminTicketDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { t } = useTranslation();
-  const [ticket, setTicket] = useState(tickets.find((item) => item.id === id) || tickets[0]);
+  const [ticket, setTicket] = useState(null);
   const [agents, setAgents] = useState([]);
   const [reply, setReply] = useState("");
   const [file, setFile] = useState(null);
@@ -23,9 +22,9 @@ export default function AdminTicketDetails() {
 
   useEffect(() => {
     api.get(`/tickets/${id}`).then(({ data }) => setTicket(data.data || data)).catch(() => {
-      setTicket(demoStore.tickets().find((item) => item.id === id) || tickets.find((item) => item.id === id) || tickets[0]);
+      setTicket(null);
     });
-    api.get("/reports/agents").then(({ data }) => setAgents(normalizeItems(data, []))).catch(() => setAgents(demoStore.users().filter((user) => user.role === "AGENT")));
+    api.get("/reports/agents").then(({ data }) => setAgents(normalizeItems(data, []))).catch(() => setAgents([]));
   }, [id]);
 
   const updateTicket = async (data) => {
@@ -36,11 +35,7 @@ export default function AdminTicketDetails() {
       if (data.agentId !== undefined) setNotice(`Assigned to ${updated.agent?.name || "Unassigned"}`);
       if (data.status) setNotice(`Status changed to ${data.status}`);
     } catch {
-      const agent = agents.find((item) => item.id === data.agentId);
-      const updated = demoStore.updateTicket(id, { ...data, agentName: agent?.name || "Unassigned" });
-      setTicket(updated);
-      if (data.agentId !== undefined) setNotice(`Assigned to ${agent?.name || "Unassigned"}`);
-      if (data.status) setNotice(`Status changed to ${data.status}`);
+      setNotice("Ticket update failed. Please check the API connection.");
     }
   };
 
@@ -52,16 +47,23 @@ export default function AdminTicketDetails() {
       const message = data.data || data;
       setTicket((current) => ({ ...current, messages: [...(current.messages || []), message] }));
     } catch {
-      const { ticket: updatedTicket } = demoStore.addTicketReply(id, { content: reply || filePayload.fileName, senderId: "admin", ...filePayload });
-      setTicket(updatedTicket);
+      setNotice("Reply failed. Please check the API connection.");
     }
     setReply("");
     setFile(null);
   };
 
+  const openTicketChat = async () => {
+    const { data } = await api.post(`/chats/ticket/${id}/start`);
+    const chat = data.data || data;
+    navigate("/admin/chats", { state: { chatId: chat.id } });
+  };
+
   return (
     <>
-      <PageHeader title={ticket.subject} description="Assign agents, change status, review timeline, and reply to the customer." />
+      {!ticket ? <Card className="p-8 text-center text-sm text-slate-500">Ticket not loaded. Please check the API connection.</Card> : (
+      <>
+      <PageHeader title={ticket.subject} description="Assign agents, change status, review timeline, and reply to the customer." actions={<Button onClick={openTicketChat}>Open live chat with customer</Button>} />
       <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
         <div className="space-y-6">
           <Card className="p-5">
@@ -95,6 +97,8 @@ export default function AdminTicketDetails() {
           </dl>
         </Card>
       </div>
+      </>
+      )}
     </>
   );
 }

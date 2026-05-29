@@ -3,13 +3,12 @@ import api from "../../api/axios.js";
 import PageHeader from "../../components/common/PageHeader.jsx";
 import Table from "../../components/common/Table.jsx";
 import Badge from "../../components/common/Badge.jsx";
-import { users } from "../../utils/dummyData.js";
 import { normalizeItems } from "../../utils/helpers.js";
 
 export default function Customers() {
-  const [customers, setCustomers] = useState(users.filter((user) => user.role === "CUSTOMER"));
+  const [customers, setCustomers] = useState([]);
   useEffect(() => {
-    api.get("/reports/customers").then(({ data }) => setCustomers(normalizeItems(data, customers))).catch(() => null);
+    api.get("/reports/customers").then(({ data }) => setCustomers(normalizeItems(data, []))).catch(() => setCustomers([]));
   }, []);
   const columns = [
     { key: "name", label: "Customer" },

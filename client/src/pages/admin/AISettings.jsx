@@ -4,7 +4,6 @@ import PageHeader from "../../components/common/PageHeader.jsx";
 import Card from "../../components/common/Card.jsx";
 import Button from "../../components/common/Button.jsx";
 import { unwrapData } from "../../utils/helpers.js";
-import { demoStore } from "../../utils/demoStore.js";
 import { useTranslation } from "react-i18next";
 
 const languageOptions = [
@@ -19,9 +18,26 @@ const providerModelDefaults = {
   openai: "gpt-4o-mini",
 };
 
+const defaultSettings = {
+  botName: "Support AI",
+  apiProvider: "gemini",
+  model: "gemini-2.5-flash",
+  apiKey: "",
+  apiKeyEnabled: false,
+  hasApiKey: false,
+  welcomeMessage: "Hello, I can help with tickets, account questions, and quick troubleshooting.",
+  fallbackMessage: "I will transfer you to an agent so we can resolve this properly.",
+  isActive: true,
+  autoTranslate: true,
+  handoffAfterFailedReplies: 2,
+  supportedLanguages: ["en", "it", "es", "fr"],
+  regionalNotes: "",
+  regionalProfiles: {},
+};
+
 export default function AISettings() {
   const { t } = useTranslation();
-  const [form, setForm] = useState(demoStore.aiSettings());
+  const [form, setForm] = useState(defaultSettings);
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
@@ -30,19 +46,18 @@ export default function AISettings() {
     api.get("/ai/settings").then(({ data }) => {
       const settings = unwrapData(data);
       if (settings) {
-        const defaults = demoStore.aiSettings();
         setForm({
-          ...defaults,
+          ...defaultSettings,
           ...settings,
           apiKey: "",
           removeApiKey: false,
           regionalProfiles: {
-            ...(defaults.regionalProfiles || {}),
+            ...(defaultSettings.regionalProfiles || {}),
             ...(settings.regionalProfiles || {}),
           },
         });
       }
-    }).catch(() => setForm(demoStore.aiSettings()));
+    }).catch(() => setForm(defaultSettings));
   }, []);
 
   const save = async () => {
@@ -56,10 +71,8 @@ export default function AISettings() {
       const { data } = await api.put("/ai/settings", form);
       const saved = unwrapData(data);
       if (saved) setForm({ ...form, ...saved, apiKey: "", removeApiKey: false });
-    } catch {
-      const { apiKey, removeApiKey, ...safeForm } = form;
-      demoStore.saveAiSettings(safeForm);
-      setForm({ ...safeForm, apiKey: "", removeApiKey: false });
+    } catch (error) {
+      setError(error.friendlyMessage || "Unable to save AI settings.");
     } finally {
       setNotice(t("aiSettings.notices.saved"));
       setSaving(false);

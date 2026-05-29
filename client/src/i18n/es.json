@@ -93,6 +93,38 @@
     "writeMessage": "Escribe un mensaje seguro",
     "selectSession": "Selecciona un chat para ver mensajes.",
     "aiHandoffReady": "Traspaso IA listo",
+    "realTime": "Tiempo real",
+    "encrypted": "Cifrado",
+    "queueTeam": "Equipo de cola",
+    "requestAgent": "Solicitar agente",
+    "supportConversation": "Conversacion de soporte {{channel}}",
+    "websiteChannel": "Sitio web",
+    "customerFallback": "Cliente",
+    "noHistory": "No hay historial de chat. Los mensajes y archivos compartidos se guardaran aqui.",
+    "waiting": "En espera",
+    "total": "Total",
+    "active": "Activo",
+    "closed": "Cerrado",
+    "transfers": "Transferencias",
+    "queuePosition": "Cola #{{position}}",
+    "noLiveChats": "No hay chats en vivo en cola.",
+    "manageSelectedConversation": "Gestiona la conversacion seleccionada.",
+    "multiAgentSupport": "Soporte multi-agente",
+    "noAgentsLoaded": "No hay agentes cargados.",
+    "visitorTracking": "Seguimiento de visitantes",
+    "visitorAndSecurity": "Visitante y seguridad",
+    "visitorPage": "Pagina del visitante",
+    "page": "Pagina",
+    "device": "Dispositivo",
+    "visits": "Visitas",
+    "security": "Seguridad",
+    "channel": "Canal",
+    "encryption": "Cifrado",
+    "attachment": "Adjunto",
+    "sharedImage": "Imagen compartida",
+    "aiBot": "Bot AI",
+    "showTranslation": "Mostrar traduccion",
+    "showOriginal": "Mostrar original",
     "notifications": "Notificaciones",
     "ratingTitle": "Calificacion y feedback",
     "ratingHelp": "Califica al agente y deja feedback al cerrar.",
@@ -126,6 +158,7 @@
     "security": "Seguridad",
     "activityLogs": "Registros de actividad",
     "integrations": "Integraciones",
+    "internalChats": "Chats internos",
     "assignedTickets": "Tickets asignados",
     "liveChatQueue": "Cola de chat en vivo",
     "performance": "Rendimiento",
@@ -135,7 +168,8 @@
   },
   "common": {
     "on": "activa",
-    "off": "inactiva"
+    "off": "inactiva",
+    "trendThisMonth": "{{trend}} este mes"
   },
   "aiSettings": {
     "actions": {
@@ -244,7 +278,7 @@
       "description": "Envia una solicitud con prioridad, categoria y archivos o imagenes opcionales."
     },
     "customerLiveChat": {
-      "title": null,
+      "title": "Chat en vivo",
       "description": "Inicia un chat seguro asistido por AI, comparte archivos y califica la experiencia."
     },
     "customers": {

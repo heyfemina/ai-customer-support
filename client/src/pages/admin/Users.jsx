@@ -18,7 +18,9 @@ export default function Users() {
   const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(false);
   useEffect(() => {
-    api.get("/users").then(({ data }) => setItems(normalizeItems(data, []))).catch((error) => setError(error.friendlyMessage || "Unable to load users."));
+    api.get("/users").then(({ data }) => setItems(normalizeItems(data, []))).catch((error) => {
+      setError(error.friendlyMessage || "Unable to load users.");
+    });
   }, []);
   const openForm = (user = null) => {
     setEditing(user);

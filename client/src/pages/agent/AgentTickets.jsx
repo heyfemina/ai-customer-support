@@ -3,23 +3,14 @@ import api from "../../api/axios.js";
 import PageHeader from "../../components/common/PageHeader.jsx";
 import Card from "../../components/common/Card.jsx";
 import TicketTable from "../../components/tickets/TicketTable.jsx";
-import { tickets } from "../../utils/dummyData.js";
 import { normalizeItems } from "../../utils/helpers.js";
-import { demoStore } from "../../utils/demoStore.js";
 
 export default function AgentTickets() {
-  const [items, setItems] = useState(tickets);
+  const [items, setItems] = useState([]);
   const [filters, setFilters] = useState({ search: "", status: "" });
   useEffect(() => {
     const params = new URLSearchParams(Object.entries(filters).filter(([, value]) => value));
-    api.get(`/tickets?${params.toString()}`).then(({ data }) => setItems(normalizeItems(data, tickets))).catch(() => {
-      const search = filters.search.toLowerCase();
-      setItems(demoStore.tickets().filter((ticket) => {
-        const matchesSearch = !search || `${ticket.subject} ${ticket.description}`.toLowerCase().includes(search);
-        const matchesStatus = !filters.status || ticket.status === filters.status;
-        return matchesSearch && matchesStatus;
-      }));
-    });
+    api.get(`/tickets?${params.toString()}`).then(({ data }) => setItems(normalizeItems(data, []))).catch(() => setItems([]));
   }, [filters]);
   return (
     <>

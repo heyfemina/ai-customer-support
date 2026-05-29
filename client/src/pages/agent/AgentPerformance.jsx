@@ -4,33 +4,21 @@ import { useTranslation } from "react-i18next";
 import api from "../../api/axios.js";
 import Card from "../../components/common/Card.jsx";
 import PageHeader from "../../components/common/PageHeader.jsx";
-import { monthlyTickets } from "../../utils/dummyData.js";
 import { unwrapData } from "../../utils/helpers.js";
-import { demoStore } from "../../utils/demoStore.js";
-
-function buildAgentRows() {
-  return demoStore.users().filter((user) => user.role === "AGENT").map((agent, index) => ({
-    name: agent.name,
-    resolved: 22 + index * 8,
-    response: 2.1 - index * 0.25,
-    rating: 4.7 + index * 0.1,
-    complaints: index + 1,
-  }));
-}
 
 export default function AgentPerformance() {
   const { t } = useTranslation();
-  const [report, setReport] = useState(monthlyTickets);
-  const [agents, setAgents] = useState(buildAgentRows());
+  const [report, setReport] = useState([]);
+  const [agents, setAgents] = useState([]);
   useEffect(() => {
     api.get("/reports/tickets").then(({ data }) => {
       const payload = unwrapData(data);
-      setReport(payload?.monthlyTickets?.length ? payload.monthlyTickets : monthlyTickets);
-    }).catch(() => setReport(monthlyTickets));
+      setReport(payload?.monthlyTickets?.length ? payload.monthlyTickets : []);
+    }).catch(() => setReport([]));
     api.get("/reports/agents").then(({ data }) => {
       const rows = unwrapData(data, []);
       if (rows.length) setAgents(rows);
-    }).catch(() => setAgents(buildAgentRows()));
+    }).catch(() => setAgents([]));
   }, []);
   const summary = [
     { label: t("reports.agentPerformance.resolvedTickets"), value: agents.reduce((sum, agent) => sum + (agent.resolved || 0), 0) },
