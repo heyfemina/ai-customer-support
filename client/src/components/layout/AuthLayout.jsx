@@ -3,7 +3,7 @@ import { Outlet } from "react-router-dom";
 
 export default function AuthLayout() {
   return (
-    <div className="grid min-h-screen bg-slate-50 lg:grid-cols-[1fr_500px]">
+    <div className="grid min-h-screen bg-slate-50 lg:grid-cols-[minmax(0,1fr)_560px]">
       <section className="hidden bg-blue-950 p-10 text-white lg:flex lg:flex-col lg:justify-between">
         <div className="flex items-center gap-3">
           <div className="grid h-11 w-11 place-items-center rounded-md bg-blue-500 shadow-sm">
@@ -16,8 +16,8 @@ export default function AuthLayout() {
           <p className="mt-5 max-w-lg text-base leading-7 text-slate-300">Secure ticketing, live chat, AI handoff workflows, analytics, and multilingual customer care in one SaaS interface.</p>
         </div>
       </section>
-      <section className="flex items-center justify-center p-6 lg:p-10">
-        <div className="w-full max-w-md">
+      <section className="flex items-center justify-center px-4 py-8 sm:px-6 lg:p-10">
+        <div className="w-full max-w-[440px]">
           <Outlet />
         </div>
       </section>
