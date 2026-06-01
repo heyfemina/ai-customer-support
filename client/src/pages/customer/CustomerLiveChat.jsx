@@ -10,12 +10,21 @@ import { useSocket } from "../../context/SocketContext.jsx";
 import { mergeMessages, normalizeItems, sortByRecent } from "../../utils/helpers.js";
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "../../context/LanguageContext.jsx";
+import { MessageSquare, ShieldCheck, Star } from "lucide-react";
 
 const appendMessage = (current, chatId, message) => {
   const existing = current[chatId] || [];
   if (existing.some((item) => item.id === message.id)) return current;
   return { ...current, [chatId]: [...existing, message] };
 };
+
+const ratingOptions = [
+  { value: 5, label: "Excellent" },
+  { value: 4, label: "Good" },
+  { value: 3, label: "Neutral" },
+  { value: 2, label: "Poor" },
+  { value: 1, label: "Bad" },
+];
 
 export default function CustomerLiveChat() {
   const { user } = useAuth();
@@ -232,8 +241,8 @@ export default function CustomerLiveChat() {
     <>
       <PageHeader title={t("pages.customerLiveChat.title")} description={t("pages.customerLiveChat.description")} actions={<Button onClick={startChat} loading={startingChat}>{t("buttons.startChat")}</Button>} />
       {notice ? <p className={`mb-4 rounded-md border px-3 py-2 text-sm font-semibold ${noticeClass}`}>{notice}</p> : null}
-      <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="flex min-h-[660px] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm md:flex-row xl:h-[calc(100vh-11rem)] xl:min-h-[680px] xl:max-h-[900px]">
+      <div className="grid items-start gap-5 2xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="flex min-h-[660px] min-w-0 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm md:flex-row xl:h-[calc(100vh-11rem)] xl:min-h-[680px] xl:max-h-[900px]">
           <ChatSidebar sessions={sessions} activeId={active?.id} onSelect={selectSession} />
           <ChatWindow
             session={active}
@@ -251,14 +260,57 @@ export default function CustomerLiveChat() {
             closeDisabled={!active?.id || activeClosed || Boolean(actionLoading)}
           />
         </div>
-        <aside className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm xl:sticky xl:top-24">
-          <h2 className="font-semibold text-slate-950">{t("chat.ratingTitle")}</h2>
-          <p className="mt-2 text-sm text-slate-500">{t("chat.ratingHelp")}</p>
-          <select className="app-field mt-4" value={rating} onChange={(event) => setRating(event.target.value)}>
-            <option value="5">5 - Excellent</option><option value="4">4 - Good</option><option value="3">3 - Neutral</option><option value="2">2 - Poor</option><option value="1">1 - Bad</option>
-          </select>
-          <textarea className="app-field mt-3 min-h-28" placeholder={t("chat.feedback")} value={feedback} onChange={(event) => setFeedback(event.target.value)} />
-          <Button className="mt-3 w-full" onClick={submitRating} loading={actionLoading === "rating"} disabled={!active?.id || Boolean(actionLoading)}>{t("buttons.submitRating")}</Button>
+        <aside className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm 2xl:sticky 2xl:top-24">
+          <div className="border-b border-slate-200 bg-slate-50 px-5 py-4">
+            <div className="flex items-start gap-3">
+              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-blue-50 text-blue-700 ring-1 ring-blue-100">
+                <Star className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 className="font-semibold text-slate-950">{t("chat.ratingTitle")}</h2>
+                <p className="mt-1 text-sm leading-5 text-slate-500">{t("chat.ratingHelp")}</p>
+              </div>
+            </div>
+          </div>
+          <div className="space-y-4 p-5">
+            <div className="rounded-lg border border-slate-200 bg-white p-3">
+              <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                <MessageSquare className="h-4 w-4 text-blue-700" />
+                <span>{active?.customer?.name || active?.customerName || t("chat.customerFallback")}</span>
+              </div>
+              <p className="mt-1 truncate text-xs text-slate-500">{active?.lastMessage || t("chat.noMessages")}</p>
+            </div>
+            <div>
+              <span className="app-label">Rate this chat</span>
+              <div className="mt-2 grid grid-cols-5 gap-2">
+                {ratingOptions.map((option) => {
+                  const selected = Number(rating) === option.value;
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      className={`flex h-12 flex-col items-center justify-center rounded-lg border text-xs font-bold transition ${selected ? "border-blue-300 bg-blue-50 text-blue-800 ring-2 ring-blue-100" : "border-slate-200 bg-white text-slate-500 hover:border-blue-200 hover:bg-blue-50"}`}
+                      onClick={() => setRating(option.value)}
+                      title={option.label}
+                    >
+                      <Star className={`h-4 w-4 ${selected ? "fill-blue-700 text-blue-700" : "text-slate-400"}`} />
+                      {option.value}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="mt-2 text-xs font-semibold text-slate-500">{ratingOptions.find((option) => option.value === Number(rating))?.label}</p>
+            </div>
+            <label className="block">
+              <span className="app-label">Feedback</span>
+              <textarea className="app-field mt-1.5 min-h-28 resize-none rounded-lg bg-white" placeholder={t("chat.feedback")} value={feedback} onChange={(event) => setFeedback(event.target.value)} />
+            </label>
+            <div className="rounded-lg border border-blue-100 bg-blue-50 p-3 text-sm text-blue-900">
+              <p className="inline-flex items-center gap-2 font-semibold"><ShieldCheck className="h-4 w-4" />Secure feedback</p>
+              <p className="mt-1 text-xs leading-5 text-blue-800">Your rating is saved with this conversation history.</p>
+            </div>
+            <Button className="min-h-11 w-full rounded-lg" onClick={submitRating} loading={actionLoading === "rating"} disabled={!active?.id || Boolean(actionLoading)}>{t("buttons.submitRating")}</Button>
+          </div>
         </aside>
       </div>
     </>

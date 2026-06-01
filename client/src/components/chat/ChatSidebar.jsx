@@ -30,33 +30,41 @@ export default function ChatSidebar({ sessions, activeId, onSelect }) {
     });
   }, [sessions, query, filter]);
   const filters = ["ALL", "WAITING", "ACTIVE", "TRANSFERRED", "CLOSED"];
+  const filterCounts = {
+    ALL: sessions.length,
+    WAITING: waiting,
+    ACTIVE: sessions.filter((session) => session.status === "ACTIVE").length,
+    TRANSFERRED: sessions.filter((session) => session.status === "TRANSFERRED").length,
+    CLOSED: sessions.filter((session) => session.status === "CLOSED").length,
+  };
+
   return (
-    <aside className="flex min-h-0 w-full flex-col border-b border-slate-200 bg-white md:h-full md:w-[22rem] md:shrink-0 md:border-b-0 md:border-r xl:w-[24rem]">
+    <aside className="flex min-h-0 w-full flex-col border-b border-slate-200 bg-white md:h-full md:w-[19rem] md:shrink-0 md:border-b-0 md:border-r xl:w-[20rem]">
       <div className="shrink-0 border-b border-slate-200/80 bg-white p-4">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <h2 className="font-semibold text-slate-950">Support inbox</h2>
-            <p className="mt-1 text-sm text-slate-500">{sessions.length} conversations</p>
+            <p className="text-xs font-bold uppercase tracking-wide text-blue-700">Live inbox</p>
+            <h2 className="mt-1 font-semibold text-slate-950">Support queue</h2>
           </div>
           <div className="grid h-10 w-10 place-items-center rounded-md bg-blue-50 text-blue-700 ring-1 ring-blue-100">
             <MessageCircle className="h-5 w-5" />
           </div>
         </div>
         <div className="mt-4 grid grid-cols-3 gap-2 text-xs font-semibold">
-          <div className="rounded-md border border-amber-100 bg-amber-50 px-3 py-2 text-amber-700">
-            <p className="text-lg font-bold">{waiting}</p>
-            <p>{t("chat.waiting")}</p>
+          <div className="rounded-md border border-amber-100 bg-amber-50 px-2.5 py-2 text-amber-700">
+            <p className="text-base font-bold">{waiting}</p>
+            <p className="truncate">{t("chat.waiting")}</p>
           </div>
-          <div className="rounded-md border border-green-100 bg-green-50 px-3 py-2 text-green-700">
-            <p className="text-lg font-bold">{active}</p>
-            <p>{t("chat.active")}</p>
+          <div className="rounded-md border border-green-100 bg-green-50 px-2.5 py-2 text-green-700">
+            <p className="text-base font-bold">{active}</p>
+            <p className="truncate">{t("chat.active")}</p>
           </div>
-          <div className="rounded-md border border-blue-100 bg-blue-50 px-3 py-2 text-blue-700">
-            <p className="text-lg font-bold">{sessions.length}</p>
-            <p>{t("chat.total")}</p>
+          <div className="rounded-md border border-blue-100 bg-blue-50 px-2.5 py-2 text-blue-700">
+            <p className="text-base font-bold">{sessions.length}</p>
+            <p className="truncate">{t("chat.total")}</p>
           </div>
         </div>
-        <div className="mt-4 flex h-10 items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3">
+        <div className="mt-4 flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3">
           <Search className="h-4 w-4 text-slate-400" />
           <input className="min-w-0 flex-1 border-0 bg-transparent text-sm outline-none focus:shadow-none" placeholder="Search chats" value={query} onChange={(event) => setQuery(event.target.value)} />
         </div>
@@ -66,12 +74,13 @@ export default function ChatSidebar({ sessions, activeId, onSelect }) {
               key={item}
               type="button"
               className={cx(
-                "shrink-0 rounded-full px-3 py-1.5 text-xs font-bold transition",
+                "inline-flex shrink-0 items-center gap-1 rounded-full px-3 py-1.5 text-xs font-bold transition",
                 filter === item ? "bg-blue-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-800"
               )}
               onClick={() => setFilter(item)}
             >
-              {item === "ALL" ? "All" : item.replace("_", " ")}
+              <span>{item === "ALL" ? "All" : item.replace("_", " ")}</span>
+              <span className={cx("rounded-full px-1.5 py-0.5 text-[10px]", filter === item ? "bg-white/15 text-white" : "bg-white text-slate-500")}>{filterCounts[item]}</span>
             </button>
           ))}
         </div>
@@ -82,12 +91,13 @@ export default function ChatSidebar({ sessions, activeId, onSelect }) {
             key={session.id}
             onClick={() => onSelect?.(session)}
             className={cx(
-              "w-full rounded-lg border bg-white p-3 text-left transition hover:border-blue-200 hover:shadow-sm",
+              "relative w-full overflow-hidden rounded-lg border bg-white p-3 text-left transition hover:border-blue-200 hover:shadow-sm",
               activeId === session.id ? "border-blue-300 shadow-sm ring-2 ring-blue-100" : "border-slate-200"
             )}
           >
+            {activeId === session.id ? <span className="absolute inset-y-3 left-0 w-1 rounded-r-full bg-blue-700" /> : null}
             <div className="flex items-start gap-3">
-              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-blue-900 text-xs font-bold text-white">
+              <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-blue-900 text-xs font-bold text-white">
                 {customerName(session, t("chat.customerFallback")).slice(0, 1).toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">
@@ -95,10 +105,10 @@ export default function ChatSidebar({ sessions, activeId, onSelect }) {
                   <p className="truncate font-semibold text-slate-950">{customerName(session, t("chat.customerFallback"))}</p>
                   <Badge tone={statusTone[session.status] || "slate"}>{session.status}</Badge>
                 </div>
-                <p className="mt-2 line-clamp-2 text-sm leading-5 text-slate-600">{session.lastMessage || t("chat.noMessages")}</p>
+                <p className="mt-1.5 line-clamp-2 text-sm leading-5 text-slate-600">{session.lastMessage || t("chat.noMessages")}</p>
               </div>
             </div>
-            <div className="mt-3 flex min-w-0 flex-wrap items-center gap-2 text-xs font-medium text-slate-500">
+            <div className="mt-3 flex min-w-0 flex-wrap items-center gap-2 border-t border-slate-100 pt-2 text-xs font-medium text-slate-500">
               <span className="inline-flex min-w-0 items-center gap-1"><Timer className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{formatDate(session.updatedAt || session.createdAt)}</span></span>
               <span className="max-w-full truncate rounded-full bg-slate-100 px-2 py-0.5 text-slate-500">{session.channel || t("chat.websiteChannel")}</span>
               {session.queuePosition ? <span>{t("chat.queuePosition", { position: session.queuePosition })}</span> : null}

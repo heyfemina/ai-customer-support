@@ -28,7 +28,7 @@ export default function ChatMessage({ message, currentUserId }) {
 
   return (
     <div className={`flex ${mine ? "justify-end" : "justify-start"}`}>
-      <div className={`max-w-[78%] overflow-hidden rounded-2xl px-4 py-3 text-sm shadow-sm ${mine ? "rounded-br-md bg-blue-900 text-white shadow-blue-900/10" : "rounded-bl-md border border-slate-200 bg-white text-slate-700"}`}>
+      <div className={`max-w-[88%] overflow-hidden rounded-2xl px-4 py-3 text-sm shadow-sm sm:max-w-[82%] xl:max-w-[76%] ${mine ? "rounded-br-md bg-blue-900 text-white shadow-blue-900/10" : "rounded-bl-md border border-slate-200 bg-white text-slate-700"}`}>
         {message.fileUrl ? (
           <div className="mb-2">
             {imageFile && fileHref !== "#" ? <img src={fileHref} alt={message.fileName || t("chat.sharedImage")} className="mb-2 max-h-44 rounded-md object-cover" /> : null}

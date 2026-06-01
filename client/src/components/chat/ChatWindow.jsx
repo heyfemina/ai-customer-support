@@ -38,7 +38,7 @@ export default function ChatWindow({
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white">
+    <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white">
       <div className="shrink-0 border-b border-slate-200 bg-white px-4 py-4 sm:px-5">
         <div className="flex min-w-0 flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
@@ -67,7 +67,7 @@ export default function ChatWindow({
           </div>
         </div>
       </div>
-      <div className="app-scrollbar flex-1 space-y-3 overflow-y-auto bg-slate-50 p-4 sm:p-5">
+      <div className="app-scrollbar flex-1 space-y-3 overflow-y-auto bg-slate-50 p-4 sm:p-5 lg:p-6">
         {messages.length ? messages.map((message) => <ChatMessage key={message.id} message={message} currentUserId={currentUserId} />) : <p className="rounded-lg border border-dashed border-slate-200 bg-white p-5 text-center text-sm text-slate-500">{t("chat.noHistory")}</p>}
         {typingUsers.length ? <TypingIndicator name={typingUsers[0]?.name || "Someone"} /> : null}
         <div ref={endRef} />

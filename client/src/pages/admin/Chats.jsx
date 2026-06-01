@@ -211,8 +211,8 @@ export default function Chats() {
     <>
       <PageHeader title="Chat monitoring" description="Monitor live conversations, AI-to-agent handoffs, queues, notifications, and visitor sessions." />
       {notice ? <p className={`mb-4 rounded-md border px-3 py-2 text-sm font-semibold ${noticeClass}`}>{notice}</p> : null}
-      <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="flex min-h-[660px] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm md:flex-row xl:h-[calc(100vh-11rem)] xl:min-h-[680px] xl:max-h-[900px]">
+      <div className="grid items-start gap-5 2xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="flex min-h-[660px] min-w-0 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm md:flex-row xl:h-[calc(100vh-11rem)] xl:min-h-[680px] xl:max-h-[900px]">
           <ChatSidebar sessions={sessions} activeId={active?.id} onSelect={selectSession} />
           <ChatWindow
             session={active}
@@ -224,7 +224,7 @@ export default function Chats() {
             onSend={sendMessage}
           />
         </div>
-        <aside className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm xl:sticky xl:top-24 xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto">
+        <aside className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm 2xl:sticky 2xl:top-24 2xl:max-h-[calc(100vh-7rem)] 2xl:overflow-y-auto">
           <h2 className="font-semibold text-slate-950">{t("ticketsUi.workflow")}</h2>
           <p className="mt-1 text-sm text-slate-500">{t("chat.manageSelectedConversation")}</p>
           <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">

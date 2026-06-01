@@ -236,8 +236,8 @@ export default function AgentLiveChats() {
     <>
       <PageHeader title="Live chat queue" description="Accept live chats, transfer conversations, view history, and send secure messages." />
       {notice ? <p className={`mb-4 rounded-md border px-3 py-2 text-sm font-semibold ${noticeClass}`}>{notice}</p> : null}
-      <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="flex min-h-[660px] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm md:flex-row xl:h-[calc(100vh-11rem)] xl:min-h-[680px] xl:max-h-[900px]">
+      <div className="grid items-start gap-5 2xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="flex min-h-[660px] min-w-0 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm md:flex-row xl:h-[calc(100vh-11rem)] xl:min-h-[680px] xl:max-h-[900px]">
           <ChatSidebar sessions={sessions} activeId={active?.id} onSelect={selectSession} />
           <ChatWindow
             session={active}
@@ -249,7 +249,7 @@ export default function AgentLiveChats() {
             onSend={sendMessage}
           />
         </div>
-        <aside className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm xl:sticky xl:top-24 xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto">
+        <aside className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm 2xl:sticky 2xl:top-24 2xl:max-h-[calc(100vh-7rem)] 2xl:overflow-y-auto">
           <div className="flex items-center gap-3">
             <div className="grid h-10 w-10 place-items-center rounded-md bg-blue-50 text-blue-700 ring-1 ring-blue-100">
               <UserCheck className="h-5 w-5" />
