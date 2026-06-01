@@ -27,18 +27,32 @@ import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
 import chatSocket from "./sockets/chatSocket.js";
 import { assertEncryptionReady } from "./utils/encryption.js";
 
+const defaultClientUrl = "http://localhost:5173";
+const allowedOrigins = (process.env.CLIENT_URLS || process.env.CLIENT_URL || defaultClientUrl)
+  .split(",")
+  .map((origin) => origin.trim().replace(/\/$/, ""))
+  .filter(Boolean);
+const corsOptions = {
+  origin(origin, callback) {
+    if (!origin) return callback(null, true);
+    const normalizedOrigin = origin.replace(/\/$/, "");
+    return allowedOrigins.includes(normalizedOrigin)
+      ? callback(null, true)
+      : callback(new Error(`CORS blocked origin: ${origin}`));
+  },
+  credentials: true,
+};
+
 const app = express();
 assertEncryptionReady();
 const server = createServer(app);
-const io = new Server(server, {
-  cors: { origin: process.env.CLIENT_URL || "http://localhost:5173", credentials: true },
-});
+const io = new Server(server, { cors: corsOptions });
 
 app.set("io", io);
 app.set("startedAt", new Date().toISOString());
 app.set("activeSocketConnections", () => io.engine.clientsCount || 0);
 app.use(helmet());
-app.use(cors({ origin: process.env.CLIENT_URL || "http://localhost:5173", credentials: true }));
+app.use(cors(corsOptions));
 app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
