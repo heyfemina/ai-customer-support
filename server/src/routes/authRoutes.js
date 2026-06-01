@@ -13,6 +13,7 @@ import {
   resend2FA,
   resetPassword,
   resetPasswordSchema,
+  test2FAEmail,
   useRecoveryCode,
   verify2FA,
   updateProfile,
@@ -32,5 +33,6 @@ router.get("/profile", protect, profile);
 router.put("/profile", protect, updateProfile);
 router.post("/enable-2fa", protect, enable2FA);
 router.post("/disable-2fa", protect, disable2FA);
+router.post("/test-2fa-email", protect, test2FAEmail);
 router.post("/generate-recovery-codes", protect, generateRecoveryCodes);
 export default router;

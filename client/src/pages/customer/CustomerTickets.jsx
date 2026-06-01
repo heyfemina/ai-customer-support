@@ -17,12 +17,14 @@ export default function CustomerTickets() {
   return (
     <>
       <PageHeader title="My tickets" description="Track support requests, status, replies, and attachments." actions={<Link to="/customer/tickets/create"><Button>Create ticket</Button></Link>} />
-      <div className="mb-4 grid gap-3 md:grid-cols-[1fr_180px]">
-        <input className="h-11 rounded-md border border-slate-200 px-3 text-sm" placeholder="Search tickets" value={filters.search} onChange={(event) => setFilters({ ...filters, search: event.target.value })} />
-        <select className="h-11 rounded-md border border-slate-200 px-3 text-sm" value={filters.status} onChange={(event) => setFilters({ ...filters, status: event.target.value })}>
-          <option value="">All statuses</option><option>OPEN</option><option>IN_PROGRESS</option><option>WAITING_CUSTOMER</option><option>RESOLVED</option><option>CLOSED</option>
-        </select>
-      </div>
+      <Card className="mb-4 p-4">
+        <div className="grid gap-3 md:grid-cols-[1fr_180px]">
+          <input className="app-field" placeholder="Search tickets" value={filters.search} onChange={(event) => setFilters({ ...filters, search: event.target.value })} />
+          <select className="app-field" value={filters.status} onChange={(event) => setFilters({ ...filters, status: event.target.value })}>
+            <option value="">All statuses</option><option>OPEN</option><option>IN_PROGRESS</option><option>WAITING_CUSTOMER</option><option>RESOLVED</option><option>CLOSED</option>
+          </select>
+        </div>
+      </Card>
       {items.length ? (
         <div className="grid gap-4 lg:grid-cols-2">{items.map((ticket) => <TicketCard key={ticket.id} ticket={ticket} />)}</div>
       ) : (

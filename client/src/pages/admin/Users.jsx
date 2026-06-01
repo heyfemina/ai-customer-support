@@ -5,6 +5,7 @@ import Table from "../../components/common/Table.jsx";
 import Badge from "../../components/common/Badge.jsx";
 import Button from "../../components/common/Button.jsx";
 import Modal from "../../components/common/Modal.jsx";
+import Card from "../../components/common/Card.jsx";
 import { normalizeItems } from "../../utils/helpers.js";
 
 export default function Users() {
@@ -84,17 +85,26 @@ export default function Users() {
     { key: "isActive", label: "Status", render: (row) => <Badge tone={row.isActive ? "green" : "red"}>{row.isActive ? "Active" : "Inactive"}</Badge> },
     { key: "actions", label: "Actions", render: (row) => <div className="flex gap-2"><Button variant="secondary" onClick={() => openForm(row)}>Edit</Button><Button variant={row.isActive ? "danger" : "secondary"} onClick={() => toggleStatus(row)}>{row.isActive ? "Deactivate" : "Activate"}</Button></div> },
   ];
+  const activeUsers = items.filter((item) => item.isActive).length;
   return (
     <>
       <PageHeader title="User management" description="Create, edit, deactivate, and audit platform users." actions={<Button onClick={() => openForm()}>Add user</Button>} />
-      {notice ? <p className="mb-4 rounded-md bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">{notice}</p> : null}
-      {error && !modalOpen ? <p className="mb-4 rounded-md bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700">{error}</p> : null}
-      <div className="mb-4 grid gap-3 md:grid-cols-[1fr_180px]">
-        <input className="h-11 rounded-md border border-slate-200 px-3 text-sm" placeholder="Search users" value={filters.search} onChange={(event) => setFilters({ ...filters, search: event.target.value })} />
-        <select className="h-11 rounded-md border border-slate-200 px-3 text-sm" value={filters.role} onChange={(event) => setFilters({ ...filters, role: event.target.value })}>
-          <option value="">All roles</option><option>ADMIN</option><option>AGENT</option><option>CUSTOMER</option>
-        </select>
+      {notice ? <p className="mb-4 rounded-md border border-green-100 bg-green-50 px-3 py-2 text-sm font-semibold text-green-700">{notice}</p> : null}
+      {error && !modalOpen ? <p className="mb-4 rounded-md border border-red-100 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">{error}</p> : null}
+      <div className="mb-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <Card className="p-4"><p className="text-sm font-semibold text-slate-500">Total users</p><p className="mt-2 text-2xl font-bold text-slate-950">{items.length}</p></Card>
+        <Card className="p-4"><p className="text-sm font-semibold text-slate-500">Active users</p><p className="mt-2 text-2xl font-bold text-slate-950">{activeUsers}</p></Card>
+        <Card className="p-4"><p className="text-sm font-semibold text-slate-500">Agents</p><p className="mt-2 text-2xl font-bold text-slate-950">{items.filter((item) => item.role === "AGENT").length}</p></Card>
+        <Card className="p-4"><p className="text-sm font-semibold text-slate-500">Customers</p><p className="mt-2 text-2xl font-bold text-slate-950">{items.filter((item) => item.role === "CUSTOMER").length}</p></Card>
       </div>
+      <Card className="mb-4 p-4">
+        <div className="grid gap-3 md:grid-cols-[1fr_180px]">
+          <input className="app-field" placeholder="Search users" value={filters.search} onChange={(event) => setFilters({ ...filters, search: event.target.value })} />
+          <select className="app-field" value={filters.role} onChange={(event) => setFilters({ ...filters, role: event.target.value })}>
+            <option value="">All roles</option><option>ADMIN</option><option>AGENT</option><option>CUSTOMER</option>
+          </select>
+        </div>
+      </Card>
       <Table columns={columns} data={filteredItems} />
       <Modal
         open={modalOpen}
@@ -108,12 +118,12 @@ export default function Users() {
         footer={<><Button variant="secondary" onClick={() => setForm(emptyForm)}>Reset</Button><Button loading={loading} onClick={saveUser}>Save user</Button></>}
       >
         <div className="grid gap-4">
-          {error ? <p className="rounded-md bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700">{error}</p> : null}
-          <label><span className="text-sm font-semibold text-slate-700">Name</span><input className="mt-1 h-11 w-full rounded-md border border-slate-200 px-3" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
-          <label><span className="text-sm font-semibold text-slate-700">Email</span><input className="mt-1 h-11 w-full rounded-md border border-slate-200 px-3" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} /></label>
-          <label><span className="text-sm font-semibold text-slate-700">{editing ? "New password" : "Password"}</span><input type="password" className="mt-1 h-11 w-full rounded-md border border-slate-200 px-3" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} placeholder={editing ? "Leave blank to keep current password" : "Minimum 6 characters"} /></label>
-          <label><span className="text-sm font-semibold text-slate-700">Role</span><select className="mt-1 h-11 w-full rounded-md border border-slate-200 px-3" value={form.role} onChange={(event) => setForm({ ...form, role: event.target.value })}><option>ADMIN</option><option>AGENT</option><option>CUSTOMER</option></select></label>
-          <label><span className="text-sm font-semibold text-slate-700">Language</span><select className="mt-1 h-11 w-full rounded-md border border-slate-200 px-3" value={form.language || "en"} onChange={(event) => setForm({ ...form, language: event.target.value })}><option value="en">English</option><option value="it">Italian</option><option value="es">Spanish</option><option value="fr">French</option></select></label>
+          {error ? <p className="rounded-md border border-red-100 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">{error}</p> : null}
+          <label><span className="app-label">Name</span><input className="app-field mt-1" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
+          <label><span className="app-label">Email</span><input className="app-field mt-1" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} /></label>
+          <label><span className="app-label">{editing ? "New password" : "Password"}</span><input type="password" className="app-field mt-1" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} placeholder={editing ? "Leave blank to keep current password" : "Minimum 6 characters"} /></label>
+          <label><span className="app-label">Role</span><select className="app-field mt-1" value={form.role} onChange={(event) => setForm({ ...form, role: event.target.value })}><option>ADMIN</option><option>AGENT</option><option>CUSTOMER</option></select></label>
+          <label><span className="app-label">Language</span><select className="app-field mt-1" value={form.language || "en"} onChange={(event) => setForm({ ...form, language: event.target.value })}><option value="en">English</option><option value="it">Italian</option><option value="es">Spanish</option><option value="fr">French</option></select></label>
         </div>
       </Modal>
     </>

@@ -6,7 +6,7 @@ import ChatSidebar from "../../components/chat/ChatSidebar.jsx";
 import ChatWindow from "../../components/chat/ChatWindow.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useSocket } from "../../context/SocketContext.jsx";
-import { normalizeItems } from "../../utils/helpers.js";
+import { mergeMessages, normalizeItems, sortByRecent, visitorDevice, visitorPage } from "../../utils/helpers.js";
 import Button from "../../components/common/Button.jsx";
 import { useTranslation } from "react-i18next";
 import { ArrowRightLeft, CheckCircle2, Monitor, ShieldCheck, UserCheck, Users } from "lucide-react";
@@ -15,12 +15,6 @@ const appendMessage = (current, chatId, message) => {
   const existing = current[chatId] || [];
   if (existing.some((item) => item.id === message.id)) return current;
   return { ...current, [chatId]: [...existing, message] };
-};
-
-const mergeMessages = (currentMessages = [], incomingMessages = []) => {
-  const byId = new Map(currentMessages.map((message) => [message.id, message]));
-  incomingMessages.forEach((message) => byId.set(message.id, message));
-  return Array.from(byId.values()).sort((a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0));
 };
 
 export default function AgentLiveChats() {
@@ -47,9 +41,9 @@ export default function AgentLiveChats() {
   const activeClosed = active?.status === "CLOSED";
   const actionBusy = Boolean(actionLoading);
   const noticeClass = {
-    emerald: "border-emerald-100 bg-emerald-50 text-emerald-700",
+    emerald: "border-green-100 bg-green-50 text-green-700",
     amber: "border-amber-100 bg-amber-50 text-amber-800",
-    rose: "border-rose-100 bg-rose-50 text-rose-700",
+    rose: "border-red-100 bg-red-50 text-red-700",
   }[noticeTone] || "border-slate-200 bg-slate-50 text-slate-700";
 
   const showNotice = (message, tone = "emerald") => {
@@ -65,9 +59,9 @@ export default function AgentLiveChats() {
 
   useEffect(() => {
     api.get("/chats").then(({ data }) => {
-      const rows = normalizeItems(data, []);
+      const rows = sortByRecent(normalizeItems(data, []));
       setSessions(rows);
-      setActive(rows.find((row) => row.id === preferredChatId) || rows[0] || null);
+      setActive((current) => rows.find((row) => row.id === (preferredChatId || current?.id)) || rows[0] || null);
       setMessagesByChat(Object.fromEntries(rows.map((row) => [row.id, row.messages || []])));
     }).catch(() => {
       setSessions([]);
@@ -89,7 +83,7 @@ export default function AgentLiveChats() {
       setSessions((current) => {
         const exists = current.some((item) => item.id === updated.id);
         const next = exists ? current.map((item) => item.id === updated.id ? { ...updated, messages: mergeMessages(item.messages, updated.messages) } : item) : [updated, ...current];
-        return next.sort((a, b) => new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0));
+        return sortByRecent(next);
       });
       if (updated.id === active.id) {
         setActive((current) => current?.id === updated.id ? { ...updated, messages: mergeMessages(current.messages, updated.messages) } : current);
@@ -129,6 +123,12 @@ export default function AgentLiveChats() {
           const withMessage = message ? appendMessage(current, active.id, message) : current;
           return aiMessage ? appendMessage(withMessage, active.id, aiMessage) : withMessage;
         });
+        const sentMessages = [message, aiMessage].filter(Boolean);
+        const preview = sentMessages.at(-1);
+        if (preview) {
+          setActive((current) => current?.id === active.id ? { ...current, status: "ACTIVE", lastMessage: preview.content, messages: mergeMessages(current.messages, sentMessages), updatedAt: new Date().toISOString() } : current);
+          setSessions((current) => sortByRecent(current.map((item) => item.id === active.id ? { ...item, status: "ACTIVE", lastMessage: preview.content, messages: mergeMessages(item.messages, sentMessages), updatedAt: new Date().toISOString() } : item)));
+        }
       });
     } else {
       let message;
@@ -145,7 +145,7 @@ export default function AgentLiveChats() {
         const withMessage = appendMessage(current, active.id, message);
         return aiMessage ? appendMessage(withMessage, active.id, aiMessage) : withMessage;
       });
-      setSessions((current) => current.map((item) => item.id === active.id ? { ...item, lastMessage: (aiMessage || message)?.content, updatedAt: new Date().toISOString() } : item));
+      setSessions((current) => sortByRecent(current.map((item) => item.id === active.id ? { ...item, lastMessage: (aiMessage || message)?.content, updatedAt: new Date().toISOString() } : item)));
     }
   };
 
@@ -169,7 +169,7 @@ export default function AgentLiveChats() {
       return;
     }
     setActive(chat);
-    setSessions((current) => current.map((item) => item.id === chat.id ? chat : item));
+    setSessions((current) => sortByRecent(current.map((item) => item.id === chat.id ? chat : item)));
     setActionLoading("");
     showNotice("Chat accepted. Customer can continue in real time.");
     pushNotification({ message: "Agent accepted a waiting chat.", type: "queue" });
@@ -199,7 +199,7 @@ export default function AgentLiveChats() {
       return;
     }
     setActive(chat);
-    setSessions((current) => current.map((item) => item.id === chat.id ? chat : item));
+    setSessions((current) => sortByRecent(current.map((item) => item.id === chat.id ? chat : item)));
     setTransferAgentId("");
     setActionLoading("");
     showNotice("Chat transferred.");
@@ -226,7 +226,7 @@ export default function AgentLiveChats() {
       return;
     }
     setActive(chat);
-    setSessions((current) => current.map((item) => item.id === chat.id ? chat : item));
+    setSessions((current) => sortByRecent(current.map((item) => item.id === chat.id ? chat : item)));
     setActionLoading("");
     showNotice("Chat closed and stored in history.");
     pushNotification({ message: "Chat closed and stored in history.", type: "chat" });
@@ -236,8 +236,8 @@ export default function AgentLiveChats() {
     <>
       <PageHeader title="Live chat queue" description="Accept live chats, transfer conversations, view history, and send secure messages." />
       {notice ? <p className={`mb-4 rounded-md border px-3 py-2 text-sm font-semibold ${noticeClass}`}>{notice}</p> : null}
-      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
-        <div className="flex min-h-[620px] flex-col overflow-hidden rounded-lg border border-slate-200/80 bg-white shadow-[0_16px_38px_rgba(15,23,42,0.06)] md:flex-row xl:h-[calc(100vh-12rem)] xl:min-h-[640px] xl:max-h-[860px]">
+      <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="flex min-h-[660px] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm md:flex-row xl:h-[calc(100vh-11rem)] xl:min-h-[680px] xl:max-h-[900px]">
           <ChatSidebar sessions={sessions} activeId={active?.id} onSelect={selectSession} />
           <ChatWindow
             session={active}
@@ -249,9 +249,9 @@ export default function AgentLiveChats() {
             onSend={sendMessage}
           />
         </div>
-        <aside className="rounded-lg border border-slate-200/80 bg-white/94 p-5 shadow-[0_16px_38px_rgba(15,23,42,0.06)] xl:sticky xl:top-24 xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto">
+        <aside className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm xl:sticky xl:top-24 xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto">
           <div className="flex items-center gap-3">
-            <div className="grid h-10 w-10 place-items-center rounded-md bg-teal-50 text-teal-700 ring-1 ring-teal-100">
+            <div className="grid h-10 w-10 place-items-center rounded-md bg-blue-50 text-blue-700 ring-1 ring-blue-100">
               <UserCheck className="h-5 w-5" />
             </div>
             <div>
@@ -261,32 +261,34 @@ export default function AgentLiveChats() {
           </div>
           <div className="mt-5 grid grid-cols-3 gap-2 text-center text-xs">
             <div className="rounded-md border border-amber-100 bg-amber-50 p-2 font-semibold text-amber-700"><p className="text-lg font-bold">{queueStats.waiting}</p><p>{t("chat.waiting")}</p></div>
-            <div className="rounded-md border border-emerald-100 bg-emerald-50 p-2 font-semibold text-emerald-700"><p className="text-lg font-bold">{queueStats.active}</p><p>{t("chat.active")}</p></div>
+            <div className="rounded-md border border-green-100 bg-green-50 p-2 font-semibold text-green-700"><p className="text-lg font-bold">{queueStats.active}</p><p>{t("chat.active")}</p></div>
             <div className="rounded-md border border-indigo-100 bg-indigo-50 p-2 font-semibold text-indigo-700"><p className="text-lg font-bold">{queueStats.transferred}</p><p>{t("chat.transfers")}</p></div>
           </div>
           <Button className="mt-5 w-full" icon={CheckCircle2} onClick={acceptChat} loading={actionLoading === "accept"} disabled={!active?.id || activeClosed || actionBusy}>{t("buttons.accept")}</Button>
           <label className="mt-4 block">
             <span className="text-sm font-semibold text-slate-700">{t("chat.transferTo")}</span>
-            <select className="mt-1 h-11 w-full rounded-md border border-slate-200 px-3" value={transferAgentId} onChange={(event) => setTransferAgentId(event.target.value)}>
+            <select className="app-field mt-1" value={transferAgentId} onChange={(event) => setTransferAgentId(event.target.value)}>
               <option value="">{t("ticketsUi.unassigned")}</option>
               {agents.map((agent) => <option key={agent.id} value={agent.id}>{agent.name}</option>)}
             </select>
           </label>
-          <Button variant="secondary" className="mt-3 w-full" icon={ArrowRightLeft} onClick={transferChat} loading={actionLoading === "transfer"} disabled={!active?.id || activeClosed || !transferAgentId || actionBusy}>{t("buttons.transfer")}</Button>
-          <Button variant="danger" className="mt-3 w-full" onClick={closeChat} loading={actionLoading === "close"} disabled={!active?.id || activeClosed || actionBusy}>{t("buttons.close")}</Button>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <Button variant="secondary" className="w-full" icon={ArrowRightLeft} onClick={transferChat} loading={actionLoading === "transfer"} disabled={!active?.id || activeClosed || !transferAgentId || actionBusy}>{t("buttons.transfer")}</Button>
+            <Button variant="danger" className="w-full" onClick={closeChat} loading={actionLoading === "close"} disabled={!active?.id || activeClosed || actionBusy}>{t("buttons.close")}</Button>
+          </div>
           <div className="mt-5 border-t border-slate-200 pt-4">
-            <h3 className="inline-flex items-center gap-2 text-sm font-semibold text-slate-900"><Users className="h-4 w-4 text-teal-700" />{t("chat.multiAgentSupport")}</h3>
+            <h3 className="inline-flex items-center gap-2 text-sm font-semibold text-slate-900"><Users className="h-4 w-4 text-blue-700" />{t("chat.multiAgentSupport")}</h3>
             <div className="mt-3 flex flex-wrap gap-2">
               {agents.length ? agents.map((agent) => <span key={agent.id} className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">{agent.name}</span>) : <span className="text-sm text-slate-500">{t("chat.noAgentsLoaded")}</span>}
             </div>
           </div>
           <div className="mt-5 border-t border-slate-200 pt-4">
-            <h3 className="inline-flex items-center gap-2 text-sm font-semibold text-slate-900"><Monitor className="h-4 w-4 text-teal-700" />{t("chat.visitorTracking")}</h3>
+            <h3 className="inline-flex items-center gap-2 text-sm font-semibold text-slate-900"><Monitor className="h-4 w-4 text-blue-700" />{t("chat.visitorTracking")}</h3>
             <dl className="mt-3 space-y-2 text-sm">
-              <div className="flex items-center justify-between gap-3"><dt className="text-slate-500">{t("chat.page")}</dt><dd className="truncate font-semibold text-slate-800">{active?.visitor?.page || "/support"}</dd></div>
-              <div className="flex items-center justify-between gap-3"><dt className="text-slate-500">{t("chat.device")}</dt><dd className="truncate font-semibold text-slate-800">{active?.visitor?.device || "Desktop Chrome"}</dd></div>
-              <div className="flex items-center justify-between gap-3"><dt className="text-slate-500">{t("chat.visits")}</dt><dd className="font-semibold text-slate-800">{active?.visitor?.visits || 1}</dd></div>
-              <div className="flex items-center justify-between gap-3"><dt className="inline-flex items-center gap-1 text-slate-500"><ShieldCheck className="h-4 w-4" />{t("chat.security")}</dt><dd className="font-semibold text-slate-800">{t("chat.encrypted")}</dd></div>
+              <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">{t("chat.page")}</dt><dd className="mt-1 truncate font-semibold text-slate-800" title={visitorPage(active)}>{visitorPage(active)}</dd></div>
+              <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">{t("chat.device")}</dt><dd className="mt-1 truncate font-semibold text-slate-800">{visitorDevice(active)}</dd></div>
+              <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">{t("chat.visits")}</dt><dd className="mt-1 font-semibold text-slate-800">{active?.visitor?.visits || 1}</dd></div>
+              <div className="rounded-md bg-slate-50 p-3"><dt className="inline-flex items-center gap-1 text-slate-500"><ShieldCheck className="h-4 w-4" />{t("chat.security")}</dt><dd className="mt-1 font-semibold text-slate-800">{t("chat.encrypted")}</dd></div>
             </dl>
           </div>
         </aside>
@@ -294,3 +296,4 @@ export default function AgentLiveChats() {
     </>
   );
 }
+

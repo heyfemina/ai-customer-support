@@ -7,7 +7,7 @@ export default function Home() {
     <main className="min-h-screen bg-slate-950 text-white">
       <header className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
         <div className="flex items-center gap-3">
-          <div className="grid h-10 w-10 place-items-center rounded-md bg-sky-500"><Bot className="h-5 w-5" /></div>
+          <div className="grid h-10 w-10 place-items-center rounded-md bg-blue-600"><Bot className="h-5 w-5" /></div>
           <span className="font-bold">AI Customer Support System</span>
         </div>
         <Link to="/login"><Button>Open console</Button></Link>
@@ -28,7 +28,7 @@ export default function Home() {
             [ShieldCheck, "Security and compliance", "RBAC, JWT-ready client, activity logs, GDPR, API security, 2FA placeholders."],
           ].map(([Icon, title, text]) => (
             <div key={title} className="rounded-lg border border-white/10 bg-white/5 p-5">
-              <Icon className="h-6 w-6 text-sky-300" />
+              <Icon className="h-6 w-6 text-blue-200" />
               <h2 className="mt-3 font-semibold">{title}</h2>
               <p className="mt-1 text-sm text-slate-300">{text}</p>
             </div>
@@ -38,3 +38,4 @@ export default function Home() {
     </main>
   );
 }
+

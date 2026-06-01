@@ -4,7 +4,7 @@ import { z } from "zod";
 import prisma from "../config/prisma.js";
 import generateToken from "../utils/generateToken.js";
 import { success } from "../utils/responseHandler.js";
-import { sendPasswordResetEmail } from "../services/emailService.js";
+import { sendPasswordResetEmail, sendTwoFactorEmail } from "../services/emailService.js";
 
 const publicUser = { id: true, name: true, email: true, role: true, language: true, isActive: true, twoFactorOn: true, createdAt: true };
 
@@ -57,10 +57,12 @@ async function createTwoFactorChallenge(user, req) {
       expiresAt: new Date(Date.now() + 10 * 60 * 1000),
     },
   });
+  const emailResult = await sendTwoFactorEmail({ to: user.email, name: user.name, otp });
   await prisma.activityLog.create({ data: { userId: user.id, action: "2FA OTP created", ipAddress: req.ip } });
   return {
     requires2FA: true,
     tempLoginToken,
+    previewUrl: emailResult.previewUrl,
     ...(process.env.NODE_ENV !== "production" ? { devOtp: otp } : {}),
   };
 }
@@ -296,6 +298,16 @@ export async function disable2FA(req, res, next) {
     const user = await prisma.user.update({ where: { id: req.user.id }, data: { twoFactorOn: false }, select: publicUser });
     await prisma.activityLog.create({ data: { userId: req.user.id, action: "2FA disabled", ipAddress: req.ip } });
     success(res, user, "Two-factor authentication disabled");
+  } catch (error) { next(error); }
+}
+
+export async function test2FAEmail(req, res, next) {
+  try {
+    const user = await prisma.user.findUnique({ where: { id: req.user.id }, select: publicUser });
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    const challenge = await createTwoFactorChallenge(user, req);
+    const { tempLoginToken: _, ...safeChallenge } = challenge;
+    success(res, { email: user.email, ...safeChallenge }, "Two-factor test code sent");
   } catch (error) { next(error); }
 }
 

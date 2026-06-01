@@ -10,13 +10,13 @@ export default function DashboardLayout() {
   const { user } = useAuth();
 
   return (
-    <div className="min-h-screen bg-[linear-gradient(180deg,#fbfdff_0%,#f6f8fb_42%,#edf3f8_100%)] text-slate-900">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       <div className="flex min-h-screen">
         <Sidebar open={open} onClose={() => setOpen(false)} />
         <div className="flex min-w-0 flex-1 flex-col">
           <Topbar onMenu={() => setOpen(true)} />
-          <main className="flex-1 px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
-            <div className="mx-auto w-full max-w-[1500px]">
+          <main className="flex-1 px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
+            <div className="mx-auto w-full max-w-[1480px]">
               <Outlet />
             </div>
           </main>

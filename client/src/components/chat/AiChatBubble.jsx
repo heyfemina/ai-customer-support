@@ -75,13 +75,13 @@ export default function AiChatBubble() {
     <div className="fixed bottom-5 right-5 z-50">
       {open ? (
         <div className="mb-3 flex h-[420px] w-[330px] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl">
-          <div className="flex items-center justify-between bg-sky-700 px-4 py-3 text-white">
-            <div><p className="font-bold">AI Bot</p><p className="text-xs text-sky-100">Instant help before agent chat</p></div>
+          <div className="flex items-center justify-between bg-blue-900 px-4 py-3 text-white">
+            <div><p className="font-bold">AI Bot</p><p className="text-xs text-blue-100">Instant help before agent chat</p></div>
             <button type="button" onClick={() => setOpen(false)}><X className="h-5 w-5" /></button>
           </div>
           <div className="flex-1 space-y-3 overflow-auto bg-slate-50 p-3 text-sm">
             {messages.length ? messages.map((message) => (
-              <div key={message.id} className={`rounded-md p-3 ${message.role === "You" ? "ml-8 bg-sky-600 text-white" : "mr-8 border border-slate-200 bg-white text-slate-700"}`}>
+              <div key={message.id} className={`rounded-md p-3 ${message.role === "You" ? "ml-8 bg-blue-900 text-white" : "mr-8 border border-slate-200 bg-white text-slate-700"}`}>
                 <p className="mb-1 text-xs font-bold">{message.role}</p>
                 <p>{message.content}</p>
               </div>
@@ -93,12 +93,12 @@ export default function AiChatBubble() {
             <Button type="button" variant="secondary" className="w-full" loading={transferLoading} onClick={() => openAgentChat()}>Continue in Live Chat</Button>
           </div>
           <form className="flex gap-2 border-t border-slate-200 p-3" onSubmit={send}>
-            <input className="min-w-0 flex-1 rounded-md border border-slate-200 px-3 text-sm outline-none focus:border-sky-500" value={text} onChange={(event) => setText(event.target.value)} placeholder="Type your question" />
+            <input className="min-w-0 flex-1 rounded-md border border-slate-200 px-3 text-sm outline-none focus:border-blue-400" value={text} onChange={(event) => setText(event.target.value)} placeholder="Type your question" />
             <Button loading={loading}>Send</Button>
           </form>
         </div>
       ) : null}
-      <button onClick={() => setOpen(!open)} className="grid h-14 w-14 place-items-center rounded-full bg-sky-700 text-white shadow-2xl">
+      <button onClick={() => setOpen(!open)} className="grid h-14 w-14 place-items-center rounded-full bg-blue-900 text-white shadow-2xl">
         <MessageCircle className="h-6 w-6" />
       </button>
     </div>

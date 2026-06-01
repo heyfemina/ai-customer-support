@@ -105,3 +105,40 @@ export async function sendPasswordResetEmail({ to, name, resetUrl }) {
     previewUrl: nodemailer.getTestMessageUrl(info),
   };
 }
+
+export async function sendTwoFactorEmail({ to, name, otp }) {
+  const config = getEmailConfig();
+  assertEtherealConfig(config);
+  const displayName = name || "there";
+  const safeDisplayName = escapeHtml(displayName);
+  const safeOtp = escapeHtml(otp);
+
+  const info = await createTransporter().sendMail({
+    from: { name: config.fromName, address: config.fromEmail },
+    to,
+    subject: "Your AI Customer Support verification code",
+    text: [
+      `Hi ${displayName},`,
+      "",
+      `Your two-factor authentication code is ${otp}.`,
+      "",
+      "This code expires in 10 minutes. If you did not try to sign in, change your password and contact an administrator.",
+      "",
+      "This development email is captured by Ethereal and is not delivered to a real inbox.",
+    ].join("\n"),
+    html: `
+      <p>Hi ${safeDisplayName},</p>
+      <p>Your two-factor authentication code is:</p>
+      <p style="font-size:24px;font-weight:700;letter-spacing:6px;">${safeOtp}</p>
+      <p>This code expires in 10 minutes. If you did not try to sign in, change your password and contact an administrator.</p>
+      <p>This development email is captured by Ethereal and is not delivered to a real inbox.</p>
+    `,
+  });
+
+  return {
+    messageId: info.messageId,
+    accepted: info.accepted,
+    rejected: info.rejected,
+    previewUrl: nodemailer.getTestMessageUrl(info),
+  };
+}

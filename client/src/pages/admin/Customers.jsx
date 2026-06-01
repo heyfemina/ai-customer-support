@@ -3,6 +3,7 @@ import api from "../../api/axios.js";
 import PageHeader from "../../components/common/PageHeader.jsx";
 import Table from "../../components/common/Table.jsx";
 import Badge from "../../components/common/Badge.jsx";
+import Card from "../../components/common/Card.jsx";
 import { normalizeItems } from "../../utils/helpers.js";
 
 export default function Customers() {
@@ -17,5 +18,15 @@ export default function Customers() {
     { key: "activeChats", label: "Active chats", render: (row) => row.activeChats ?? 0 },
     { key: "plan", label: "Plan", render: () => <Badge tone="blue">Business</Badge> },
   ];
-  return <><PageHeader title="Customer management" description="View customer profiles, support history, and account health." /><Table columns={columns} data={customers} /></>;
+  return (
+    <>
+      <PageHeader title="Customer management" description="View customer profiles, support history, and account health." />
+      <div className="mb-4 grid gap-4 sm:grid-cols-3">
+        <Card className="p-4"><p className="text-sm font-semibold text-slate-500">Total customers</p><p className="mt-2 text-2xl font-bold text-slate-950">{customers.length}</p></Card>
+        <Card className="p-4"><p className="text-sm font-semibold text-slate-500">Support tickets</p><p className="mt-2 text-2xl font-bold text-slate-950">{customers.reduce((total, customer) => total + Number(customer.ticketCount || customer.tickets?.length || 0), 0)}</p></Card>
+        <Card className="p-4"><p className="text-sm font-semibold text-slate-500">Active chats</p><p className="mt-2 text-2xl font-bold text-slate-950">{customers.reduce((total, customer) => total + Number(customer.activeChats || 0), 0)}</p></Card>
+      </div>
+      <Table columns={columns} data={customers} />
+    </>
+  );
 }

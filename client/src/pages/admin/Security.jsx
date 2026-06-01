@@ -5,6 +5,7 @@ import PageHeader from "../../components/common/PageHeader.jsx";
 import Card from "../../components/common/Card.jsx";
 import Badge from "../../components/common/Badge.jsx";
 import Button from "../../components/common/Button.jsx";
+import { useAuth } from "../../context/AuthContext.jsx";
 
 const controls = [
   { id: "auth", state: "Active" },
@@ -20,10 +21,14 @@ const controls = [
 
 export default function Security() {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [backups, setBackups] = useState([]);
   const [gdprRequests, setGdprRequests] = useState([]);
   const [health, setHealth] = useState(null);
   const [notice, setNotice] = useState("");
+  const [twoFactorOn, setTwoFactorOn] = useState(Boolean(user?.twoFactorOn));
+  const [twoFactorTest, setTwoFactorTest] = useState(null);
+  const [twoFactorBusy, setTwoFactorBusy] = useState(false);
 
   const loadOperationalData = () => {
     api.get("/backups").then(({ data }) => setBackups(data.data || [])).catch(() => {});
@@ -34,10 +39,46 @@ export default function Security() {
   useEffect(() => {
     loadOperationalData();
   }, []);
+
+  useEffect(() => {
+    setTwoFactorOn(Boolean(user?.twoFactorOn));
+  }, [user?.twoFactorOn]);
+
   const createBackup = async () => {
     const { data } = await api.post("/backups/create");
     setNotice(`Backup ${data.data.status.toLowerCase()}`);
     loadOperationalData();
+  };
+
+  const toggle2FA = async () => {
+    setTwoFactorBusy(true);
+    setTwoFactorTest(null);
+    try {
+      const endpoint = twoFactorOn ? "/auth/disable-2fa" : "/auth/enable-2fa";
+      const { data } = await api.post(endpoint);
+      const updatedUser = data.data || data.user || data;
+      setTwoFactorOn(Boolean(updatedUser.twoFactorOn));
+      setNotice(`Two-factor authentication ${updatedUser.twoFactorOn ? "enabled" : "disabled"} for ${updatedUser.email}.`);
+    } catch (error) {
+      setNotice(error.friendlyMessage || "Unable to update two-factor authentication.");
+    } finally {
+      setTwoFactorBusy(false);
+    }
+  };
+
+  const test2FAEmail = async () => {
+    setTwoFactorBusy(true);
+    setTwoFactorTest(null);
+    try {
+      const { data } = await api.post("/auth/test-2fa-email");
+      const result = data.data || data;
+      setTwoFactorTest(result);
+      setNotice(`Two-factor test code sent to ${result.email}.`);
+    } catch (error) {
+      setNotice(error.friendlyMessage || "Unable to send two-factor test email.");
+    } finally {
+      setTwoFactorBusy(false);
+    }
   };
 
   const updateGdpr = async (id, action) => {
@@ -49,7 +90,7 @@ export default function Security() {
   return (
     <>
       <PageHeader title="Security settings" description="Authentication, compliance, API security, audit controls, and resilience placeholders." />
-      {notice ? <p className="mb-4 rounded-md bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">{notice}</p> : null}
+      {notice ? <p className="mb-4 rounded-md bg-green-50 px-3 py-2 text-sm font-semibold text-green-700">{notice}</p> : null}
       <div className="mb-4 grid gap-3 md:grid-cols-3">
         <Button variant="secondary" onClick={createBackup}>{t("security.actions.backup")}</Button>
         <Button variant="secondary" onClick={loadOperationalData}>{t("security.actions.securityCheck")}</Button>
@@ -71,7 +112,7 @@ export default function Security() {
               <div key={backup.id} className="flex items-center justify-between gap-2 rounded-md bg-slate-50 p-2">
                 <span>{backup.fileName}</span>
                 <Badge tone={backup.status === "SUCCESS" ? "green" : backup.status === "FAILED" ? "red" : "amber"}>{backup.status}</Badge>
-                {backup.status === "SUCCESS" ? <a className="font-semibold text-sky-700" href={`${api.defaults.baseURL}/backups/${backup.id}/download`}>Download</a> : null}
+                {backup.status === "SUCCESS" ? <a className="font-semibold text-blue-700" href={`${api.defaults.baseURL}/backups/${backup.id}/download`}>Download</a> : null}
               </div>
             ))}
           </div>
@@ -93,12 +134,43 @@ export default function Security() {
           <Card key={id} className="p-5">
             <div className="flex items-start justify-between gap-3">
               <h2 className="font-semibold text-slate-950">{t(`security.items.${id}.title`)}</h2>
-              <Badge tone={state === "Active" ? "green" : state === "Ready" ? "blue" : "amber"}>{t(`security.states.${state}`, { defaultValue: state })}</Badge>
+              {id === "twoFactor" ? (
+                <Badge tone={twoFactorOn ? "green" : "blue"}>{twoFactorOn ? "Enabled" : "Ready"}</Badge>
+              ) : (
+                <Badge tone={state === "Active" ? "green" : state === "Ready" ? "blue" : "amber"}>{t(`security.states.${state}`, { defaultValue: state })}</Badge>
+              )}
             </div>
             <p className="mt-3 text-sm text-slate-500">{t(`security.items.${id}.detail`)}</p>
+            {id === "twoFactor" ? (
+              <div className="mt-4 space-y-3">
+                <p className="rounded-md bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700">
+                  Email OTP for {user?.email || "current admin"}
+                </p>
+                <div className="grid gap-2">
+                  <Button variant={twoFactorOn ? "danger" : "secondary"} loading={twoFactorBusy} onClick={toggle2FA}>
+                    {twoFactorOn ? "Disable email 2FA" : "Enable email 2FA"}
+                  </Button>
+                  <Button variant="secondary" loading={twoFactorBusy} onClick={test2FAEmail}>
+                    Send test code
+                  </Button>
+                </div>
+                {twoFactorTest ? (
+                  <div className="space-y-2 rounded-md border border-green-100 bg-green-50 p-3 text-sm text-green-800">
+                    <p className="font-semibold">Test email sent</p>
+                    {twoFactorTest.devOtp ? <p>Development OTP: <b>{twoFactorTest.devOtp}</b></p> : null}
+                    {twoFactorTest.previewUrl ? (
+                      <a className="font-semibold text-green-900 underline" href={twoFactorTest.previewUrl} target="_blank" rel="noreferrer">
+                        Open Ethereal preview
+                      </a>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
           </Card>
         ))}
       </div>
     </>
   );
 }
+

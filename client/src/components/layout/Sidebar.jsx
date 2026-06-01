@@ -65,7 +65,7 @@ export default function Sidebar({ open, onClose }) {
       >
         <div className="flex h-16 items-center justify-between border-b border-slate-200/80 px-5">
           <div className="flex items-center gap-3">
-            <div className="grid h-10 w-10 place-items-center rounded-md bg-slate-950 text-white shadow-[0_12px_26px_rgba(15,23,42,0.18)]">
+            <div className="grid h-10 w-10 place-items-center rounded-md bg-blue-900 text-white shadow-sm">
               <Bot className="h-5 w-5" />
             </div>
             <div>
@@ -89,7 +89,7 @@ export default function Sidebar({ open, onClose }) {
               className={({ isActive }) =>
                 cx(
                   "group relative flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-semibold transition before:absolute before:left-0 before:h-6 before:w-1 before:rounded-r-full",
-                  isActive ? "bg-slate-950 text-white shadow-[0_12px_24px_rgba(15,23,42,0.14)] before:bg-teal-400" : "text-slate-600 before:bg-transparent hover:bg-slate-100 hover:text-slate-950"
+                  isActive ? "bg-blue-900 text-white shadow-sm before:bg-blue-300" : "text-slate-600 before:bg-transparent hover:bg-blue-50 hover:text-blue-900"
                 )
               }
             >
@@ -98,7 +98,7 @@ export default function Sidebar({ open, onClose }) {
                   <span
                     className={cx(
                       "grid h-8 w-8 place-items-center rounded-md transition",
-                      isActive ? "bg-white/12 text-teal-100 ring-1 ring-white/15" : "bg-slate-100 text-slate-500 group-hover:bg-white group-hover:text-teal-700"
+                      isActive ? "bg-white/12 text-blue-100 ring-1 ring-white/15" : "bg-slate-100 text-slate-500 group-hover:bg-white group-hover:text-blue-700"
                     )}
                   >
                     <item.icon className="h-4 w-4" />

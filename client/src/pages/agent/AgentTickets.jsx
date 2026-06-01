@@ -15,12 +15,14 @@ export default function AgentTickets() {
   return (
     <>
       <PageHeader title="Assigned tickets" description="Handle support tickets, reply to customers, and manage ticket status." />
-      <div className="mb-4 grid gap-3 md:grid-cols-[1fr_180px]">
-        <input className="h-11 rounded-md border border-slate-200 px-3 text-sm" placeholder="Search assigned tickets" value={filters.search} onChange={(event) => setFilters({ ...filters, search: event.target.value })} />
-        <select className="h-11 rounded-md border border-slate-200 px-3 text-sm" value={filters.status} onChange={(event) => setFilters({ ...filters, status: event.target.value })}>
-          <option value="">All statuses</option><option>OPEN</option><option>IN_PROGRESS</option><option>WAITING_CUSTOMER</option><option>RESOLVED</option><option>CLOSED</option>
-        </select>
-      </div>
+      <Card className="mb-4 p-4">
+        <div className="grid gap-3 md:grid-cols-[1fr_180px]">
+          <input className="app-field" placeholder="Search assigned tickets" value={filters.search} onChange={(event) => setFilters({ ...filters, search: event.target.value })} />
+          <select className="app-field" value={filters.status} onChange={(event) => setFilters({ ...filters, status: event.target.value })}>
+            <option value="">All statuses</option><option>OPEN</option><option>IN_PROGRESS</option><option>WAITING_CUSTOMER</option><option>RESOLVED</option><option>CLOSED</option>
+          </select>
+        </div>
+      </Card>
       {items.length ? (
         <TicketTable tickets={items} basePath="/agent/tickets" />
       ) : (

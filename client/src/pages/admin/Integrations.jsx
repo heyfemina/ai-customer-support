@@ -110,7 +110,7 @@ export default function Integrations() {
                 </label>
               ))}
               {id === "chatbot" ? (
-                <div className="space-y-3 rounded-md border border-sky-100 bg-sky-50 p-3">
+                <div className="space-y-3 rounded-md border border-blue-100 bg-blue-50 p-3">
                   <label className="block">
                     <span className="text-xs font-semibold uppercase text-slate-500">Widget title</span>
                     <input className="mt-1 h-10 w-full rounded-md border border-slate-200 px-3 text-sm" value={config.widgetTitle || "Support Chat"} onChange={(event) => updateConfig(id, "widgetTitle", event.target.value)} />
@@ -144,3 +144,4 @@ export default function Integrations() {
     </>
   );
 }
+

@@ -46,11 +46,11 @@ export default function PageHeader({ title, description, actions }) {
   return (
     <div className="mb-7 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
       <div className="min-w-0">
-        <div className="mb-3 h-1 w-12 rounded-full bg-teal-500 shadow-[0_0_0_4px_rgba(20,184,166,0.08)]" />
+        <div className="mb-3 h-1 w-12 rounded-full bg-blue-900 shadow-[0_0_0_4px_rgba(59,130,246,0.08)]" />
         <h1 className="text-2xl font-bold tracking-normal text-slate-950 sm:text-3xl">{translatedTitle}</h1>
         {translatedDescription ? <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">{translatedDescription}</p> : null}
       </div>
-      {actions ? <div className="flex flex-wrap gap-3 rounded-lg border border-slate-200/80 bg-white p-2 shadow-sm ring-1 ring-slate-900/[0.02]">{actions}</div> : null}
+      {actions ? <div className="flex flex-wrap gap-3 rounded-lg border border-slate-200 bg-white p-2 shadow-sm ring-1 ring-slate-900/[0.02]">{actions}</div> : null}
     </div>
   );
 }

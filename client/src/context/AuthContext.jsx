@@ -25,6 +25,16 @@ function clearStoredSession() {
   localStorage.removeItem("user");
 }
 
+function readAuthPayload(payload) {
+  const data = payload?.data || payload || {};
+  return {
+    data,
+    token: data.token || payload?.token,
+    user: data.user || payload?.user,
+    requires2FA: Boolean(data.requires2FA || payload?.requires2FA),
+  };
+}
+
 export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem("token"));
   const [user, setUser] = useState(readStoredUser);
@@ -88,10 +98,9 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = async ({ email, password }) => {
-    const { data } = await api.post("/auth/login", { email, password });
-    const authToken = data.token || data.data?.token;
-    const authUser = data.user || data.data?.user;
-    if (data.data?.requires2FA) return data.data;
+    const response = await api.post("/auth/login", { email, password });
+    const { data, token: authToken, user: authUser, requires2FA } = readAuthPayload(response.data);
+    if (requires2FA) return data;
     if (!authToken || !authUser) throw new Error("Invalid login response");
     persistSession(authToken, authUser);
     setToken(authToken);

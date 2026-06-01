@@ -89,7 +89,7 @@ export default function InternalChats() {
           </div>
           <div className="app-scrollbar max-h-[640px] overflow-y-auto p-3">
             {chats.map((chat) => (
-              <button key={chat.id} type="button" onClick={() => setActive(chat)} className={`mb-2 w-full rounded-md border p-3 text-left ${active?.id === chat.id ? "border-teal-300 bg-teal-50" : "border-slate-200 bg-white"}`}>
+              <button key={chat.id} type="button" onClick={() => setActive(chat)} className={`mb-2 w-full rounded-md border p-3 text-left ${active?.id === chat.id ? "border-blue-300 bg-blue-50" : "border-slate-200 bg-white"}`}>
                 <p className="font-semibold text-slate-900">{chat.subject}</p>
                 <p className="mt-1 truncate text-xs text-slate-500">{chat.messages?.at(-1)?.content || "No messages yet"}</p>
               </button>
@@ -107,11 +107,11 @@ export default function InternalChats() {
                 {activeMessages.map((item) => {
                   const mine = item.senderId === user?.id;
                   return (
-                    <div key={item.id} className={`max-w-[78%] rounded-lg px-4 py-3 text-sm shadow-sm ${mine ? "ml-auto bg-teal-600 text-white" : "border border-slate-200 bg-white text-slate-700"}`}>
+                    <div key={item.id} className={`max-w-[78%] rounded-lg px-4 py-3 text-sm shadow-sm ${mine ? "ml-auto bg-blue-900 text-white" : "border border-slate-200 bg-white text-slate-700"}`}>
                       <p className="mb-1 text-xs font-bold">{item.sender?.name || "User"}</p>
                       <p className="whitespace-pre-wrap break-words">{item.content}</p>
                       {item.fileUrl ? <a className="mt-2 block font-semibold underline" href={item.fileUrl} target="_blank" rel="noreferrer">{item.fileName || "Attachment"}</a> : null}
-                      <p className={`mt-1 text-[11px] ${mine ? "text-teal-100" : "text-slate-400"}`}>{formatDate(item.createdAt)}</p>
+                      <p className={`mt-1 text-[11px] ${mine ? "text-blue-100" : "text-slate-400"}`}>{formatDate(item.createdAt)}</p>
                     </div>
                   );
                 })}
@@ -130,3 +130,4 @@ export default function InternalChats() {
     </>
   );
 }
+

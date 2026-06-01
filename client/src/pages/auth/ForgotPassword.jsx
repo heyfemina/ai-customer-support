@@ -36,18 +36,19 @@ export default function ForgotPassword() {
       <form className="mt-6 space-y-4" onSubmit={submit}>
         <label className="block">
           <span className="text-sm font-semibold text-slate-700">Email</span>
-          <input type="email" className="mt-1 h-11 w-full rounded-md border border-slate-200 px-3 outline-none focus:border-teal-500 focus:ring-4 focus:ring-teal-100" placeholder="you@example.com" value={email} onChange={(event) => setEmail(event.target.value)} required />
+          <input type="email" className="app-field mt-1" placeholder="you@example.com" value={email} onChange={(event) => setEmail(event.target.value)} required />
         </label>
-        {message ? <p className="rounded-md bg-emerald-50 p-3 text-sm font-medium text-emerald-700">{message}</p> : null}
+        {message ? <p className="rounded-md border border-green-100 bg-green-50 p-3 text-sm font-medium text-green-700">{message}</p> : null}
         {previewUrl ? (
-          <a className="block rounded-md bg-teal-50 p-3 text-sm font-semibold text-teal-700" href={previewUrl} target="_blank" rel="noreferrer">
+          <a className="block rounded-md bg-blue-50 p-3 text-sm font-semibold text-blue-700" href={previewUrl} target="_blank" rel="noreferrer">
             Open Ethereal message
           </a>
         ) : null}
-        {error ? <p className="rounded-md bg-rose-50 p-3 text-sm font-medium text-rose-700">{error}</p> : null}
+        {error ? <p className="rounded-md border border-red-100 bg-red-50 p-3 text-sm font-medium text-red-700">{error}</p> : null}
         <Button className="w-full" loading={loading}>Send reset link</Button>
       </form>
-      <Link className="mt-5 inline-block text-sm font-semibold text-teal-700" to="/login">Back to login</Link>
+      <Link className="mt-5 inline-block text-sm font-semibold text-blue-700" to="/login">Back to login</Link>
     </Card>
   );
 }
+

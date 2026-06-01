@@ -3,10 +3,10 @@ import { Outlet } from "react-router-dom";
 
 export default function AuthLayout() {
   return (
-    <div className="grid min-h-screen bg-[linear-gradient(180deg,#fbfdff_0%,#eef3f8_100%)] lg:grid-cols-[1fr_500px]">
-      <section className="hidden bg-slate-950 p-10 text-white lg:flex lg:flex-col lg:justify-between">
+    <div className="grid min-h-screen bg-slate-50 lg:grid-cols-[1fr_500px]">
+      <section className="hidden bg-blue-950 p-10 text-white lg:flex lg:flex-col lg:justify-between">
         <div className="flex items-center gap-3">
-          <div className="grid h-11 w-11 place-items-center rounded-md bg-teal-500 shadow-[0_16px_34px_rgba(20,184,166,0.24)]">
+          <div className="grid h-11 w-11 place-items-center rounded-md bg-blue-500 shadow-sm">
             <Bot className="h-6 w-6" />
           </div>
           <span className="text-lg font-bold">AI Customer Support System</span>

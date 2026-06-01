@@ -27,6 +27,7 @@ export default function ChatWindow({
 }) {
   const { t } = useTranslation();
   const endRef = useRef(null);
+  const language = session?.language?.toUpperCase() || "EN";
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -38,25 +39,25 @@ export default function ChatWindow({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white">
-      <div className="shrink-0 border-b border-slate-200/80 bg-white px-4 py-4 sm:px-5">
+      <div className="shrink-0 border-b border-slate-200 bg-white px-4 py-4 sm:px-5">
         <div className="flex min-w-0 flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="flex items-center gap-3">
-              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-teal-600 text-sm font-bold text-white">
+              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-md bg-blue-900 text-sm font-bold text-white">
                 {(session.customer?.name || session.customerName || "C").slice(0, 1).toUpperCase()}
               </div>
               <div className="min-w-0">
-                <h2 className="truncate font-semibold text-slate-900">{session.customer?.name || session.customerName || t("chat.customerFallback")}</h2>
+                <h2 className="truncate font-semibold text-slate-950">{session.customer?.name || session.customerName || t("chat.customerFallback")}</h2>
                 <p className="mt-0.5 truncate text-xs font-medium text-slate-500">{t("chat.supportConversation", { channel: session.channel || t("chat.websiteChannel") })}</p>
               </div>
             </div>
-            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-500">
+            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-500">
               <Badge tone={session.status === "WAITING" ? "amber" : session.status === "CLOSED" ? "slate" : "green"}>{session.status}</Badge>
-              <span className="inline-flex items-center gap-1"><Radio className="h-3.5 w-3.5" /> {t("chat.realTime")}</span>
-              <span className="inline-flex items-center gap-1"><LockKeyhole className="h-3.5 w-3.5" /> {t("chat.encrypted")}</span>
-              <span className="inline-flex items-center gap-1"><Bot className="h-3.5 w-3.5" /> {t("chat.aiHandoffReady")}</span>
-              <span className="inline-flex items-center gap-1"><Users className="h-3.5 w-3.5" /> {session.agentName || t("chat.queueTeam")}</span>
-              <span>{session.language?.toUpperCase() || "EN"}</span>
+              <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1"><Radio className="h-3.5 w-3.5" /> {t("chat.realTime")}</span>
+              <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1"><LockKeyhole className="h-3.5 w-3.5" /> {t("chat.encrypted")}</span>
+              <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1"><Bot className="h-3.5 w-3.5" /> AI ready</span>
+              <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-1"><Users className="h-3.5 w-3.5" /> {session.agentName || t("chat.queueTeam")}</span>
+              <span className="rounded-full bg-blue-50 px-2 py-1 text-blue-700 ring-1 ring-blue-100">{language}</span>
             </div>
           </div>
           <div className="flex shrink-0 flex-wrap gap-2">
@@ -66,7 +67,7 @@ export default function ChatWindow({
           </div>
         </div>
       </div>
-      <div className="app-scrollbar flex-1 space-y-3 overflow-y-auto bg-gradient-to-b from-slate-50 via-white to-teal-50/40 p-4 sm:p-5">
+      <div className="app-scrollbar flex-1 space-y-3 overflow-y-auto bg-slate-50 p-4 sm:p-5">
         {messages.length ? messages.map((message) => <ChatMessage key={message.id} message={message} currentUserId={currentUserId} />) : <p className="rounded-lg border border-dashed border-slate-200 bg-white p-5 text-center text-sm text-slate-500">{t("chat.noHistory")}</p>}
         {typingUsers.length ? <TypingIndicator name={typingUsers[0]?.name || "Someone"} /> : null}
         <div ref={endRef} />

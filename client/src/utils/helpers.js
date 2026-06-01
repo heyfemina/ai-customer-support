@@ -34,3 +34,28 @@ export function ticketCustomerName(ticket) {
 export function ticketAgentName(ticket) {
   return ticket.agent?.name || ticket.agentName || "Unassigned";
 }
+
+export function readableDevice(value = "") {
+  if (!value) return "Browser";
+  const browser = value.includes("Edg/") ? "Edge" : value.includes("Chrome/") ? "Chrome" : value.includes("Firefox/") ? "Firefox" : value.includes("Safari/") ? "Safari" : "Browser";
+  const os = value.includes("Windows") ? "Windows" : value.includes("Mac") ? "macOS" : value.includes("Android") ? "Android" : value.includes("iPhone") || value.includes("iPad") ? "iOS" : "";
+  return os ? `${browser} on ${os}` : browser;
+}
+
+export function visitorPage(session, fallback = "/support") {
+  return session?.visitor?.page || session?.visitorPage || fallback;
+}
+
+export function visitorDevice(session) {
+  return readableDevice(session?.visitor?.device || session?.visitorDevice || "");
+}
+
+export function sortByRecent(items = []) {
+  return [...items].sort((a, b) => new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0));
+}
+
+export function mergeMessages(currentMessages = [], incomingMessages = []) {
+  const byId = new Map(currentMessages.map((message) => [message.id, message]));
+  incomingMessages.filter(Boolean).forEach((message) => byId.set(message.id, message));
+  return Array.from(byId.values()).sort((a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0));
+}

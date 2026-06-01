@@ -7,7 +7,7 @@ import ChatWindow from "../../components/chat/ChatWindow.jsx";
 import Button from "../../components/common/Button.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useSocket } from "../../context/SocketContext.jsx";
-import { normalizeItems } from "../../utils/helpers.js";
+import { mergeMessages, normalizeItems, sortByRecent } from "../../utils/helpers.js";
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "../../context/LanguageContext.jsx";
 
@@ -15,12 +15,6 @@ const appendMessage = (current, chatId, message) => {
   const existing = current[chatId] || [];
   if (existing.some((item) => item.id === message.id)) return current;
   return { ...current, [chatId]: [...existing, message] };
-};
-
-const mergeMessages = (currentMessages = [], incomingMessages = []) => {
-  const byId = new Map(currentMessages.map((message) => [message.id, message]));
-  incomingMessages.forEach((message) => byId.set(message.id, message));
-  return Array.from(byId.values()).sort((a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0));
 };
 
 export default function CustomerLiveChat() {
@@ -43,9 +37,9 @@ export default function CustomerLiveChat() {
   const preferredChatId = location.state?.chatId;
   const activeClosed = active?.status === "CLOSED";
   const noticeClass = {
-    emerald: "border-emerald-100 bg-emerald-50 text-emerald-700",
+    emerald: "border-green-100 bg-green-50 text-green-700",
     amber: "border-amber-100 bg-amber-50 text-amber-800",
-    rose: "border-rose-100 bg-rose-50 text-rose-700",
+    rose: "border-red-100 bg-red-50 text-red-700",
   }[noticeTone] || "border-slate-200 bg-slate-50 text-slate-700";
 
   const showNotice = (message, tone = "emerald") => {
@@ -59,7 +53,7 @@ export default function CustomerLiveChat() {
   };
 
   const loadChats = () => api.get("/chats").then(({ data }) => {
-    const rows = normalizeItems(data, []);
+    const rows = sortByRecent(normalizeItems(data, []));
     const selected = rows.find((row) => row.id === preferredChatId) || rows[0] || null;
     setSessions(rows);
     setActive(selected);
@@ -86,7 +80,7 @@ export default function CustomerLiveChat() {
         visitorVisits: visits,
       });
       const session = data.data || data;
-      setSessions((current) => [session, ...current]);
+      setSessions((current) => sortByRecent([session, ...current]));
       setActive(session);
       setMessagesByChat((current) => ({ ...current, [session.id]: session.messages || [] }));
       showNotice(t("chat.liveChatStarted"));
@@ -108,7 +102,7 @@ export default function CustomerLiveChat() {
     const chatUpdate = (chat) => {
       const updated = chat.chat || chat;
       if (updated.id !== active.id) return;
-      setSessions((current) => current.map((item) => item.id === updated.id ? { ...updated, messages: mergeMessages(item.messages, updated.messages) } : item).sort((a, b) => new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0)));
+      setSessions((current) => sortByRecent(current.map((item) => item.id === updated.id ? { ...updated, messages: mergeMessages(item.messages, updated.messages) } : item)));
       setActive((current) => current?.id === updated.id ? { ...updated, messages: mergeMessages(current.messages, updated.messages) } : current);
       setMessagesByChat((current) => ({ ...current, [updated.id]: mergeMessages(current[updated.id], updated.messages) }));
     };
@@ -154,7 +148,7 @@ export default function CustomerLiveChat() {
     });
     const sentMessages = [message, aiMessage].filter(Boolean);
     setActive((current) => current?.id === active.id ? { ...current, status: "ACTIVE", lastMessage: sentMessages.at(-1)?.content, messages: mergeMessages(current.messages, sentMessages), updatedAt: new Date().toISOString() } : current);
-    setSessions((current) => current.map((item) => item.id === active.id ? { ...item, status: "ACTIVE", lastMessage: sentMessages.at(-1)?.content, messages: mergeMessages(item.messages, sentMessages), updatedAt: new Date().toISOString() } : item));
+    setSessions((current) => sortByRecent(current.map((item) => item.id === active.id ? { ...item, status: "ACTIVE", lastMessage: sentMessages.at(-1)?.content, messages: mergeMessages(item.messages, sentMessages), updatedAt: new Date().toISOString() } : item)));
   };
 
   const requestAgent = async () => {
@@ -179,7 +173,7 @@ export default function CustomerLiveChat() {
       return;
     }
     setActive(updated);
-    setSessions((current) => current.map((item) => item.id === updated.id ? updated : item));
+    setSessions((current) => sortByRecent(current.map((item) => item.id === updated.id ? updated : item)));
     if (message) setMessagesByChat((current) => appendMessage(current, active.id, message));
     setActionLoading("");
     showNotice("An agent transfer was requested.");
@@ -206,7 +200,7 @@ export default function CustomerLiveChat() {
       return;
     }
     setActive(chat);
-    setSessions((current) => current.map((item) => item.id === chat.id ? chat : item));
+    setSessions((current) => sortByRecent(current.map((item) => item.id === chat.id ? chat : item)));
     setActionLoading("");
     showNotice("Chat closed.");
     pushNotification({ message: "Customer chat closed and saved to history.", type: "chat" });
@@ -228,7 +222,7 @@ export default function CustomerLiveChat() {
       return;
     }
     setActive(chat);
-    setSessions((current) => current.map((item) => item.id === chat.id ? chat : item));
+    setSessions((current) => sortByRecent(current.map((item) => item.id === chat.id ? chat : item)));
     setActionLoading("");
     showNotice("Thanks, your feedback was saved.");
     pushNotification({ message: `Customer submitted a ${rating}/5 chat rating.`, type: "rating" });
@@ -238,8 +232,8 @@ export default function CustomerLiveChat() {
     <>
       <PageHeader title={t("pages.customerLiveChat.title")} description={t("pages.customerLiveChat.description")} actions={<Button onClick={startChat} loading={startingChat}>{t("buttons.startChat")}</Button>} />
       {notice ? <p className={`mb-4 rounded-md border px-3 py-2 text-sm font-semibold ${noticeClass}`}>{notice}</p> : null}
-      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
-        <div className="flex min-h-[620px] flex-col overflow-hidden rounded-lg border border-slate-200/80 bg-white shadow-[0_16px_38px_rgba(15,23,42,0.06)] md:flex-row xl:h-[calc(100vh-12rem)] xl:min-h-[640px] xl:max-h-[860px]">
+      <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="flex min-h-[660px] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm md:flex-row xl:h-[calc(100vh-11rem)] xl:min-h-[680px] xl:max-h-[900px]">
           <ChatSidebar sessions={sessions} activeId={active?.id} onSelect={selectSession} />
           <ChatWindow
             session={active}
@@ -257,16 +251,17 @@ export default function CustomerLiveChat() {
             closeDisabled={!active?.id || activeClosed || Boolean(actionLoading)}
           />
         </div>
-        <aside className="rounded-lg border border-slate-200/80 bg-white/94 p-5 shadow-[0_16px_38px_rgba(15,23,42,0.06)] xl:sticky xl:top-24">
-          <h2 className="font-semibold">{t("chat.ratingTitle")}</h2>
+        <aside className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm xl:sticky xl:top-24">
+          <h2 className="font-semibold text-slate-950">{t("chat.ratingTitle")}</h2>
           <p className="mt-2 text-sm text-slate-500">{t("chat.ratingHelp")}</p>
-          <select className="mt-4 h-11 w-full rounded-md border border-slate-200 px-3" value={rating} onChange={(event) => setRating(event.target.value)}>
+          <select className="app-field mt-4" value={rating} onChange={(event) => setRating(event.target.value)}>
             <option value="5">5 - Excellent</option><option value="4">4 - Good</option><option value="3">3 - Neutral</option><option value="2">2 - Poor</option><option value="1">1 - Bad</option>
           </select>
-          <textarea className="mt-3 min-h-28 w-full rounded-md border border-slate-200 p-3" placeholder={t("chat.feedback")} value={feedback} onChange={(event) => setFeedback(event.target.value)} />
+          <textarea className="app-field mt-3 min-h-28" placeholder={t("chat.feedback")} value={feedback} onChange={(event) => setFeedback(event.target.value)} />
           <Button className="mt-3 w-full" onClick={submitRating} loading={actionLoading === "rating"} disabled={!active?.id || Boolean(actionLoading)}>{t("buttons.submitRating")}</Button>
         </aside>
       </div>
     </>
   );
 }
+

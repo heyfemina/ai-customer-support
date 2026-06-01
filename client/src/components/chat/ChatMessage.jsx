@@ -28,7 +28,7 @@ export default function ChatMessage({ message, currentUserId }) {
 
   return (
     <div className={`flex ${mine ? "justify-end" : "justify-start"}`}>
-      <div className={`max-w-[78%] overflow-hidden rounded-2xl px-4 py-3 text-sm shadow-sm ${mine ? "rounded-br-md bg-teal-600 text-white shadow-teal-900/10" : "rounded-bl-md border border-slate-200 bg-white text-slate-700"}`}>
+      <div className={`max-w-[78%] overflow-hidden rounded-2xl px-4 py-3 text-sm shadow-sm ${mine ? "rounded-br-md bg-blue-900 text-white shadow-blue-900/10" : "rounded-bl-md border border-slate-200 bg-white text-slate-700"}`}>
         {message.fileUrl ? (
           <div className="mb-2">
             {imageFile && fileHref !== "#" ? <img src={fileHref} alt={message.fileName || t("chat.sharedImage")} className="mb-2 max-h-44 rounded-md object-cover" /> : null}
@@ -38,14 +38,16 @@ export default function ChatMessage({ message, currentUserId }) {
             </a>
           </div>
         ) : null}
-        {message.isAI ? <p className={`mb-1 text-xs font-bold uppercase ${mine ? "text-teal-100" : "text-teal-700"}`}>{t("chat.aiBot")}</p> : null}
-        <div className="mb-1 flex flex-wrap items-center gap-2">
-          {message.sourceLanguage ? <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase ${mine ? "bg-teal-500 text-teal-50" : "bg-slate-100 text-slate-500"}`}>{message.sourceLanguage}</span> : null}
-          {message.targetLanguage && message.targetLanguage !== message.sourceLanguage ? <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase ${mine ? "bg-teal-500 text-teal-50" : "bg-slate-100 text-slate-500"}`}>{message.targetLanguage}</span> : null}
-        </div>
+        {message.isAI ? <p className={`mb-1 text-xs font-bold uppercase ${mine ? "text-blue-100" : "text-blue-700"}`}>{t("chat.aiBot")}</p> : null}
+        {hasTranslation ? (
+          <div className="mb-1 flex flex-wrap items-center gap-2">
+            {message.sourceLanguage ? <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase ${mine ? "bg-blue-800 text-blue-50" : "bg-slate-100 text-slate-500"}`}>{message.sourceLanguage}</span> : null}
+            {message.targetLanguage && message.targetLanguage !== message.sourceLanguage ? <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase ${mine ? "bg-blue-800 text-blue-50" : "bg-slate-100 text-slate-500"}`}>{message.targetLanguage}</span> : null}
+          </div>
+        ) : null}
         <p className="whitespace-pre-wrap break-words">{body}</p>
-        {hasTranslation ? <button className={`mt-2 text-xs font-semibold underline ${mine ? "text-teal-100" : "text-teal-700"}`} onClick={() => setShowOriginal(!showOriginal)}>{showOriginal ? t("chat.showTranslation") : t("chat.showOriginal")}</button> : null}
-        <p className={`mt-1 text-[11px] ${mine ? "text-teal-100" : "text-slate-400"}`}>{formatDate(message.createdAt)}</p>
+        {hasTranslation ? <button className={`mt-2 text-xs font-semibold underline ${mine ? "text-blue-100" : "text-blue-700"}`} onClick={() => setShowOriginal(!showOriginal)}>{showOriginal ? t("chat.showTranslation") : t("chat.showOriginal")}</button> : null}
+        <p className={`mt-1 text-[11px] ${mine ? "text-blue-100" : "text-slate-400"}`}>{formatDate(message.createdAt)}</p>
       </div>
     </div>
   );

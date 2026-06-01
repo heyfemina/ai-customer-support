@@ -6,7 +6,7 @@ import ChatSidebar from "../../components/chat/ChatSidebar.jsx";
 import ChatWindow from "../../components/chat/ChatWindow.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useSocket } from "../../context/SocketContext.jsx";
-import { normalizeItems } from "../../utils/helpers.js";
+import { mergeMessages, normalizeItems, sortByRecent, visitorDevice, visitorPage } from "../../utils/helpers.js";
 import Button from "../../components/common/Button.jsx";
 import { useTranslation } from "react-i18next";
 import { ArrowRightLeft } from "lucide-react";
@@ -41,9 +41,9 @@ export default function Chats() {
   const activeClosed = active?.status === "CLOSED";
   const actionBusy = Boolean(actionLoading);
   const noticeClass = {
-    emerald: "border-emerald-100 bg-emerald-50 text-emerald-700",
+    emerald: "border-green-100 bg-green-50 text-green-700",
     amber: "border-amber-100 bg-amber-50 text-amber-800",
-    rose: "border-rose-100 bg-rose-50 text-rose-700",
+    rose: "border-red-100 bg-red-50 text-red-700",
   }[noticeTone] || "border-slate-200 bg-slate-50 text-slate-700";
 
   const showNotice = (message, tone = "amber") => {
@@ -59,9 +59,9 @@ export default function Chats() {
 
   useEffect(() => {
     api.get("/chats").then(({ data }) => {
-      const rows = normalizeItems(data, []);
+      const rows = sortByRecent(normalizeItems(data, []));
       setSessions(rows);
-      setActive(rows.find((row) => row.id === preferredChatId) || rows[0] || null);
+      setActive((current) => rows.find((row) => row.id === (preferredChatId || current?.id)) || rows[0] || null);
       setMessagesByChat(Object.fromEntries(rows.map((row) => [row.id, row.messages || []])));
     }).catch(() => {
       setSessions([]);
@@ -82,11 +82,12 @@ export default function Chats() {
       const updated = chat.chat || chat;
       setSessions((current) => {
         const exists = current.some((item) => item.id === updated.id);
-        return exists ? current.map((item) => item.id === updated.id ? updated : item) : [updated, ...current];
+        const next = exists ? current.map((item) => item.id === updated.id ? { ...updated, messages: mergeMessages(item.messages, updated.messages) } : item) : [updated, ...current];
+        return sortByRecent(next);
       });
       if (updated.id === active.id) {
-        setActive(updated);
-        setMessagesByChat((current) => ({ ...current, [updated.id]: updated.messages || current[updated.id] || [] }));
+        setActive((current) => current?.id === updated.id ? { ...updated, messages: mergeMessages(current.messages, updated.messages) } : current);
+        setMessagesByChat((current) => ({ ...current, [updated.id]: mergeMessages(current[updated.id], updated.messages) }));
       }
     };
     const typing = (payload) => payload.user?.id !== user?.id && setTypingUsers([payload.user]);
@@ -124,7 +125,9 @@ export default function Chats() {
           const withMessage = appendMessage(current, active.id, message);
           return aiMessage ? appendMessage(withMessage, active.id, aiMessage) : withMessage;
         });
-        setSessions((current) => current.map((item) => item.id === active.id ? { ...item, lastMessage: (aiMessage || message)?.content, updatedAt: new Date().toISOString() } : item));
+        const sentMessages = [message, aiMessage].filter(Boolean);
+        setActive((current) => current?.id === active.id ? { ...current, status: "ACTIVE", lastMessage: sentMessages.at(-1)?.content, messages: mergeMessages(current.messages, sentMessages), updatedAt: new Date().toISOString() } : current);
+        setSessions((current) => sortByRecent(current.map((item) => item.id === active.id ? { ...item, status: "ACTIVE", lastMessage: sentMessages.at(-1)?.content, messages: mergeMessages(item.messages, sentMessages), updatedAt: new Date().toISOString() } : item)));
       });
     } else {
       let message;
@@ -141,7 +144,9 @@ export default function Chats() {
         const withMessage = appendMessage(current, active.id, message);
         return aiMessage ? appendMessage(withMessage, active.id, aiMessage) : withMessage;
       });
-      setSessions((current) => current.map((item) => item.id === active.id ? { ...item, lastMessage: (aiMessage || message)?.content, updatedAt: new Date().toISOString() } : item));
+      const sentMessages = [message, aiMessage].filter(Boolean);
+      setActive((current) => current?.id === active.id ? { ...current, status: "ACTIVE", lastMessage: sentMessages.at(-1)?.content, messages: mergeMessages(current.messages, sentMessages), updatedAt: new Date().toISOString() } : current);
+      setSessions((current) => sortByRecent(current.map((item) => item.id === active.id ? { ...item, status: "ACTIVE", lastMessage: sentMessages.at(-1)?.content, messages: mergeMessages(item.messages, sentMessages), updatedAt: new Date().toISOString() } : item)));
     }
   };
 
@@ -169,7 +174,7 @@ export default function Chats() {
       return;
     }
     setActive(chat);
-    setSessions((current) => current.map((item) => item.id === chat.id ? chat : item));
+    setSessions((current) => sortByRecent(current.map((item) => item.id === chat.id ? chat : item)));
     setTransferAgentId("");
     setActionLoading("");
     showNotice("Chat transferred.", "emerald");
@@ -196,7 +201,7 @@ export default function Chats() {
       return;
     }
     setActive(chat);
-    setSessions((current) => current.map((item) => item.id === chat.id ? chat : item));
+    setSessions((current) => sortByRecent(current.map((item) => item.id === chat.id ? chat : item)));
     setActionLoading("");
     showNotice("Chat closed and stored in history.", "emerald");
     pushNotification({ message: "Admin closed a chat transcript.", type: "chat" });
@@ -206,8 +211,8 @@ export default function Chats() {
     <>
       <PageHeader title="Chat monitoring" description="Monitor live conversations, AI-to-agent handoffs, queues, notifications, and visitor sessions." />
       {notice ? <p className={`mb-4 rounded-md border px-3 py-2 text-sm font-semibold ${noticeClass}`}>{notice}</p> : null}
-      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
-        <div className="flex min-h-[620px] flex-col overflow-hidden rounded-lg border border-slate-200/80 bg-white shadow-[0_16px_38px_rgba(15,23,42,0.06)] md:flex-row xl:h-[calc(100vh-12rem)] xl:min-h-[640px] xl:max-h-[860px]">
+      <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="flex min-h-[660px] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm md:flex-row xl:h-[calc(100vh-11rem)] xl:min-h-[680px] xl:max-h-[900px]">
           <ChatSidebar sessions={sessions} activeId={active?.id} onSelect={selectSession} />
           <ChatWindow
             session={active}
@@ -217,37 +222,34 @@ export default function Chats() {
             onTyping={() => socket?.emit("typing", { chatSessionId: active?.id, user })}
             onStopTyping={() => socket?.emit("stop_typing", { chatSessionId: active?.id, user })}
             onSend={sendMessage}
-            onTransfer={transferChat}
-            onClose={closeChat}
-            transferLoading={actionLoading === "transfer"}
-            closeLoading={actionLoading === "close"}
-            transferDisabled={!active?.id || activeClosed || !transferAgentId || actionBusy}
-            closeDisabled={!active?.id || activeClosed || actionBusy}
           />
         </div>
-        <aside className="rounded-lg border border-slate-200/80 bg-white/94 p-5 shadow-[0_16px_38px_rgba(15,23,42,0.06)] xl:sticky xl:top-24 xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto">
+        <aside className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm xl:sticky xl:top-24 xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto">
           <h2 className="font-semibold text-slate-950">{t("ticketsUi.workflow")}</h2>
+          <p className="mt-1 text-sm text-slate-500">{t("chat.manageSelectedConversation")}</p>
           <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
             <div className="rounded-md border border-amber-100 bg-amber-50 p-2 font-semibold text-amber-700"><p className="text-lg font-bold">{queueStats.waiting}</p><p>{t("chat.waiting")}</p></div>
-            <div className="rounded-md border border-emerald-100 bg-emerald-50 p-2 font-semibold text-emerald-700"><p className="text-lg font-bold">{queueStats.active}</p><p>{t("chat.active")}</p></div>
+            <div className="rounded-md border border-green-100 bg-green-50 p-2 font-semibold text-green-700"><p className="text-lg font-bold">{queueStats.active}</p><p>{t("chat.active")}</p></div>
             <div className="rounded-md border border-slate-200 bg-slate-100 p-2 font-semibold text-slate-700"><p className="text-lg font-bold">{queueStats.closed}</p><p>{t("chat.closed")}</p></div>
           </div>
           <label className="mt-4 block">
-            <span className="text-sm font-semibold text-slate-700">{t("chat.transferTo")}</span>
-            <select className="mt-1 h-11 w-full rounded-md border border-slate-200 px-3" value={transferAgentId} onChange={(event) => setTransferAgentId(event.target.value)}>
+            <span className="app-label">{t("chat.transferTo")}</span>
+            <select className="app-field mt-1" value={transferAgentId} onChange={(event) => setTransferAgentId(event.target.value)}>
               <option value="">{t("ticketsUi.unassigned")}</option>
               {agents.map((agent) => <option key={agent.id} value={agent.id}>{agent.name}</option>)}
             </select>
           </label>
-          <Button variant="secondary" className="mt-3 w-full" icon={ArrowRightLeft} onClick={transferChat} loading={actionLoading === "transfer"} disabled={!active?.id || activeClosed || !transferAgentId || actionBusy}>{t("buttons.transfer")}</Button>
-          <Button variant="danger" className="mt-3 w-full" onClick={closeChat} loading={actionLoading === "close"} disabled={!active?.id || activeClosed || actionBusy}>{t("buttons.close")}</Button>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <Button variant="secondary" className="w-full" icon={ArrowRightLeft} onClick={transferChat} loading={actionLoading === "transfer"} disabled={!active?.id || activeClosed || !transferAgentId || actionBusy}>{t("buttons.transfer")}</Button>
+            <Button variant="danger" className="w-full" onClick={closeChat} loading={actionLoading === "close"} disabled={!active?.id || activeClosed || actionBusy}>{t("buttons.close")}</Button>
+          </div>
           <div className="mt-5 border-t border-slate-200 pt-4">
             <h3 className="text-sm font-semibold text-slate-950">{t("chat.visitorAndSecurity")}</h3>
             <dl className="mt-3 space-y-2 text-sm">
-              <div><dt className="text-slate-500">{t("chat.visitorPage")}</dt><dd className="font-semibold">{active?.visitor?.page || "/support"}</dd></div>
-              <div><dt className="text-slate-500">{t("chat.device")}</dt><dd className="font-semibold">{active?.visitor?.device || "Desktop Chrome"}</dd></div>
-              <div><dt className="text-slate-500">{t("chat.channel")}</dt><dd className="font-semibold">{active?.channel || "Website chatbot"}</dd></div>
-              <div><dt className="text-slate-500">{t("chat.encryption")}</dt><dd className="font-semibold">{t("aiSettings.states.enabled")}</dd></div>
+              <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">{t("chat.visitorPage")}</dt><dd className="mt-1 truncate font-semibold text-slate-800" title={visitorPage(active)}>{visitorPage(active)}</dd></div>
+              <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">{t("chat.device")}</dt><dd className="mt-1 font-semibold text-slate-800">{visitorDevice(active)}</dd></div>
+              <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">{t("chat.channel")}</dt><dd className="mt-1 font-semibold text-slate-800">{active?.channel || "Website chatbot"}</dd></div>
+              <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">{t("chat.encryption")}</dt><dd className="mt-1 font-semibold text-slate-800">{t("aiSettings.states.enabled")}</dd></div>
             </dl>
           </div>
         </aside>
@@ -255,3 +257,4 @@ export default function Chats() {
     </>
   );
 }
+

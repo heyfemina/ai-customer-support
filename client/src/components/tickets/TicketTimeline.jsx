@@ -20,7 +20,7 @@ export default function TicketTimeline({ ticket }) {
           <p className="mt-2 text-sm text-slate-700">{ticket?.description}</p>
         </div>
         {attachments.map((file) => (
-          <a key={file.id || file.fileUrl} href={`http://localhost:5000${file.fileUrl}`} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-md border border-slate-200 p-3 text-sm font-semibold text-sky-700">
+          <a key={file.id || file.fileUrl} href={`http://localhost:5000${file.fileUrl}`} target="_blank" rel="noreferrer" className="flex items-center gap-2 rounded-md border border-slate-200 p-3 text-sm font-semibold text-blue-700">
             <Paperclip className="h-4 w-4" />
             {file.fileName}
           </a>
@@ -33,7 +33,7 @@ export default function TicketTimeline({ ticket }) {
             </div>
             <p className="mt-2 text-sm text-slate-700">{message.content}</p>
             {message.fileUrl ? (
-              <a href={`http://localhost:5000${message.fileUrl}`} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-sky-700">
+              <a href={`http://localhost:5000${message.fileUrl}`} target="_blank" rel="noreferrer" className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-blue-700">
                 <Paperclip className="h-4 w-4" />
                 Open attachment
               </a>

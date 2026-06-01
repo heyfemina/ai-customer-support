@@ -107,8 +107,8 @@ export default function AISettings() {
     <>
       <PageHeader title="AI configuration settings" description="Tune bot identity, fallback behavior, translation, summarization, and human transfer rules." actions={<Button loading={saving} onClick={save}>{t("aiSettings.actions.save")}</Button>} />
       <Card className="p-5">
-        {notice ? <p className="mb-4 rounded-md bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">{notice}</p> : null}
-        {error ? <p className="mb-4 rounded-md bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700">{error}</p> : null}
+        {notice ? <p className="mb-4 rounded-md bg-green-50 px-3 py-2 text-sm font-semibold text-green-700">{notice}</p> : null}
+        {error ? <p className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">{error}</p> : null}
         <div className="grid gap-5 lg:grid-cols-2">
           <label className="block"><span className="text-sm font-semibold text-slate-700">{t("aiSettings.fields.botName")}</span><input className="mt-1 h-11 w-full rounded-md border border-slate-200 px-3" value={form.botName || ""} onChange={(event) => setForm({ ...form, botName: event.target.value })} /></label>
           <label className="block"><span className="text-sm font-semibold text-slate-700">{t("aiSettings.fields.aiActive")}</span><select className="mt-1 h-11 w-full rounded-md border border-slate-200 px-3" value={String(Boolean(form.isActive))} onChange={(event) => setForm({ ...form, isActive: event.target.value === "true" })}><option value="true">{t("aiSettings.states.enabled")}</option><option value="false">{t("aiSettings.states.disabled")}</option></select></label>
@@ -149,3 +149,4 @@ export default function AISettings() {
     </>
   );
 }
+
