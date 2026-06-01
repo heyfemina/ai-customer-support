@@ -21,7 +21,11 @@ api.interceptors.response.use(
       localStorage.removeItem("user");
       window.dispatchEvent(new Event("auth:logout"));
     }
-    error.friendlyMessage = error.response?.data?.message || error.message || "Something went wrong";
+    const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+    const isNetworkError = error.message === "Network Error" || !error.response;
+    error.friendlyMessage = isNetworkError
+      ? `Unable to reach the backend API. Check that ${apiUrl} is running and allowed by CORS.`
+      : error.response?.data?.message || error.message || "Something went wrong";
     return Promise.reject(error);
   }
 );
