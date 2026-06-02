@@ -7,11 +7,12 @@ function monthKey(date) {
 
 export async function dashboardReport(req, res, next) {
   try {
-    const [tickets, open, resolved, chats, agents, customers, allTickets, ratedChats, recentTickets] = await Promise.all([
+    const [tickets, open, resolved, complaints, chats, agents, customers, allTickets, ratedChats, recentTickets] = await Promise.all([
       prisma.ticket.count(),
       prisma.ticket.count({ where: { status: "OPEN" } }),
       prisma.ticket.count({ where: { status: "RESOLVED" } }),
-      prisma.chatSession.count({ where: { status: { in: ["ACTIVE", "WAITING", "TRANSFERRED"] } } }),
+      prisma.ticket.count({ where: { complaintStatus: { not: "NONE" } } }),
+      prisma.chatSession.count({ where: { status: { in: ["ASSIGNED", "ACTIVE", "WAITING", "TRANSFERRED"] } } }),
       prisma.user.count({ where: { role: "AGENT" } }),
       prisma.user.count({ where: { role: "CUSTOMER" } }),
       prisma.ticket.findMany({ select: { status: true, createdAt: true } }),
@@ -50,6 +51,7 @@ export async function dashboardReport(req, res, next) {
       tickets,
       open,
       resolved,
+      complaints,
       chats,
       agents,
       customers,
@@ -96,19 +98,30 @@ export async function agentReport(req, res, next) {
         name: true,
         email: true,
         isActive: true,
-        assigned: { select: { id: true, status: true } },
+        assigned: { select: { id: true, status: true, firstResponseMinutes: true, resolutionMinutes: true, feedbackRating: true, complaintStatus: true, createdAt: true } },
         agentChats: { select: { id: true, status: true, rating: true } },
       },
     });
     success(res, agents.map((agent) => {
       const ratings = agent.agentChats.filter((chat) => chat.rating);
+      const ticketRatings = agent.assigned.filter((ticket) => ticket.feedbackRating);
+      const allRatings = [...ratings.map((chat) => chat.rating), ...ticketRatings.map((ticket) => ticket.feedbackRating)];
       const rating = ratings.length ? ratings.reduce((total, chat) => total + chat.rating, 0) / ratings.length : 0;
+      const responded = agent.assigned.filter((ticket) => ticket.firstResponseMinutes !== null);
+      const resolved = agent.assigned.filter((ticket) => ticket.resolutionMinutes !== null);
       return {
-        ...agent,
+        id: agent.id,
+        name: agent.name,
+        email: agent.email,
+        isActive: agent.isActive,
+        assigned: agent.assigned,
         assignedTickets: agent.assigned.length,
         resolvedTickets: agent.assigned.filter((ticket) => ticket.status === "RESOLVED" || ticket.status === "CLOSED").length,
-        activeChats: agent.agentChats.filter((chat) => ["ACTIVE", "WAITING", "TRANSFERRED"].includes(chat.status)).length,
-        rating: rating ? rating.toFixed(1) : "N/A",
+        activeChats: agent.agentChats.filter((chat) => ["ASSIGNED", "ACTIVE", "WAITING", "TRANSFERRED"].includes(chat.status)).length,
+        rating: allRatings.length ? (allRatings.reduce((sum, value) => sum + Number(value || 0), 0) / allRatings.length).toFixed(1) : rating ? rating.toFixed(1) : "N/A",
+        avgFirstResponseMinutes: responded.length ? Number((responded.reduce((sum, ticket) => sum + Number(ticket.firstResponseMinutes || 0), 0) / responded.length).toFixed(1)) : 0,
+        avgResolutionMinutes: resolved.length ? Number((resolved.reduce((sum, ticket) => sum + Number(ticket.resolutionMinutes || 0), 0) / resolved.length).toFixed(1)) : 0,
+        complaintCount: agent.assigned.filter((ticket) => ticket.complaintStatus && ticket.complaintStatus !== "NONE").length,
       };
     }));
   } catch (error) { next(error); }
@@ -123,14 +136,16 @@ export async function customerReport(req, res, next) {
         name: true,
         email: true,
         isActive: true,
-        tickets: { select: { id: true, status: true } },
+        tickets: { select: { id: true, status: true, subject: true, agent: { select: { id: true, name: true, email: true } }, feedbackRating: true, complaintStatus: true, resolutionMinutes: true, createdAt: true } },
         customerChats: { select: { id: true, status: true, rating: true } },
       },
     });
     success(res, customers.map((customer) => ({
       ...customer,
       ticketCount: customer.tickets.length,
-      activeChats: customer.customerChats.filter((chat) => ["ACTIVE", "WAITING", "TRANSFERRED"].includes(chat.status)).length,
+      activeChats: customer.customerChats.filter((chat) => ["ASSIGNED", "ACTIVE", "WAITING", "TRANSFERRED"].includes(chat.status)).length,
+      feedbackCount: customer.tickets.filter((ticket) => ticket.feedbackRating).length,
+      complaintCount: customer.tickets.filter((ticket) => ticket.complaintStatus && ticket.complaintStatus !== "NONE").length,
     })));
   } catch (error) { next(error); }
 }

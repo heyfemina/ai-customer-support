@@ -23,6 +23,7 @@ function emptyReport() {
     open: 0,
     resolved: 0,
     chats: 0,
+    complaints: 0,
     avgResponseTime: "N/A",
     agentRating: "N/A",
     csat: 0,
@@ -52,6 +53,7 @@ export default function AdminDashboard() {
     { title: t("dashboard.stats.resolvedTickets"), value: report.resolved, icon: CheckCircle2, tone: "emerald", trend: "+9%" },
     { title: "Pending tickets", value: pendingTickets, icon: Clock, tone: "violet", trend: "-3%" },
     { title: t("dashboard.stats.activeChats"), value: report.chats, icon: MessageSquare, tone: "sky", trend: "+6%" },
+    { title: "Complaints", value: report.complaints || 0, icon: AlertCircle, tone: "amber", trend: "+0%" },
     { title: t("dashboard.stats.avgResponseTime"), value: report.avgResponseTime, icon: Clock, tone: "rose", trend: "-8%" },
     { title: t("dashboard.stats.customerSatisfaction"), value: `${report.csat}%`, icon: Star, tone: "emerald", trend: "+5%" },
     { title: "Online agents", value: report.agentsOnline || 0, icon: Users, tone: "violet", trend: "+2%" },
@@ -188,8 +190,8 @@ export default function AdminDashboard() {
           </div>
           <div className="mt-4 grid grid-cols-3 gap-3 text-center text-sm">
             <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
-              <p className="text-xl font-bold text-slate-950">{report.open}</p>
-              <p className="mt-1 text-xs font-semibold text-slate-500">Needs action</p>
+              <p className="text-xl font-bold text-slate-950">{report.complaints || 0}</p>
+              <p className="mt-1 text-xs font-semibold text-slate-500">Complaints</p>
             </div>
             <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
               <p className="text-xl font-bold text-slate-950">{report.agentsOnline || 0}</p>

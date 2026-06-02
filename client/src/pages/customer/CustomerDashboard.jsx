@@ -17,7 +17,7 @@ export default function CustomerDashboard() {
     api.get("/tickets").then(({ data }) => setItems(normalizeItems(data, []))).catch(() => setItems([]));
     api.get("/chats").then(({ data }) => setChats(normalizeItems(data, []))).catch(() => setChats([]));
   }, []);
-  const activeChats = chats.filter((chat) => ["ACTIVE", "WAITING", "TRANSFERRED"].includes(chat.status)).length;
+  const activeChats = chats.filter((chat) => ["ASSIGNED", "ACTIVE", "WAITING", "TRANSFERRED"].includes(chat.status)).length;
   const openTickets = items.filter((ticket) => !["RESOLVED", "CLOSED"].includes(ticket.status)).length;
 
   return (

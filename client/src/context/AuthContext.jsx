@@ -64,15 +64,10 @@ export function AuthProvider({ children }) {
         persistSession(token, profile);
         if (active) setUser(profile);
       } catch {
-        const storedUser = readStoredUser();
-        if (storedUser?.id && storedUser?.role) {
-          if (active) setUser(storedUser);
-        } else {
-          clearStoredSession();
-          if (active) {
-            setToken(null);
-            setUser(null);
-          }
+        clearStoredSession();
+        if (active) {
+          setToken(null);
+          setUser(null);
         }
       } finally {
         if (active) setAuthReady(true);

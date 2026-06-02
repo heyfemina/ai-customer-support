@@ -1,17 +1,18 @@
 import jwt from "jsonwebtoken";
 import prisma from "../config/prisma.js";
-import { generateSupportReply } from "../services/aiService.js";
 import { decryptMessageContent, encryptMessageContent } from "../utils/messageCrypto.js";
 import { encryptionVersion } from "../utils/encryption.js";
 
 const include = {
-  customer: { select: { id: true, name: true, email: true } },
-  agent: { select: { id: true, name: true, email: true } },
+  customer: { select: { id: true, name: true, email: true, role: true } },
+  agent: { select: { id: true, name: true, email: true, role: true, department: true, categories: true, agentStatus: true } },
   messages: {
     orderBy: { createdAt: "asc" },
-    include: { sender: { select: { id: true, name: true, role: true } } },
+    include: { sender: { select: { id: true, name: true, email: true, role: true } } },
   },
 };
+
+const waitingNotice = "All agents are currently busy. Estimated wait time is 5-10 minutes.";
 
 function shapeMessage(message) {
   return {
@@ -23,15 +24,19 @@ function shapeMessage(message) {
 }
 
 function shapeChat(chat, index = 0) {
+  const shapedMessages = (chat.messages || []).map(shapeMessage);
+  const systemMessages = !chat.agentId && ["WAITING", "TRANSFERRED"].includes(chat.status)
+    ? [{ id: `system-${chat.id}`, senderId: "system", content: waitingNotice, createdAt: chat.createdAt }]
+    : [];
   return {
     ...chat,
-    messages: (chat.messages || []).map(shapeMessage),
+    messages: [...systemMessages, ...shapedMessages],
     customerName: chat.customer?.name,
     agentName: chat.agent?.name,
     lastMessage: chat.lastMessage || decryptMessageContent(chat.messages?.at(-1)?.content || ""),
     channel: chat.channel || "Website chatbot",
     encrypted: chat.encrypted ?? true,
-    queuePosition: chat.status === "WAITING" ? index + 1 : 0,
+    queuePosition: chat.status === "WAITING" ? index + 1 : chat.queuePosition || 0,
     visitor: {
       ip: chat.visitorIp || "Unknown",
       page: chat.visitorPage || "/support",
@@ -117,33 +122,8 @@ export default function chatSocket(io) {
         const updatedChat = await prisma.chatSession.findUnique({ where: { id: payload.chatSessionId }, include });
         io.emit("chat_queue_updated", shapeChat(updatedChat));
 
-        let aiMessage = null;
-        if (socket.user?.role === "CUSTOMER" && !payload.fileUrl) {
-          const aiSettings = await prisma.aIConfig.findFirst({ orderBy: { createdAt: "desc" } });
-          if (aiSettings?.isActive !== false) {
-            const ai = await generateSupportReply(content, { language: chat?.language, regionalNotes: aiSettings?.regionalNotes, customerName: socket.user?.name, userId: senderId });
-            const reply = ai.reply;
-            const createdAiMessage = await prisma.message.create({
-              data: {
-                content: encryptMessageContent(reply),
-                originalContent: reply,
-                sourceLanguage: "AI",
-                targetLanguage: chat?.language,
-                encryptionVersion: encryptionVersion(),
-                senderId,
-                chatSessionId: payload.chatSessionId,
-                isAI: true,
-              },
-              include: { sender: { select: { id: true, name: true, role: true } } },
-            });
-            await prisma.chatSession.update({ where: { id: payload.chatSessionId }, data: { lastMessage: reply, ...(ai.transferToAgent ? { status: "TRANSFERRED" } : {}) } });
-            aiMessage = shapeMessage(createdAiMessage);
-            io.to(payload.chatSessionId).emit("receive_message", aiMessage);
-          }
-        }
-
         socket.broadcast.emit("chat_notification", { chatSessionId: payload.chatSessionId, message: "New message" });
-        callback?.({ success: true, data: { message: shapedMessage, aiMessage } });
+        callback?.({ success: true, data: { message: shapedMessage } });
       } catch (error) {
         callback?.({ success: false, message: error.message });
       }

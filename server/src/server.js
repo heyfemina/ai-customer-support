@@ -27,7 +27,7 @@ import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
 import chatSocket from "./sockets/chatSocket.js";
 import { assertEncryptionReady } from "./utils/encryption.js";
 
-const defaultClientUrl = "http://localhost:5173";
+const defaultClientUrl = "http://localhost:5173,http://127.0.0.1:5173";
 const allowedOrigins = (process.env.CLIENT_URLS || process.env.CLIENT_URL || defaultClientUrl)
   .split(",")
   .map((origin) => origin.trim().replace(/\/$/, ""))

@@ -87,6 +87,20 @@ export default function Security() {
     loadOperationalData();
   };
 
+  const exportGdpr = async (userId) => {
+    const { data } = await api.get(`/gdpr/export/${userId}`);
+    const payload = data.data || data;
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `gdpr-export-${userId}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const readiness = health?.readiness || {};
+
   return (
     <>
       <PageHeader title="Security settings" description="Authentication, compliance, API security, audit controls, and resilience placeholders." />
@@ -103,6 +117,12 @@ export default function Security() {
             <p>Database: <b>{health?.database || "checking"}</b></p>
             <p>Socket connections: <b>{health?.activeSocketConnections ?? 0}</b></p>
             <p>Open alerts: <b>{health?.alerts?.length ?? 0}</b></p>
+            <p>Environment: <b>{readiness.nodeEnv || "development"}</b></p>
+            <p>Production ready: <b>{readiness.productionReady ? "Yes" : "No"}</b></p>
+            {readiness.missingRequired?.length ? <p className="text-red-600">Missing required: {readiness.missingRequired.join(", ")}</p> : null}
+            {readiness.missingIntegrations?.length ? <p className="text-amber-700">Integration setup needed: {readiness.missingIntegrations.join(", ")}</p> : null}
+            <p>Firewall/WAF: <b>{readiness.firewallWaf || "hosting-level setup required"}</b></p>
+            <p>Monitoring: <b>{readiness.monitoring || "not configured"}</b></p>
           </div>
         </Card>
         <Card className="p-5">
@@ -123,7 +143,10 @@ export default function Security() {
             {gdprRequests.slice(0, 5).map((request) => (
               <div key={request.id} className="rounded-md bg-slate-50 p-2">
                 <div className="flex items-center justify-between gap-2"><span>{request.type} - {request.user?.email}</span><Badge>{request.status}</Badge></div>
-                {request.status === "PENDING" ? <div className="mt-2 flex gap-2"><Button variant="secondary" onClick={() => updateGdpr(request.id, "approve")}>Approve</Button><Button variant="secondary" onClick={() => updateGdpr(request.id, "reject")}>Reject</Button></div> : null}
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <Button variant="secondary" onClick={() => exportGdpr(request.userId)}>Export</Button>
+                  {request.status === "PENDING" ? <><Button variant="secondary" onClick={() => updateGdpr(request.id, "approve")}>Approve</Button><Button variant="secondary" onClick={() => updateGdpr(request.id, "reject")}>Reject</Button></> : null}
+                </div>
               </div>
             ))}
           </div>

@@ -1,5 +1,6 @@
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { ShieldCheck } from "lucide-react";
 import api from "../../api/axios.js";
 import Button from "../../components/common/Button.jsx";
 import Card from "../../components/common/Card.jsx";
@@ -57,17 +58,38 @@ export default function VerifyOtp() {
   };
 
   return (
-    <Card className="p-6 sm:p-7">
-      <h1 className="text-2xl font-bold text-slate-950">Verify OTP</h1>
-      <p className="mt-1 text-sm text-slate-500">Enter the one-time code for {location.state?.email || "your account"}.</p>
-      <form className="mt-6 space-y-4" onSubmit={submit}>
-        <input className="app-field text-center text-lg font-bold tracking-[0.3em]" value={otp} onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" maxLength={6} />
+    <Card className="w-full overflow-hidden border-slate-200 shadow-xl shadow-slate-200/70">
+      <div className="border-b border-slate-200 bg-white px-6 py-6 sm:px-7">
+        <div className="flex items-start gap-3">
+          <div className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-blue-50 text-blue-700">
+            <ShieldCheck className="h-5 w-5" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-bold uppercase tracking-wide text-blue-700">Two-factor security</p>
+            <h1 className="mt-1 text-2xl font-bold text-slate-950">Verify OTP</h1>
+            <p className="mt-2 text-sm leading-6 text-slate-500">Enter the one-time code for {location.state?.email || "your account"}.</p>
+          </div>
+        </div>
+      </div>
+      <form className="space-y-5 bg-slate-50/60 p-6 sm:p-7" onSubmit={submit}>
+        <label className="block">
+          <span className="app-label">Verification code</span>
+          <input
+            className="app-field mt-1.5 min-h-12 rounded-lg text-center text-lg font-bold tracking-[0.3em]"
+            value={otp}
+            onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))}
+            inputMode="numeric"
+            maxLength={6}
+          />
+        </label>
         {notice ? <p className="rounded-md border border-green-100 bg-green-50 p-3 text-sm font-medium text-green-700">{notice}</p> : null}
         {error ? <p className="rounded-md border border-red-100 bg-red-50 p-3 text-sm font-medium text-red-700">{error}</p> : null}
-        <Button className="w-full" loading={loading}>Verify and sign in</Button>
+        <Button className="min-h-12 w-full rounded-lg" loading={loading}>Verify and sign in</Button>
+        <div className="flex flex-col gap-3 border-t border-slate-200 pt-5 text-sm sm:flex-row sm:items-center sm:justify-between">
+          <button className="text-left font-semibold text-blue-700 disabled:opacity-60" type="button" onClick={resend} disabled={resending}>{resending ? "Sending..." : "Resend OTP"}</button>
+          <Link className="font-semibold text-slate-500" to="/login">Back to login</Link>
+        </div>
       </form>
-      <button className="mt-4 text-sm font-semibold text-blue-700 disabled:opacity-60" onClick={resend} disabled={resending}>{resending ? "Sending..." : "Resend OTP"}</button>
-      <Link className="ml-4 text-sm font-semibold text-slate-500" to="/login">Back to login</Link>
     </Card>
   );
 }

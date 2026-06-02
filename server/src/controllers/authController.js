@@ -6,7 +6,7 @@ import generateToken from "../utils/generateToken.js";
 import { success } from "../utils/responseHandler.js";
 import { sendPasswordResetEmail, sendTwoFactorEmail } from "../services/emailService.js";
 
-const publicUser = { id: true, name: true, email: true, role: true, language: true, isActive: true, twoFactorOn: true, createdAt: true };
+const publicUser = { id: true, name: true, email: true, role: true, language: true, isActive: true, twoFactorOn: true, department: true, categories: true, agentStatus: true, maxActiveChats: true, createdAt: true };
 
 export const registerSchema = z.object({
   body: z.object({
@@ -131,6 +131,10 @@ export async function login(req, res, next) {
         language: true,
         isActive: true,
         twoFactorOn: true,
+        department: true,
+        categories: true,
+        agentStatus: true,
+        maxActiveChats: true,
         createdAt: true,
       },
     });

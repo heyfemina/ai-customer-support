@@ -10,7 +10,8 @@
     "postinstall": "node node_modules/prisma/build/index.js generate",
     "prisma:generate": "node node_modules/prisma/build/index.js generate",
     "prisma:migrate": "node node_modules/prisma/build/index.js migrate deploy",
-    "prisma:seed": "node prisma/seed.js"
+    "prisma:seed": "node prisma/seed.js",
+    "seed:load-test-users": "node scripts/seedLoadTestUsers.js"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",

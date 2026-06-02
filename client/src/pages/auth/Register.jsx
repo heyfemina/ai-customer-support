@@ -13,7 +13,7 @@ const passwordToggleClass = "mr-1.5 inline-flex h-9 w-9 shrink-0 items-center ju
 export default function Register() {
   const { register } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: "", email: "", password: "", confirmPassword: "", language: "en" });
+  const [form, setForm] = useState({ name: "", email: "", password: "", confirmPassword: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -48,12 +48,12 @@ export default function Register() {
 
   return (
     <Card className="w-full overflow-hidden border-slate-200 shadow-xl shadow-slate-200/70">
-      <div className="border-b border-slate-200 bg-white px-6 py-6 sm:px-7">
+      <div className="border-b border-slate-200 bg-white px-5 py-5 sm:px-6">
         <p className="text-xs font-bold uppercase tracking-wide text-blue-700">Customer access</p>
-        <h1 className="mt-1 text-2xl font-bold text-slate-950">Create customer account</h1>
+        <h1 className="mt-1 text-2xl font-bold text-slate-950">Create Customer Account</h1>
         <p className="mt-2 text-sm leading-6 text-slate-500">Register a customer account. Admin and agent accounts are created from the admin panel.</p>
       </div>
-      <form className="space-y-5 bg-slate-50/60 p-6 sm:p-7" onSubmit={submit}>
+      <form className="space-y-5 bg-slate-50/60 p-5 sm:p-6" onSubmit={submit}>
         {error ? <p className="rounded-md border border-red-100 bg-red-50 p-3 text-sm font-medium text-red-700">{error}</p> : null}
         <label className="block">
           <span className="app-label">Full name</span>
@@ -65,7 +65,7 @@ export default function Register() {
           </div>
         </label>
         <label className="block">
-          <span className="app-label">Email</span>
+          <span className="app-label">Email Address</span>
           <div className={inputGroupClass}>
             <span className={iconSlotClass}>
               <Mail className="h-4 w-4" />
@@ -96,15 +96,6 @@ export default function Register() {
               {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
-        </label>
-        <label className="block">
-          <span className="app-label">Language</span>
-          <select className="app-field mt-1.5 min-h-12 rounded-lg bg-white" value={form.language} onChange={(event) => setForm({ ...form, language: event.target.value })}>
-            <option value="en">English</option>
-            <option value="it">Italian</option>
-            <option value="es">Spanish</option>
-            <option value="fr">French</option>
-          </select>
         </label>
         <Button className="min-h-12 w-full rounded-lg" loading={loading}>Create customer account</Button>
         <p className="border-t border-slate-200 pt-5 text-sm text-slate-500">Already registered? <Link className="font-semibold text-blue-700" to="/login">Sign in</Link></p>

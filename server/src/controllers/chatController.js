@@ -1,17 +1,19 @@
 import prisma from "../config/prisma.js";
 import { success } from "../utils/responseHandler.js";
-import { generateSupportReply, translateText } from "../services/aiService.js";
+import { translateText } from "../services/aiService.js";
 import { decryptMessageContent, encryptMessageContent } from "../utils/messageCrypto.js";
 import { encryptionVersion } from "../utils/encryption.js";
 
 const include = {
-  customer: { select: { id: true, name: true, email: true } },
-  agent: { select: { id: true, name: true, email: true } },
+  customer: { select: { id: true, name: true, email: true, role: true } },
+  agent: { select: { id: true, name: true, email: true, role: true, department: true, categories: true, agentStatus: true } },
   messages: {
     orderBy: { createdAt: "asc" },
-    include: { sender: { select: { id: true, name: true, role: true } } },
+    include: { sender: { select: { id: true, name: true, email: true, role: true } } },
   },
 };
+
+const waitingNotice = "All agents are currently busy. Estimated wait time is 5-10 minutes.";
 
 function visitorFromRequest(req) {
   return {
@@ -47,16 +49,19 @@ function shapeMessage(message) {
 function shapeChat(chat, index = 0) {
   if (!chat) return chat;
   const shapedMessages = (chat.messages || []).map(shapeMessage);
+  const systemMessages = !chat.agentId && ["WAITING", "TRANSFERRED"].includes(chat.status)
+    ? [{ id: `system-${chat.id}`, senderId: "system", content: waitingNotice, createdAt: chat.createdAt }]
+    : [];
   const lastMessage = chat.lastMessage || shapedMessages.at(-1)?.content || "";
   return {
     ...chat,
-    messages: shapedMessages,
+    messages: [...systemMessages, ...shapedMessages],
     customerName: chat.customer?.name,
     agentName: chat.agent?.name,
     lastMessage,
     channel: chat.channel || "Website chatbot",
     encrypted: chat.encrypted ?? true,
-    queuePosition: chat.status === "WAITING" ? index + 1 : 0,
+    queuePosition: chat.status === "WAITING" ? index + 1 : chat.queuePosition || 0,
     visitor: {
       ip: chat.visitorIp || "Unknown",
       page: chat.visitorPage || "/support",
@@ -78,29 +83,30 @@ async function createChatEvent(chatId, content, senderId) {
   });
 }
 
-async function maybeCreateAiReply({ req, chat, customerMessage }) {
-  if (req.user.role !== "CUSTOMER" || req.body.fileUrl) return null;
-  const aiSettings = await prisma.aIConfig.findFirst({ orderBy: { createdAt: "desc" } });
-  if (aiSettings?.isActive === false) return null;
-  const ai = await generateSupportReply(customerMessage.content, { language: chat.language, regionalNotes: aiSettings?.regionalNotes, customerName: req.user.name, userId: req.user.id });
-  const reply = ai.reply;
-  const update = { lastMessage: reply };
-  if (ai.transferToAgent) update.status = "TRANSFERRED";
-  const aiMessage = await prisma.message.create({
-    data: {
-      content: encryptMessageContent(reply),
-      originalContent: reply,
-      sourceLanguage: "AI",
-      targetLanguage: chat.language || req.user.language,
-      encryptionVersion: encryptionVersion(),
-      senderId: req.user.id,
-      chatSessionId: chat.id,
-      isAI: true,
+async function pickAgentForChat(category = "General") {
+  const agents = await prisma.user.findMany({
+    where: {
+      role: "AGENT",
+      isActive: true,
+      agentStatus: { not: "OFFLINE" },
+      OR: [{ categories: { has: category } }, { categories: { has: "General" } }],
     },
-    include: { sender: { select: { id: true, name: true, role: true } } },
+    select: {
+      id: true,
+      maxActiveChats: true,
+      agentChats: { select: { status: true } },
+    },
   });
-  await prisma.chatSession.update({ where: { id: chat.id }, data: update });
-  return shapeMessage(aiMessage);
+  const activeStatuses = new Set(["ASSIGNED", "ACTIVE", "TRANSFERRED"]);
+  const ranked = agents
+    .map((agent) => ({
+      id: agent.id,
+      activeChats: agent.agentChats.filter((chat) => activeStatuses.has(chat.status)).length,
+      maxActiveChats: agent.maxActiveChats || 3,
+    }))
+    .filter((agent) => agent.activeChats < agent.maxActiveChats)
+    .sort((a, b) => a.activeChats - b.activeChats);
+  return ranked[0]?.id || null;
 }
 
 async function translationData({ content, sourceLanguage, targetLanguage, userId }) {
@@ -113,20 +119,26 @@ async function translationData({ content, sourceLanguage, targetLanguage, userId
 
 export async function startChat(req, res, next) {
   try {
+    const category = req.body.category || "General";
+    const agentId = await pickAgentForChat(category);
     const chat = await prisma.chatSession.create({
       data: {
         customerId: req.user.id,
+        agentId,
+        status: agentId ? "ASSIGNED" : "WAITING",
+        assignedAt: agentId ? new Date() : null,
+        category,
         language: req.body.language || req.user.language,
         channel: req.body.channel || "Website chatbot",
         encrypted: true,
-        lastMessage: "New chat started",
+        lastMessage: agentId ? "New chat assigned to agent" : waitingNotice,
         ...visitorFromRequest(req),
       },
       include,
     });
     const shaped = shapeChat(chat);
     req.app.get("io")?.emit("chat_queue_updated", shaped);
-    req.app.get("io")?.emit("chat_notification", { chatSessionId: chat.id, message: "New customer chat waiting", chat: shaped });
+    req.app.get("io")?.emit("chat_notification", { chatSessionId: chat.id, message: agentId ? "New customer chat assigned" : "New customer chat waiting", chat: shaped });
     success(res, shaped, "Chat started", 201);
   } catch (error) { next(error); }
 }
@@ -145,6 +157,9 @@ export async function startTicketChat(req, res, next) {
       data: {
         customerId: ticket.customerId,
         agentId: req.user.role === "AGENT" ? req.user.id : ticket.agentId,
+        status: ticket.agentId || req.user.role === "AGENT" ? "ASSIGNED" : "WAITING",
+        assignedAt: ticket.agentId || req.user.role === "AGENT" ? new Date() : null,
+        category: ticket.category || "General",
         language: ticket.customer.language || req.body.language || "en",
         channel: `Ticket live chat: ${ticket.id}`,
         encrypted: true,
@@ -164,7 +179,7 @@ export async function startTicketChat(req, res, next) {
 
 export async function getChats(req, res, next) {
   try {
-    const where = req.user.role === "CUSTOMER" ? { customerId: req.user.id } : req.user.role === "AGENT" ? { OR: [{ agentId: req.user.id }, { agentId: null }, { status: "TRANSFERRED" }] } : {};
+    const where = req.user.role === "CUSTOMER" ? { customerId: req.user.id } : req.user.role === "AGENT" ? { OR: [{ agentId: req.user.id }, { agentId: null }, { status: "TRANSFERRED" }, { status: "WAITING" }] } : {};
     const chats = await prisma.chatSession.findMany({ where, include, orderBy: { updatedAt: "desc" } });
     success(res, chats.map(shapeChat));
   } catch (error) { next(error); }
@@ -207,13 +222,11 @@ export async function sendChatMessage(req, res, next) {
     await prisma.chatSession.update({ where: { id: req.params.id }, data: { status: "ACTIVE", lastMessage: content } });
     const shapedMessage = shapeMessage(message);
     req.app.get("io")?.to(req.params.id).emit("receive_message", shapedMessage);
-    const aiMessage = await maybeCreateAiReply({ req, chat, customerMessage: shapedMessage });
-    if (aiMessage) req.app.get("io")?.to(req.params.id).emit("receive_message", aiMessage);
     const updatedChat = await prisma.chatSession.findUnique({ where: { id: req.params.id }, include });
     req.app.get("io")?.emit("chat_queue_updated", shapeChat(updatedChat));
     req.app.get("io")?.emit("chat_notification", { chatSessionId: req.params.id, message: "New live chat message" });
 
-    success(res, { message: shapedMessage, aiMessage }, "Message sent", 201);
+    success(res, { message: shapedMessage }, "Message sent", 201);
   } catch (error) { next(error); }
 }
 
@@ -221,7 +234,7 @@ export async function transferChat(req, res, next) {
   try {
     const current = await prisma.chatSession.findUnique({ where: { id: req.params.id }, include });
     if (!canAccessChat(req.user, current)) return res.status(403).json({ success: false, message: "Access denied" });
-    const chat = await prisma.chatSession.update({ where: { id: req.params.id }, data: { agentId: req.body.agentId || null, status: "TRANSFERRED" }, include });
+    const chat = await prisma.chatSession.update({ where: { id: req.params.id }, data: { agentId: req.body.agentId || null, status: "TRANSFERRED", transferReason: req.body.reason || "Manual transfer" }, include });
     const event = await createChatEvent(req.params.id, "Chat transferred to another agent.", req.user.id);
     const shaped = shapeChat({ ...chat, messages: [...chat.messages, event] });
     req.app.get("io")?.to(req.params.id).emit("agent_transfer", shaped);
@@ -234,7 +247,7 @@ export async function acceptChat(req, res, next) {
   try {
     const current = await prisma.chatSession.findUnique({ where: { id: req.params.id }, include });
     if (!canAccessChat(req.user, current)) return res.status(403).json({ success: false, message: "Access denied" });
-    const chat = await prisma.chatSession.update({ where: { id: req.params.id }, data: { agentId: req.user.id, status: "ACTIVE" }, include });
+    const chat = await prisma.chatSession.update({ where: { id: req.params.id }, data: { agentId: req.user.id, status: "ACTIVE", acceptedAt: new Date() }, include });
     const shaped = shapeChat(chat);
     req.app.get("io")?.to(req.params.id).emit("chat_notification", { chatSessionId: req.params.id, message: "Chat accepted by agent", chat: shaped });
     req.app.get("io")?.emit("chat_queue_updated", shaped);

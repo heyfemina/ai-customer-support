@@ -19,7 +19,7 @@ export default function AgentDashboard() {
 
   const resolved = items.filter((ticket) => ["RESOLVED", "CLOSED"].includes(ticket.status)).length;
   const pending = items.filter((ticket) => ["OPEN", "IN_PROGRESS", "WAITING_CUSTOMER"].includes(ticket.status)).length;
-  const activeChats = chats.filter((chat) => ["ACTIVE", "WAITING", "TRANSFERRED"].includes(chat.status)).length;
+  const activeChats = chats.filter((chat) => ["ASSIGNED", "ACTIVE", "WAITING", "TRANSFERRED"].includes(chat.status)).length;
 
   return (
     <>

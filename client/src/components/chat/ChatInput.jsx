@@ -18,8 +18,8 @@ export default function ChatInput({ onSend, onTyping, onStopTyping }) {
   };
 
   return (
-    <form onSubmit={submit} className="flex shrink-0 items-end gap-2 border-t border-slate-200 bg-white p-3 sm:gap-3 sm:p-4">
-      <label className="grid h-10 w-10 shrink-0 cursor-pointer place-items-center rounded-md border border-slate-200 text-slate-500 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700">
+    <form onSubmit={submit} className="support-composer flex shrink-0 items-end gap-2 border-t border-slate-200 bg-white p-3 sm:gap-3 sm:p-4">
+      <label className="support-composer-tool grid h-10 w-10 shrink-0 cursor-pointer place-items-center rounded-md border border-slate-200 text-slate-500 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700">
         <Paperclip className="h-4 w-4" />
         <input type="file" accept="image/*,.pdf,.doc,.docx,.txt" className="hidden" onChange={(event) => setFile(event.target.files?.[0] || null)} />
       </label>
@@ -31,7 +31,7 @@ export default function ChatInput({ onSend, onTyping, onStopTyping }) {
           onTyping?.();
         }}
         rows={1}
-        className="min-h-10 min-w-0 flex-1 resize-none rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+        className="support-composer-input min-h-10 min-w-0 flex-1 resize-none rounded-md border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
         placeholder={t("chat.writeMessage")}
       />
       {file ? <span className="hidden max-w-32 truncate text-xs font-semibold text-slate-500 sm:block">{file.name}</span> : null}

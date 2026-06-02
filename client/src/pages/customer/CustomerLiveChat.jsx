@@ -12,6 +12,8 @@ import { useTranslation } from "react-i18next";
 import { useLanguage } from "../../context/LanguageContext.jsx";
 import { MessageSquare, ShieldCheck, Star } from "lucide-react";
 
+const chatCategories = ["Technical", "Billing", "Account", "Refund", "General", "Complaint"];
+
 const appendMessage = (current, chatId, message) => {
   const existing = current[chatId] || [];
   if (existing.some((item) => item.id === message.id)) return current;
@@ -38,6 +40,7 @@ export default function CustomerLiveChat() {
   const [typingUsers, setTypingUsers] = useState([]);
   const [rating, setRating] = useState(5);
   const [feedback, setFeedback] = useState("");
+  const [chatCategory, setChatCategory] = useState("General");
   const [notice, setNotice] = useState("");
   const [noticeTone, setNoticeTone] = useState("emerald");
   const [actionLoading, setActionLoading] = useState("");
@@ -84,6 +87,7 @@ export default function CustomerLiveChat() {
       localStorage.setItem("visitorVisits", String(visits));
       const { data } = await api.post("/chats/start", {
         language,
+        category: chatCategory,
         visitorPage: window.location.pathname,
         visitorDevice: navigator.userAgent,
         visitorVisits: visits,
@@ -142,20 +146,15 @@ export default function CustomerLiveChat() {
     if (file) filePayload = await uploadFile(file);
     const payload = { content: content || filePayload.fileName || "Attachment", ...filePayload, chatSessionId: active.id, senderId: user?.id, senderName: user?.name };
     let message;
-    let aiMessage;
     try {
       const { data } = await api.post(`/chats/${active.id}/message`, payload);
       message = data.data?.message || data.message || data.data || data;
-      aiMessage = data.data?.aiMessage || data.aiMessage;
     } catch (error) {
       showNotice(error.friendlyMessage || "Message failed.", "rose");
       return;
     }
-    setMessagesByChat((current) => {
-      const withMessage = appendMessage(current, active.id, message);
-      return aiMessage ? appendMessage(withMessage, active.id, aiMessage) : withMessage;
-    });
-    const sentMessages = [message, aiMessage].filter(Boolean);
+    setMessagesByChat((current) => appendMessage(current, active.id, message));
+    const sentMessages = [message].filter(Boolean);
     setActive((current) => current?.id === active.id ? { ...current, status: "ACTIVE", lastMessage: sentMessages.at(-1)?.content, messages: mergeMessages(current.messages, sentMessages), updatedAt: new Date().toISOString() } : current);
     setSessions((current) => sortByRecent(current.map((item) => item.id === active.id ? { ...item, status: "ACTIVE", lastMessage: sentMessages.at(-1)?.content, messages: mergeMessages(item.messages, sentMessages), updatedAt: new Date().toISOString() } : item)));
   };
@@ -239,7 +238,18 @@ export default function CustomerLiveChat() {
 
   return (
     <>
-      <PageHeader title={t("pages.customerLiveChat.title")} description={t("pages.customerLiveChat.description")} actions={<Button onClick={startChat} loading={startingChat}>{t("buttons.startChat")}</Button>} />
+      <PageHeader
+        title={t("pages.customerLiveChat.title")}
+        description={t("pages.customerLiveChat.description")}
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            <select className="app-field h-10 min-w-40 rounded-lg bg-white text-sm" value={chatCategory} onChange={(event) => setChatCategory(event.target.value)}>
+              {chatCategories.map((category) => <option key={category} value={category}>{category}</option>)}
+            </select>
+            <Button onClick={startChat} loading={startingChat}>{t("buttons.startChat")}</Button>
+          </div>
+        }
+      />
       {notice ? <p className={`mb-4 rounded-md border px-3 py-2 text-sm font-semibold ${noticeClass}`}>{notice}</p> : null}
       <div className="grid items-start gap-5 2xl:grid-cols-[minmax(0,1fr)_320px]">
         <div className="flex min-h-[660px] min-w-0 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm md:flex-row xl:h-[calc(100vh-11rem)] xl:min-h-[680px] xl:max-h-[900px]">

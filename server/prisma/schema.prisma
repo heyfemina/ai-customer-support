@@ -35,6 +35,7 @@ enum MessageType {
 }
 
 enum ChatStatus {
+  ASSIGNED
   ACTIVE
   WAITING
   TRANSFERRED
@@ -77,6 +78,10 @@ model User {
   language      String         @default("en")
   isActive      Boolean        @default(true)
   twoFactorOn   Boolean        @default(false)
+  department    String         @default("General Support")
+  categories    String[]       @default(["General"])
+  agentStatus   String         @default("ONLINE")
+  maxActiveChats Int           @default(3)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   tickets       Ticket[]       @relation("CustomerTickets")
@@ -105,6 +110,9 @@ model Ticket {
   category    String
   customerId  String
   agentId     String?
+  assignedAt  DateTime?
+  assignedById String?
+  assignmentMode String      @default("UNASSIGNED")
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
   firstResponseAt DateTime?
@@ -112,6 +120,17 @@ model Ticket {
   firstResponseMinutes Int?
   resolutionMinutes Int?
   slaBreached Boolean        @default(false)
+  feedbackRating Int?
+  feedbackText String?
+  feedbackAt DateTime?
+  complaintSubject String?
+  complaintText String?
+  complaintStatus String      @default("NONE")
+  complaintAdminReply String?
+  complaintActionTaken String?
+  complaintAt DateTime?
+  complaintRepliedAt DateTime?
+  complaintResolvedAt DateTime?
   customer    User           @relation("CustomerTickets", fields: [customerId], references: [id])
   agent       User?          @relation("AgentTickets", fields: [agentId], references: [id])
   messages    Message[]
@@ -143,6 +162,11 @@ model ChatSession {
   customerId String
   agentId    String?
   status     ChatStatus @default(WAITING)
+  assignedAt DateTime?
+  acceptedAt DateTime?
+  transferReason String?
+  queuePosition Int @default(0)
+  category   String     @default("General")
   rating     Int?
   feedback   String?
   language   String     @default("en")

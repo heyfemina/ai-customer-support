@@ -46,9 +46,40 @@ export async function getGDPRRequests(req, res, next) {
   } catch (error) { next(error); }
 }
 
+export async function getMyGDPRRequests(req, res, next) {
+  try {
+    success(res, await prisma.gDPRRequest.findMany({
+      where: { userId: req.user.id },
+      select: {
+        id: true,
+        type: true,
+        status: true,
+        reason: true,
+        adminNote: true,
+        createdAt: true,
+        updatedAt: true,
+        completedAt: true,
+        reviewedBy: { select: { id: true, name: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    }));
+  } catch (error) { next(error); }
+}
+
 export async function approveRequest(req, res, next) {
   try {
-    const request = await prisma.gDPRRequest.update({ where: { id: req.params.id }, data: { status: "APPROVED", reviewedById: req.user.id, adminNote: req.body.adminNote } });
+    const current = await prisma.gDPRRequest.findUnique({ where: { id: req.params.id } });
+    if (!current) return res.status(404).json({ success: false, message: "GDPR request not found" });
+    if (current.type === "DELETE") await anonymizeUserRecord(current.userId);
+    const request = await prisma.gDPRRequest.update({
+      where: { id: req.params.id },
+      data: {
+        status: current.type === "DELETE" ? "COMPLETED" : "APPROVED",
+        reviewedById: req.user.id,
+        adminNote: req.body.adminNote,
+        completedAt: current.type === "DELETE" ? new Date() : null,
+      },
+    });
     await prisma.activityLog.create({ data: { userId: req.user.id, action: `GDPR request approved ${request.id}`, ipAddress: req.ip } });
     success(res, request, "GDPR request approved");
   } catch (error) { next(error); }
@@ -64,13 +95,17 @@ export async function rejectRequest(req, res, next) {
 
 export async function anonymizeUser(req, res, next) {
   try {
-    const anonymousEmail = `anonymous-${req.params.userId}@deleted.local`;
-    const user = await prisma.user.update({
-      where: { id: req.params.userId },
-      data: { name: "Deleted User", email: anonymousEmail, isActive: false },
-      select: { id: true, name: true, email: true, isActive: true },
-    });
+    const user = await anonymizeUserRecord(req.params.userId);
     await prisma.activityLog.create({ data: { userId: req.user.id, action: `User anonymized ${req.params.userId}`, ipAddress: req.ip } });
     success(res, user, "User anonymized");
   } catch (error) { next(error); }
+}
+
+async function anonymizeUserRecord(userId) {
+  const anonymousEmail = `anonymous-${userId}@deleted.local`;
+  return prisma.user.update({
+    where: { id: userId },
+    data: { name: "Deleted User", email: anonymousEmail, isActive: false },
+    select: { id: true, name: true, email: true, isActive: true },
+  });
 }

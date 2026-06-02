@@ -10,7 +10,7 @@ import { useTranslation } from "react-i18next";
 export default function Tickets() {
   const { t } = useTranslation();
   const [items, setItems] = useState([]);
-  const [filters, setFilters] = useState({ search: "", status: "", priority: "", agentId: "", customerId: "" });
+  const [filters, setFilters] = useState({ search: "", status: "", priority: "", agentId: "", customerId: "", dateFrom: "", dateTo: "" });
   const [agents, setAgents] = useState([]);
   const [customers, setCustomers] = useState([]);
 
@@ -28,8 +28,8 @@ export default function Tickets() {
     <>
       <PageHeader title="Ticket management" description="Review, assign, prioritize, reply, and resolve support tickets." actions={<Button>Export report</Button>} />
       <Card className="mb-4 p-4">
-        <div className="grid gap-3 md:grid-cols-[1fr_170px_170px_170px_170px]">
-          <input className="app-field" placeholder={t("ticketsUi.searchTickets")} value={filters.search} onChange={(event) => setFilters({ ...filters, search: event.target.value })} />
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[1fr_150px_150px_170px_170px_150px_150px]">
+          <input className="app-field" placeholder="Search ticket ID, customer email, agent, subject" value={filters.search} onChange={(event) => setFilters({ ...filters, search: event.target.value })} />
           <select className="app-field" value={filters.status} onChange={(event) => setFilters({ ...filters, status: event.target.value })}>
             <option value="">{t("ticketsUi.allStatuses")}</option><option>OPEN</option><option>IN_PROGRESS</option><option>WAITING_CUSTOMER</option><option>RESOLVED</option><option>CLOSED</option>
           </select>
@@ -42,6 +42,8 @@ export default function Tickets() {
           <select className="app-field" value={filters.customerId} onChange={(event) => setFilters({ ...filters, customerId: event.target.value })}>
             <option value="">{t("ticketsUi.filterByCustomer")}</option>{customers.map((customer) => <option key={customer.id} value={customer.id}>{customer.name}</option>)}
           </select>
+          <input type="date" className="app-field" value={filters.dateFrom} onChange={(event) => setFilters({ ...filters, dateFrom: event.target.value })} />
+          <input type="date" className="app-field" value={filters.dateTo} onChange={(event) => setFilters({ ...filters, dateTo: event.target.value })} />
         </div>
       </Card>
       <TicketTable tickets={items} />

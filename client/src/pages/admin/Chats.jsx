@@ -35,7 +35,7 @@ export default function Chats() {
   const preferredChatId = location.state?.chatId;
   const queueStats = {
     waiting: sessions.filter((session) => session.status === "WAITING").length,
-    active: sessions.filter((session) => session.status === "ACTIVE").length,
+    active: sessions.filter((session) => ["ASSIGNED", "ACTIVE"].includes(session.status)).length,
     closed: sessions.filter((session) => session.status === "CLOSED").length,
   };
   const activeClosed = active?.status === "CLOSED";
@@ -57,7 +57,7 @@ export default function Chats() {
     setNotice("");
   };
 
-  useEffect(() => {
+  const loadChats = () =>
     api.get("/chats").then(({ data }) => {
       const rows = sortByRecent(normalizeItems(data, []));
       setSessions(rows);
@@ -68,8 +68,37 @@ export default function Chats() {
       setActive(null);
       setMessagesByChat({});
     });
+
+  useEffect(() => {
+    loadChats();
     api.get("/reports/agents").then(({ data }) => setAgents(normalizeItems(data, []))).catch(() => setAgents([]));
   }, [preferredChatId]);
+
+  useEffect(() => {
+    if (!socket) return undefined;
+    const chatUpdate = (chat) => {
+      const updated = chat.chat || chat;
+      if (!updated?.id) {
+        loadChats();
+        return;
+      }
+      setSessions((current) => {
+        const exists = current.some((item) => item.id === updated.id);
+        const next = exists ? current.map((item) => item.id === updated.id ? { ...updated, messages: mergeMessages(item.messages, updated.messages) } : item) : [updated, ...current];
+        return sortByRecent(next);
+      });
+      setActive((current) => current?.id === updated.id ? { ...updated, messages: mergeMessages(current.messages, updated.messages) } : current);
+      setMessagesByChat((current) => ({ ...current, [updated.id]: mergeMessages(current[updated.id], updated.messages) }));
+    };
+    socket.on("chat_queue_updated", chatUpdate);
+    socket.on("agent_transfer", chatUpdate);
+    socket.on("chat_notification", loadChats);
+    return () => {
+      socket.off("chat_queue_updated", chatUpdate);
+      socket.off("agent_transfer", chatUpdate);
+      socket.off("chat_notification", loadChats);
+    };
+  }, [socket]);
 
   useEffect(() => {
     if (!socket || !active?.id) return undefined;
@@ -78,30 +107,14 @@ export default function Chats() {
       if (message.chatSessionId !== active.id) return;
       setMessagesByChat((current) => appendMessage(current, active.id, message));
     };
-    const chatUpdate = (chat) => {
-      const updated = chat.chat || chat;
-      setSessions((current) => {
-        const exists = current.some((item) => item.id === updated.id);
-        const next = exists ? current.map((item) => item.id === updated.id ? { ...updated, messages: mergeMessages(item.messages, updated.messages) } : item) : [updated, ...current];
-        return sortByRecent(next);
-      });
-      if (updated.id === active.id) {
-        setActive((current) => current?.id === updated.id ? { ...updated, messages: mergeMessages(current.messages, updated.messages) } : current);
-        setMessagesByChat((current) => ({ ...current, [updated.id]: mergeMessages(current[updated.id], updated.messages) }));
-      }
-    };
     const typing = (payload) => payload.user?.id !== user?.id && setTypingUsers([payload.user]);
     const stopTyping = (payload) => payload.user?.id !== user?.id && setTypingUsers([]);
     socket.on("receive_message", receive);
-    socket.on("agent_transfer", chatUpdate);
-    socket.on("chat_queue_updated", chatUpdate);
     socket.on("typing", typing);
     socket.on("stop_typing", stopTyping);
     return () => {
       socket.emit("leave_chat", active.id);
       socket.off("receive_message", receive);
-      socket.off("agent_transfer", chatUpdate);
-      socket.off("chat_queue_updated", chatUpdate);
       socket.off("typing", typing);
       socket.off("stop_typing", stopTyping);
     };
@@ -119,32 +132,23 @@ export default function Chats() {
           return;
         }
         const message = response.data?.message;
-        const aiMessage = response.data?.aiMessage;
         if (!message) return;
-        setMessagesByChat((current) => {
-          const withMessage = appendMessage(current, active.id, message);
-          return aiMessage ? appendMessage(withMessage, active.id, aiMessage) : withMessage;
-        });
-        const sentMessages = [message, aiMessage].filter(Boolean);
+        setMessagesByChat((current) => appendMessage(current, active.id, message));
+        const sentMessages = [message].filter(Boolean);
         setActive((current) => current?.id === active.id ? { ...current, status: "ACTIVE", lastMessage: sentMessages.at(-1)?.content, messages: mergeMessages(current.messages, sentMessages), updatedAt: new Date().toISOString() } : current);
         setSessions((current) => sortByRecent(current.map((item) => item.id === active.id ? { ...item, status: "ACTIVE", lastMessage: sentMessages.at(-1)?.content, messages: mergeMessages(item.messages, sentMessages), updatedAt: new Date().toISOString() } : item)));
       });
     } else {
       let message;
-      let aiMessage;
       try {
         const { data } = await api.post(`/chats/${active.id}/message`, payload);
         message = data.data?.message || data.message || data.data || data;
-        aiMessage = data.data?.aiMessage || data.aiMessage;
       } catch (error) {
         showNotice(error.friendlyMessage || "Message failed. Please check the backend connection.", "rose");
         return;
       }
-      setMessagesByChat((current) => {
-        const withMessage = appendMessage(current, active.id, message);
-        return aiMessage ? appendMessage(withMessage, active.id, aiMessage) : withMessage;
-      });
-      const sentMessages = [message, aiMessage].filter(Boolean);
+      setMessagesByChat((current) => appendMessage(current, active.id, message));
+      const sentMessages = [message].filter(Boolean);
       setActive((current) => current?.id === active.id ? { ...current, status: "ACTIVE", lastMessage: sentMessages.at(-1)?.content, messages: mergeMessages(current.messages, sentMessages), updatedAt: new Date().toISOString() } : current);
       setSessions((current) => sortByRecent(current.map((item) => item.id === active.id ? { ...item, status: "ACTIVE", lastMessage: sentMessages.at(-1)?.content, messages: mergeMessages(item.messages, sentMessages), updatedAt: new Date().toISOString() } : item)));
     }
@@ -211,8 +215,8 @@ export default function Chats() {
     <>
       <PageHeader title="Chat monitoring" description="Monitor live conversations, AI-to-agent handoffs, queues, notifications, and visitor sessions." />
       {notice ? <p className={`mb-4 rounded-md border px-3 py-2 text-sm font-semibold ${noticeClass}`}>{notice}</p> : null}
-      <div className="grid items-start gap-5 2xl:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="flex min-h-[660px] min-w-0 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm md:flex-row xl:h-[calc(100vh-11rem)] xl:min-h-[680px] xl:max-h-[900px]">
+      <div className="grid items-start gap-4 2xl:grid-cols-[minmax(0,1fr)_300px]">
+        <div className="flex min-h-[620px] min-w-0 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm md:flex-row xl:h-[calc(100vh-10.25rem)] xl:min-h-[640px] xl:max-h-[860px]">
           <ChatSidebar sessions={sessions} activeId={active?.id} onSelect={selectSession} />
           <ChatWindow
             session={active}
@@ -224,13 +228,13 @@ export default function Chats() {
             onSend={sendMessage}
           />
         </div>
-        <aside className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm 2xl:sticky 2xl:top-24 2xl:max-h-[calc(100vh-7rem)] 2xl:overflow-y-auto">
+        <aside className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm 2xl:sticky 2xl:top-24 2xl:max-h-[calc(100vh-6.5rem)] 2xl:overflow-y-auto">
           <h2 className="font-semibold text-slate-950">{t("ticketsUi.workflow")}</h2>
           <p className="mt-1 text-sm text-slate-500">{t("chat.manageSelectedConversation")}</p>
           <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
-            <div className="rounded-md border border-amber-100 bg-amber-50 p-2 font-semibold text-amber-700"><p className="text-lg font-bold">{queueStats.waiting}</p><p>{t("chat.waiting")}</p></div>
-            <div className="rounded-md border border-green-100 bg-green-50 p-2 font-semibold text-green-700"><p className="text-lg font-bold">{queueStats.active}</p><p>{t("chat.active")}</p></div>
-            <div className="rounded-md border border-slate-200 bg-slate-100 p-2 font-semibold text-slate-700"><p className="text-lg font-bold">{queueStats.closed}</p><p>{t("chat.closed")}</p></div>
+            <div className="rounded-md border border-amber-100 bg-amber-50 p-2 font-semibold text-amber-700"><p className="text-base font-bold">{queueStats.waiting}</p><p className="truncate">{t("chat.waiting")}</p></div>
+            <div className="rounded-md border border-green-100 bg-green-50 p-2 font-semibold text-green-700"><p className="text-base font-bold">{queueStats.active}</p><p className="truncate">{t("chat.active")}</p></div>
+            <div className="rounded-md border border-slate-200 bg-slate-100 p-2 font-semibold text-slate-700"><p className="text-base font-bold">{queueStats.closed}</p><p className="truncate">{t("chat.closed")}</p></div>
           </div>
           <label className="mt-4 block">
             <span className="app-label">{t("chat.transferTo")}</span>
@@ -245,11 +249,11 @@ export default function Chats() {
           </div>
           <div className="mt-5 border-t border-slate-200 pt-4">
             <h3 className="text-sm font-semibold text-slate-950">{t("chat.visitorAndSecurity")}</h3>
-            <dl className="mt-3 space-y-2 text-sm">
-              <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">{t("chat.visitorPage")}</dt><dd className="mt-1 truncate font-semibold text-slate-800" title={visitorPage(active)}>{visitorPage(active)}</dd></div>
-              <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">{t("chat.device")}</dt><dd className="mt-1 font-semibold text-slate-800">{visitorDevice(active)}</dd></div>
-              <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">{t("chat.channel")}</dt><dd className="mt-1 font-semibold text-slate-800">{active?.channel || "Website chatbot"}</dd></div>
-              <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">{t("chat.encryption")}</dt><dd className="mt-1 font-semibold text-slate-800">{t("aiSettings.states.enabled")}</dd></div>
+            <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
+              <div className="rounded-md bg-slate-50 p-2.5"><dt className="text-xs text-slate-500">{t("chat.visitorPage")}</dt><dd className="mt-1 truncate font-semibold text-slate-800" title={visitorPage(active)}>{visitorPage(active)}</dd></div>
+              <div className="rounded-md bg-slate-50 p-2.5"><dt className="text-xs text-slate-500">{t("chat.device")}</dt><dd className="mt-1 truncate font-semibold text-slate-800">{visitorDevice(active)}</dd></div>
+              <div className="rounded-md bg-slate-50 p-2.5"><dt className="text-xs text-slate-500">{t("chat.channel")}</dt><dd className="mt-1 truncate font-semibold text-slate-800">{active?.channel || "Website chatbot"}</dd></div>
+              <div className="rounded-md bg-slate-50 p-2.5"><dt className="text-xs text-slate-500">{t("chat.encryption")}</dt><dd className="mt-1 font-semibold text-slate-800">{t("aiSettings.states.enabled")}</dd></div>
             </dl>
           </div>
         </aside>

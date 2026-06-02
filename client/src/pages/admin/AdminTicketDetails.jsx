@@ -18,6 +18,9 @@ export default function AdminTicketDetails() {
   const [agents, setAgents] = useState([]);
   const [reply, setReply] = useState("");
   const [file, setFile] = useState(null);
+  const [complaintReply, setComplaintReply] = useState("");
+  const [complaintStatus, setComplaintStatus] = useState("UNDER_REVIEW");
+  const [complaintAction, setComplaintAction] = useState("");
   const [notice, setNotice] = useState("");
 
   useEffect(() => {
@@ -51,6 +54,22 @@ export default function AdminTicketDetails() {
     }
     setReply("");
     setFile(null);
+  };
+
+  const replyComplaint = async () => {
+    if (!complaintReply.trim()) {
+      setNotice("Write an admin reply before saving.");
+      return;
+    }
+    try {
+      const { data } = await api.post(`/tickets/${id}/complaint/reply`, { reply: complaintReply, status: complaintStatus, actionTaken: complaintAction });
+      setTicket(data.data || data);
+      setComplaintReply("");
+      setComplaintAction("");
+      setNotice("Complaint reply saved.");
+    } catch (error) {
+      setNotice(error.friendlyMessage || "Complaint reply failed.");
+    }
   };
 
   const openTicketChat = async () => {
@@ -91,10 +110,37 @@ export default function AdminTicketDetails() {
             </select>
           </label>
           <dl className="mt-5 space-y-3 text-sm">
-            <div><dt className="text-slate-500">Customer</dt><dd className="font-semibold">{ticket.customer?.name || ticket.customerName}</dd></div>
-            <div><dt className="text-slate-500">Priority</dt><dd className="font-semibold">{ticket.priority}</dd></div>
-            <div><dt className="text-slate-500">Category</dt><dd className="font-semibold">{ticket.category}</dd></div>
+            <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">Customer</dt><dd className="font-semibold">{ticket.customer?.name || ticket.customerName}</dd><dd className="text-xs text-slate-500">{ticket.customer?.email}</dd></div>
+            <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">Assigned agent</dt><dd className="font-semibold">{ticket.agent?.name || "Unassigned"}</dd><dd className="text-xs text-slate-500">{ticket.agent?.email}</dd></div>
+            <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">Priority</dt><dd className="font-semibold">{ticket.priority}</dd></div>
+            <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">Category</dt><dd className="font-semibold">{ticket.category}</dd></div>
+            <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">First response</dt><dd className="font-semibold">{ticket.firstResponseMinutes ? `${ticket.firstResponseMinutes} minutes` : "Pending"}</dd></div>
+            <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">Resolution time</dt><dd className="font-semibold">{ticket.resolutionMinutes ? `${ticket.resolutionMinutes} minutes` : "Pending"}</dd></div>
           </dl>
+          <div className="mt-5 border-t border-slate-200 pt-5">
+            <h3 className="font-semibold text-slate-950">Feedback</h3>
+            {ticket.feedbackRating ? <p className="mt-2 text-sm font-semibold text-slate-700">{ticket.feedbackRating}/5 from customer</p> : <p className="mt-2 text-sm text-slate-500">No customer feedback yet.</p>}
+            {ticket.feedbackText ? <p className="mt-2 rounded-md bg-slate-50 p-3 text-sm text-slate-700">{ticket.feedbackText}</p> : null}
+          </div>
+          {ticket.complaintStatus && ticket.complaintStatus !== "NONE" ? (
+            <div className="mt-5 border-t border-slate-200 pt-5">
+              <h3 className="font-semibold text-slate-950">Customer complaint</h3>
+              <div className="mt-3 rounded-md border border-amber-100 bg-amber-50 p-3 text-sm text-amber-800">
+                <p className="font-semibold">{ticket.complaintSubject || "Ticket complaint"} - {ticket.complaintStatus}</p>
+                <p className="mt-2">{ticket.complaintText}</p>
+                {ticket.complaintAdminReply ? <p className="mt-3 border-t border-amber-200 pt-3"><span className="font-semibold">Admin reply:</span> {ticket.complaintAdminReply}</p> : null}
+              </div>
+              <textarea className="app-field mt-3 min-h-24" placeholder="Reply to customer and record admin action" value={complaintReply} onChange={(event) => setComplaintReply(event.target.value)} />
+              <select className="app-field mt-3" value={complaintStatus} onChange={(event) => setComplaintStatus(event.target.value)}>
+                <option>UNDER_REVIEW</option>
+                <option>ACTION_TAKEN</option>
+                <option>RESOLVED</option>
+                <option>REJECTED</option>
+              </select>
+              <textarea className="app-field mt-3 min-h-20" placeholder="Action taken with agent or internal note" value={complaintAction} onChange={(event) => setComplaintAction(event.target.value)} />
+              <Button className="mt-3 w-full" onClick={replyComplaint}>Save complaint reply</Button>
+            </div>
+          ) : null}
         </Card>
       </div>
       </>

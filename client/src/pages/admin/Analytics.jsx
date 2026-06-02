@@ -45,7 +45,7 @@ export default function Analytics() {
     rating: Number(agent.rating) || 0,
   }));
   const liveChatStats = [
-    { labelKey: "reports.summary.activeChats", value: chats.filter((chat) => ["ACTIVE", "WAITING", "TRANSFERRED"].includes(chat.status)).length },
+    { labelKey: "reports.summary.activeChats", value: chats.filter((chat) => ["ASSIGNED", "ACTIVE", "WAITING", "TRANSFERRED"].includes(chat.status)).length },
     { labelKey: "reports.summary.ratedChats", value: chats.filter((chat) => chat.rating).length },
     { labelKey: "reports.summary.aiTransfers", value: chats.filter((chat) => chat.status === "TRANSFERRED").length },
   ];

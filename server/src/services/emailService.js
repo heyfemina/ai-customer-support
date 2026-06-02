@@ -14,6 +14,14 @@ function getEmailConfig() {
 }
 
 function assertEtherealConfig(config) {
+  if (process.env.NODE_ENV === "production" || process.env.EMAIL_ALLOW_REAL === "true") {
+    if (!config.host || !config.user || !config.pass || !config.fromEmail) {
+      const error = new Error("Production SMTP configuration is incomplete.");
+      error.statusCode = 500;
+      throw error;
+    }
+    return;
+  }
   if (config.provider !== "ethereal" || config.host !== "smtp.ethereal.email") {
     const error = new Error("Email testing is restricted to Ethereal SMTP in development.");
     error.statusCode = 400;
