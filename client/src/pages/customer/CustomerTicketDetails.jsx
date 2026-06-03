@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import api, { uploadFile } from "../../api/axios.js";
+import api from "../../api/axios.js";
 import PageHeader from "../../components/common/PageHeader.jsx";
 import Card from "../../components/common/Card.jsx";
 import Button from "../../components/common/Button.jsx";
 import TicketStatusBadge from "../../components/tickets/TicketStatusBadge.jsx";
 import TicketTimeline from "../../components/tickets/TicketTimeline.jsx";
+import AttachmentList from "../../components/tickets/AttachmentList.jsx";
+import { formatDate } from "../../utils/helpers.js";
 
 export default function CustomerTicketDetails() {
   const { id } = useParams();
@@ -23,9 +25,11 @@ export default function CustomerTicketDetails() {
 
   const sendReply = async () => {
     if (!reply.trim() && !file) return;
-    const filePayload = file ? await uploadFile(file) : {};
     try {
-      const { data } = await api.post(`/tickets/${id}/reply`, { content: reply, ...filePayload });
+      const payload = new FormData();
+      payload.append("content", reply);
+      if (file) payload.append("attachments", file);
+      const { data } = await api.post(`/tickets/${id}/reply`, payload, { headers: { "Content-Type": "multipart/form-data" } });
       const message = data.data || data;
       setTicket((current) => ({ ...current, messages: [...(current.messages || []), message] }));
       setNotice("Reply added to the ticket.");
@@ -77,9 +81,17 @@ export default function CustomerTicketDetails() {
           <Card className="p-5">
             {notice ? <p className="mb-4 rounded-md border border-green-100 bg-green-50 px-3 py-2 text-sm font-semibold text-green-700">{notice}</p> : null}
             <TicketStatusBadge status={ticket.status} />
+            <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+              <div className="rounded-md bg-slate-50 p-3"><p className="text-slate-500">Ticket ID</p><p className="font-mono font-semibold">{ticket.id}</p></div>
+              <div className="rounded-md bg-slate-50 p-3"><p className="text-slate-500">Created</p><p className="font-semibold">{formatDate(ticket.createdAt)}</p></div>
+            </div>
             <p className="mt-4 leading-7 text-slate-700">{ticket.description}</p>
+            <div className="mt-5 border-t border-slate-200 pt-5">
+              <h2 className="mb-3 font-semibold text-slate-950">Uploaded attachments</h2>
+              <AttachmentList attachments={ticket.attachments || []} />
+            </div>
             <textarea className="app-field mt-6 min-h-32" placeholder="Add a reply" value={reply} onChange={(event) => setReply(event.target.value)} />
-            <input type="file" className="mt-3 w-full rounded-md border border-dashed border-slate-300 bg-slate-50 p-3 text-sm" onChange={(event) => setFile(event.target.files?.[0] || null)} />
+            <input type="file" accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx" className="mt-3 w-full rounded-md border border-dashed border-slate-300 bg-slate-50 p-3 text-sm" onChange={(event) => setFile(event.target.files?.[0] || null)} />
             {file ? <p className="mt-2 text-sm font-semibold text-slate-500">Selected: {file.name}</p> : null}
             <Button className="mt-3" onClick={sendReply}>Send reply</Button>
           </Card>
@@ -92,6 +104,7 @@ export default function CustomerTicketDetails() {
               <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">Priority</dt><dd className="font-semibold">{ticket.priority}</dd></div>
               <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">Category</dt><dd className="font-semibold">{ticket.category}</dd></div>
               <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">Assigned agent</dt><dd className="font-semibold">{ticket.agent?.name || "Unassigned"}</dd><dd className="text-xs text-slate-500">{ticket.agent?.email}</dd></div>
+              <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">Last updated</dt><dd className="font-semibold">{formatDate(ticket.updatedAt)}</dd></div>
               <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">Resolution time</dt><dd className="font-semibold">{ticket.resolutionMinutes ? `${ticket.resolutionMinutes} minutes` : "Pending"}</dd></div>
             </dl>
           </Card>

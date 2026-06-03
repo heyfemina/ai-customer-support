@@ -43,9 +43,9 @@ enum ChatStatus {
 }
 
 enum BackupStatus {
+  IN_PROGRESS
   SUCCESS
   FAILED
-  IN_PROGRESS
 }
 
 enum GDPRRequestType {
@@ -87,6 +87,7 @@ model User {
   tickets       Ticket[]       @relation("CustomerTickets")
   assigned      Ticket[]       @relation("AgentTickets")
   messages      Message[]
+  attachments   Attachment[]
   customerChats ChatSession[]  @relation("CustomerChats")
   agentChats    ChatSession[]  @relation("AgentChats")
   logs          ActivityLog[]
@@ -155,6 +156,7 @@ model Message {
   sender        User         @relation(fields: [senderId], references: [id])
   ticket        Ticket?      @relation(fields: [ticketId], references: [id])
   chatSession   ChatSession? @relation(fields: [chatSessionId], references: [id])
+  attachments   Attachment[]
 }
 
 model ChatSession {
@@ -226,13 +228,20 @@ model InternalMessage {
 }
 
 model Attachment {
-  id        String   @id @default(cuid())
-  fileName  String
-  fileUrl   String
-  fileType  String
-  ticketId  String?
-  createdAt DateTime @default(now())
-  ticket    Ticket?  @relation(fields: [ticketId], references: [id])
+  id           String   @id @default(cuid())
+  ticketId     String?
+  messageId    String?
+  uploadedById String?
+  fileName     String
+  originalName String?
+  fileUrl      String
+  fileType     String?
+  mimeType     String?
+  fileSize     Int?
+  createdAt    DateTime @default(now())
+  ticket       Ticket?  @relation(fields: [ticketId], references: [id])
+  message      Message? @relation(fields: [messageId], references: [id])
+  uploadedBy   User?    @relation(fields: [uploadedById], references: [id])
 }
 
 model AIConfig {
@@ -301,12 +310,12 @@ model RecoveryCode {
 }
 
 model BackupLog {
-  id           String       @id @default(cuid())
+  id           String       @id @default(uuid())
   fileName     String
   filePath     String?
   provider     String       @default("local")
   status       BackupStatus @default(IN_PROGRESS)
-  sizeBytes    Int          @default(0)
+  sizeBytes    Int?
   createdById  String?
   errorMessage String?
   createdAt    DateTime     @default(now())

@@ -6,6 +6,7 @@ import Card from "../../components/common/Card.jsx";
 import Badge from "../../components/common/Badge.jsx";
 import Button from "../../components/common/Button.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
+import { formatDate } from "../../utils/helpers.js";
 
 const controls = [
   { id: "auth", state: "Active" },
@@ -19,6 +20,13 @@ const controls = [
   { id: "apiSecurity", state: "Active" },
 ];
 
+function formatBytes(value) {
+  if (!value && value !== 0) return "N/A";
+  if (value < 1024) return `${value} B`;
+  if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`;
+  return `${(value / (1024 * 1024)).toFixed(1)} MB`;
+}
+
 export default function Security() {
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -26,6 +34,8 @@ export default function Security() {
   const [gdprRequests, setGdprRequests] = useState([]);
   const [health, setHealth] = useState(null);
   const [notice, setNotice] = useState("");
+  const [backupBusy, setBackupBusy] = useState(false);
+  const [deletingBackupId, setDeletingBackupId] = useState("");
   const [twoFactorOn, setTwoFactorOn] = useState(Boolean(user?.twoFactorOn));
   const [twoFactorTest, setTwoFactorTest] = useState(null);
   const [twoFactorBusy, setTwoFactorBusy] = useState(false);
@@ -45,9 +55,45 @@ export default function Security() {
   }, [user?.twoFactorOn]);
 
   const createBackup = async () => {
-    const { data } = await api.post("/backups/create");
-    setNotice(`Backup ${data.data.status.toLowerCase()}`);
-    loadOperationalData();
+    setBackupBusy(true);
+    setNotice("");
+    try {
+      const { data } = await api.post("/backups/create");
+      setNotice(`Backup ${data.data.status.toLowerCase()}`);
+      loadOperationalData();
+    } catch (error) {
+      setNotice(error.friendlyMessage || "Unable to create backup.");
+    } finally {
+      setBackupBusy(false);
+    }
+  };
+
+  const downloadBackup = async (backup) => {
+    try {
+      const { data } = await api.get(`/backups/${backup.id}/download`, { responseType: "blob" });
+      const url = URL.createObjectURL(data);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = backup.fileName;
+      link.click();
+      URL.revokeObjectURL(url);
+      setNotice(`Downloaded ${backup.fileName}`);
+    } catch (error) {
+      setNotice(error.friendlyMessage || "Unable to download backup.");
+    }
+  };
+
+  const deleteBackup = async (backup) => {
+    setDeletingBackupId(backup.id);
+    try {
+      await api.delete(`/backups/${backup.id}`);
+      setNotice(`Deleted ${backup.fileName}`);
+      loadOperationalData();
+    } catch (error) {
+      setNotice(error.friendlyMessage || "Unable to delete backup.");
+    } finally {
+      setDeletingBackupId("");
+    }
   };
 
   const toggle2FA = async () => {
@@ -106,7 +152,7 @@ export default function Security() {
       <PageHeader title="Security settings" description="Authentication, compliance, API security, audit controls, and resilience placeholders." />
       {notice ? <p className="mb-4 rounded-md bg-green-50 px-3 py-2 text-sm font-semibold text-green-700">{notice}</p> : null}
       <div className="mb-4 grid gap-3 md:grid-cols-3">
-        <Button variant="secondary" onClick={createBackup}>{t("security.actions.backup")}</Button>
+        <Button variant="secondary" loading={backupBusy} onClick={createBackup}>Create Backup Now</Button>
         <Button variant="secondary" onClick={loadOperationalData}>{t("security.actions.securityCheck")}</Button>
       </div>
       <div className="mb-4 grid gap-4 xl:grid-cols-3">
@@ -126,15 +172,47 @@ export default function Security() {
           </div>
         </Card>
         <Card className="p-5">
-          <div className="flex items-center justify-between gap-3"><h2 className="font-semibold text-slate-950">Backup history</h2><Button variant="secondary" onClick={createBackup}>Create</Button></div>
-          <div className="mt-3 space-y-2 text-sm">
-            {backups.slice(0, 5).map((backup) => (
-              <div key={backup.id} className="flex items-center justify-between gap-2 rounded-md bg-slate-50 p-2">
-                <span>{backup.fileName}</span>
-                <Badge tone={backup.status === "SUCCESS" ? "green" : backup.status === "FAILED" ? "red" : "amber"}>{backup.status}</Badge>
-                {backup.status === "SUCCESS" ? <a className="font-semibold text-blue-700" href={`${api.defaults.baseURL}/backups/${backup.id}/download`}>Download</a> : null}
-              </div>
-            ))}
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="font-semibold text-slate-950">Backup history</h2>
+            <Button variant="secondary" loading={backupBusy} onClick={createBackup}>Create</Button>
+          </div>
+          <div className="mt-3 overflow-x-auto">
+            <table className="min-w-full divide-y divide-slate-100 text-sm">
+              <thead>
+                <tr className="text-left text-xs font-bold uppercase text-slate-500">
+                  <th className="py-2 pr-3">File</th>
+                  <th className="py-2 pr-3">Provider</th>
+                  <th className="py-2 pr-3">Status</th>
+                  <th className="py-2 pr-3">Size</th>
+                  <th className="py-2 pr-3">Created</th>
+                  <th className="py-2 pr-3">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {backups.length ? backups.map((backup) => (
+                  <tr key={backup.id} className="align-top">
+                    <td className="max-w-52 whitespace-normal py-3 pr-3 font-semibold text-slate-700">{backup.fileName}</td>
+                    <td className="py-3 pr-3 text-slate-600">{backup.provider}</td>
+                    <td className="py-3 pr-3">
+                      <Badge tone={backup.status === "SUCCESS" ? "green" : backup.status === "FAILED" ? "red" : "amber"}>{backup.status}</Badge>
+                      {backup.errorMessage ? <p className="mt-1 max-w-56 whitespace-normal text-xs text-red-600">{backup.errorMessage}</p> : null}
+                    </td>
+                    <td className="py-3 pr-3 text-slate-600">{formatBytes(backup.sizeBytes)}</td>
+                    <td className="py-3 pr-3 text-slate-600">{formatDate(backup.createdAt)}</td>
+                    <td className="py-3 pr-3">
+                      <div className="flex flex-wrap gap-2">
+                        <Button variant="secondary" disabled={backup.status !== "SUCCESS"} onClick={() => downloadBackup(backup)}>Download</Button>
+                        <Button variant="danger" loading={deletingBackupId === backup.id} onClick={() => deleteBackup(backup)}>Delete</Button>
+                      </div>
+                    </td>
+                  </tr>
+                )) : (
+                  <tr>
+                    <td colSpan="6" className="py-8 text-center text-slate-500">No backups yet.</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </Card>
         <Card className="p-5">

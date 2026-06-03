@@ -7,7 +7,8 @@ export function notFound(req, res, next) {
 }
 
 export function errorHandler(error, req, res, next) {
-  const status = error.statusCode || 500;
+  const isMulterLimit = error.name === "MulterError" || String(error.code || "").startsWith("LIMIT_");
+  const status = error.statusCode || (isMulterLimit ? 400 : 500);
   if (status >= 500) {
     console.error(error);
     prisma.systemAlert.create({

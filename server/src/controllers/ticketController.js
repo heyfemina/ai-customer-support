@@ -3,6 +3,7 @@ import prisma from "../config/prisma.js";
 import { success } from "../utils/responseHandler.js";
 import { calculateFirstResponse, calculateResolution } from "../services/slaService.js";
 import { translateText } from "../services/aiService.js";
+import { publicUploadFile } from "../services/fileService.js";
 
 export const ticketSchema = z.object({
   body: z.object({
@@ -17,9 +18,36 @@ export const ticketSchema = z.object({
 const include = {
   customer: { select: { id: true, name: true, email: true, role: true, language: true } },
   agent: { select: { id: true, name: true, email: true, role: true, language: true, department: true, categories: true } },
-  messages: { include: { sender: { select: { id: true, name: true, email: true, role: true } } }, orderBy: { createdAt: "asc" } },
+  messages: { include: { sender: { select: { id: true, name: true, email: true, role: true } }, attachments: true }, orderBy: { createdAt: "asc" } },
   attachments: true,
 };
+
+function attachmentCreateData(file, userId, extra = {}) {
+  const item = publicUploadFile(file);
+  return {
+    fileName: item.fileName,
+    originalName: item.originalName,
+    fileUrl: item.fileUrl,
+    fileType: item.fileType,
+    mimeType: item.mimeType,
+    fileSize: item.fileSize,
+    uploadedById: userId,
+    ...extra,
+  };
+}
+
+function attachmentInputData(file, userId, extra = {}) {
+  return {
+    fileName: file.fileName,
+    originalName: file.originalName || file.fileName,
+    fileUrl: file.fileUrl,
+    fileType: file.fileType,
+    mimeType: file.mimeType || file.fileType,
+    fileSize: file.fileSize,
+    uploadedById: userId,
+    ...extra,
+  };
+}
 
 async function pickAgentForTicket(category = "General") {
   const agents = await prisma.user.findMany({
@@ -62,6 +90,12 @@ function canAccessTicket(user, ticket) {
 
 export async function createTicket(req, res, next) {
   try {
+    if (req.user.role !== "CUSTOMER") return res.status(403).json({ success: false, message: "Only customers can create tickets" });
+    const uploadedAttachments = (req.files || []).map((file) => attachmentCreateData(file, req.user.id));
+    const providedAttachments = Array.isArray(req.body.attachments)
+      ? req.body.attachments.filter((file) => file?.fileUrl).map((file) => attachmentInputData(file, req.user.id))
+      : [];
+    const attachments = [...uploadedAttachments, ...providedAttachments];
     const agentId = req.body.agentId || await pickAgentForTicket(req.body.category);
     const ticket = await prisma.ticket.create({
       data: {
@@ -73,13 +107,9 @@ export async function createTicket(req, res, next) {
         assignedAt: agentId ? new Date() : null,
         assignmentMode: agentId ? (req.body.agentId ? "MANUAL_ASSIGN" : "LEAST_BUSY_AGENT") : "UNASSIGNED",
         customerId: req.user.id,
-        attachments: req.body.attachments?.length
+        attachments: attachments.length
           ? {
-              create: req.body.attachments.map((file) => ({
-                fileName: file.fileName,
-                fileUrl: file.fileUrl,
-                fileType: file.fileType,
-              })),
+              create: attachments,
             }
           : undefined,
       },
@@ -175,7 +205,8 @@ export async function replyTicket(req, res, next) {
     const ticket = await prisma.ticket.findUnique({ where: { id: req.params.id }, include: { customer: true, agent: true } });
     if (!ticket) return res.status(404).json({ success: false, message: "Ticket not found" });
     if (!canAccessTicket(req.user, ticket)) return res.status(403).json({ success: false, message: "Access denied" });
-    const content = req.body.content || req.body.fileName || "Attachment";
+    const firstFile = req.file || req.files?.[0];
+    const content = req.body.content || firstFile?.originalname || req.body.fileName || "Attachment";
     const sourceLanguage = req.body.sourceLanguage || req.user.language || "en";
     const targetLanguage = req.body.targetLanguage || (req.user.role === "CUSTOMER" ? ticket.agent?.language || "English" : ticket.customer?.language || "English");
     const translatedContent = sourceLanguage !== targetLanguage ? await translateText(content, targetLanguage, { userId: req.user.id }) : null;
@@ -188,16 +219,21 @@ export async function replyTicket(req, res, next) {
         targetLanguage,
         senderId: req.user.id,
         ticketId: req.params.id,
-        fileUrl: req.body.fileUrl,
-        messageType: req.body.messageType || (req.body.fileUrl ? "FILE" : "TEXT"),
+        fileUrl: firstFile ? publicUploadFile(firstFile).fileUrl : req.body.fileUrl,
+        messageType: req.body.messageType || (firstFile ? publicUploadFile(firstFile).messageType : req.body.fileUrl ? "FILE" : "TEXT"),
       },
-      include: { sender: { select: { id: true, name: true, role: true } } },
+      include: { sender: { select: { id: true, name: true, role: true } }, attachments: true },
     });
+    const attachmentItems = [
+      ...(req.files || (req.file ? [req.file] : [])).map((file) => attachmentCreateData(file, req.user.id, { ticketId: req.params.id, messageId: message.id })),
+      ...(req.body.fileUrl ? [attachmentInputData(req.body, req.user.id, { ticketId: req.params.id, messageId: message.id })] : []),
+    ];
+    const attachments = attachmentItems.length ? await prisma.attachment.createManyAndReturn({ data: attachmentItems }) : [];
     if (["ADMIN", "AGENT"].includes(req.user.role) && !ticket.firstResponseAt) {
       await prisma.ticket.update({ where: { id: ticket.id }, data: calculateFirstResponse(ticket) });
     }
     await prisma.activityLog.create({ data: { userId: req.user.id, action: `Replied to ticket ${ticket.subject}`, ipAddress: req.ip } });
-    success(res, message, "Reply added", 201);
+    success(res, { ...message, attachments }, "Reply added", 201);
   } catch (error) { next(error); }
 }
 

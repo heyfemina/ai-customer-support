@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import api, { uploadFile } from "../../api/axios.js";
+import api from "../../api/axios.js";
 import PageHeader from "../../components/common/PageHeader.jsx";
 import Card from "../../components/common/Card.jsx";
 import Button from "../../components/common/Button.jsx";
 import TicketStatusBadge from "../../components/tickets/TicketStatusBadge.jsx";
 import TicketTimeline from "../../components/tickets/TicketTimeline.jsx";
+import AttachmentList from "../../components/tickets/AttachmentList.jsx";
 import { normalizeItems } from "../../utils/helpers.js";
+import { formatDate } from "../../utils/helpers.js";
 import Badge from "../../components/common/Badge.jsx";
 import { useTranslation } from "react-i18next";
 
@@ -44,9 +46,11 @@ export default function AdminTicketDetails() {
 
   const sendReply = async () => {
     if (!reply.trim() && !file) return;
-    const filePayload = file ? await uploadFile(file) : {};
     try {
-      const { data } = await api.post(`/tickets/${id}/reply`, { content: reply, ...filePayload });
+      const payload = new FormData();
+      payload.append("content", reply);
+      if (file) payload.append("attachments", file);
+      const { data } = await api.post(`/tickets/${id}/reply`, payload, { headers: { "Content-Type": "multipart/form-data" } });
       const message = data.data || data;
       setTicket((current) => ({ ...current, messages: [...(current.messages || []), message] }));
     } catch {
@@ -88,8 +92,12 @@ export default function AdminTicketDetails() {
           <Card className="p-5">
             <TicketStatusBadge status={ticket.status} />
             <p className="mt-4 text-slate-700">{ticket.description}</p>
+            <div className="mt-5 border-t border-slate-200 pt-5">
+              <h2 className="mb-3 font-semibold text-slate-950">Uploaded attachments</h2>
+              <AttachmentList attachments={ticket.attachments || []} />
+            </div>
             <textarea className="mt-6 min-h-32 w-full rounded-md border border-slate-200 p-3" placeholder={t("ticketsUi.writeReply")} value={reply} onChange={(event) => setReply(event.target.value)} />
-            <input type="file" className="mt-3 w-full rounded-md border border-dashed border-slate-300 p-3" onChange={(event) => setFile(event.target.files?.[0] || null)} />
+            <input type="file" accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx" className="mt-3 w-full rounded-md border border-dashed border-slate-300 p-3" onChange={(event) => setFile(event.target.files?.[0] || null)} />
             <Button className="mt-3" onClick={sendReply}>{t("buttons.sendReply")}</Button>
           </Card>
           <TicketTimeline ticket={ticket} />
@@ -112,8 +120,11 @@ export default function AdminTicketDetails() {
           <dl className="mt-5 space-y-3 text-sm">
             <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">Customer</dt><dd className="font-semibold">{ticket.customer?.name || ticket.customerName}</dd><dd className="text-xs text-slate-500">{ticket.customer?.email}</dd></div>
             <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">Assigned agent</dt><dd className="font-semibold">{ticket.agent?.name || "Unassigned"}</dd><dd className="text-xs text-slate-500">{ticket.agent?.email}</dd></div>
+            <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">Ticket ID</dt><dd className="font-mono font-semibold">{ticket.id}</dd></div>
+            <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">Assignment</dt><dd className="font-semibold">{ticket.assignmentMode || "UNASSIGNED"}</dd><dd className="text-xs text-slate-500">{ticket.assignedAt ? formatDate(ticket.assignedAt) : "Not assigned"}</dd></div>
             <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">Priority</dt><dd className="font-semibold">{ticket.priority}</dd></div>
             <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">Category</dt><dd className="font-semibold">{ticket.category}</dd></div>
+            <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">Created</dt><dd className="font-semibold">{formatDate(ticket.createdAt)}</dd></div>
             <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">First response</dt><dd className="font-semibold">{ticket.firstResponseMinutes ? `${ticket.firstResponseMinutes} minutes` : "Pending"}</dd></div>
             <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">Resolution time</dt><dd className="font-semibold">{ticket.resolutionMinutes ? `${ticket.resolutionMinutes} minutes` : "Pending"}</dd></div>
           </dl>

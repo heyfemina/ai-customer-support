@@ -3,6 +3,7 @@ import Card from "../common/Card.jsx";
 import Badge from "../common/Badge.jsx";
 import TicketStatusBadge from "./TicketStatusBadge.jsx";
 import { formatDate } from "../../utils/helpers.js";
+import { Paperclip } from "lucide-react";
 
 export default function TicketCard({ ticket, basePath = "/customer/tickets" }) {
   return (
@@ -19,7 +20,10 @@ export default function TicketCard({ ticket, basePath = "/customer/tickets" }) {
       <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-500">
         <Badge tone={ticket.priority === "URGENT" || ticket.priority === "HIGH" ? "red" : "slate"}>{ticket.priority}</Badge>
         <span>{ticket.category}</span>
+        <span>{ticket.agent?.name || "Unassigned"}</span>
+        <span className="inline-flex items-center gap-1"><Paperclip className="h-3.5 w-3.5" />{ticket.attachments?.length || 0}</span>
         <span>{formatDate(ticket.createdAt)}</span>
+        <span>Updated {formatDate(ticket.updatedAt)}</span>
       </div>
     </Card>
   );
