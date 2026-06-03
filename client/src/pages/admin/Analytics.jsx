@@ -5,6 +5,7 @@ import api from "../../api/axios.js";
 import Card from "../../components/common/Card.jsx";
 import Button from "../../components/common/Button.jsx";
 import PageHeader from "../../components/common/PageHeader.jsx";
+import Table from "../../components/common/Table.jsx";
 import { normalizeItems, unwrapData } from "../../utils/helpers.js";
 import { downloadReport } from "../../utils/downloadReport.js";
 
@@ -62,6 +63,13 @@ export default function Analytics() {
     { label: "Avg first response", value: `${sla?.averageFirstResponseMinutes ?? 0}m` },
     { label: "Avg resolution", value: `${sla?.averageResolutionMinutes ?? 0}m` },
   ];
+  const slaColumns = [
+    { key: "subject", label: "Ticket", render: (ticket) => <span className="block max-w-72 truncate font-semibold text-slate-900">{ticket.subject}</span> },
+    { key: "priority", label: "Priority" },
+    { key: "firstResponseMinutes", label: "First response", render: (ticket) => ticket.firstResponseMinutes ?? "Pending" },
+    { key: "resolutionMinutes", label: "Resolution", render: (ticket) => ticket.resolutionMinutes ?? "Pending" },
+    { key: "sla", label: "SLA", render: (ticket) => <span className={ticket.slaBreached ? "font-bold text-red-700" : "font-bold text-green-700"}>{ticket.slaBreached ? "Breached" : "OK"}</span> },
+  ];
   const runExport = async (key, path, fileName) => {
     setExporting(key);
     setNotice("");
@@ -94,12 +102,7 @@ export default function Analytics() {
       {sla?.tickets?.length ? (
         <Card className="mb-6 p-5">
           <h2 className="mb-4 font-semibold text-slate-950">SLA monitoring</h2>
-          <div className="overflow-auto">
-            <table className="w-full text-left text-sm">
-              <thead><tr className="border-b border-slate-200 text-slate-500"><th className="py-2">Ticket</th><th>Priority</th><th>First response</th><th>Resolution</th><th>SLA</th></tr></thead>
-              <tbody>{sla.tickets.slice(0, 8).map((ticket) => <tr key={ticket.id} className="border-b border-slate-100"><td className="py-2 font-semibold">{ticket.subject}</td><td>{ticket.priority}</td><td>{ticket.firstResponseMinutes ?? "Pending"}m</td><td>{ticket.resolutionMinutes ?? "Pending"}m</td><td className={ticket.slaBreached ? "font-bold text-red-700" : "font-bold text-green-700"}>{ticket.slaBreached ? "Breached" : "OK"}</td></tr>)}</tbody>
-            </table>
-          </div>
+          <Table columns={slaColumns} data={sla.tickets.slice(0, 8)} />
         </Card>
       ) : null}
       <div className="grid gap-6 xl:grid-cols-2">

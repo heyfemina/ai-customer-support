@@ -6,6 +6,7 @@ import Badge from "../../components/common/Badge.jsx";
 import Button from "../../components/common/Button.jsx";
 import Modal from "../../components/common/Modal.jsx";
 import Card from "../../components/common/Card.jsx";
+import Pagination from "../../components/common/Pagination.jsx";
 import { normalizeItems } from "../../utils/helpers.js";
 
 const departments = ["Technical Support", "Billing Support", "Account Support", "General Support", "Complaint Support"];
@@ -19,6 +20,8 @@ export default function Users() {
   const emptyForm = { name: "", email: "", password: "", role: "CUSTOMER", language: "en", isActive: true, department: "General Support", categories: ["General"], agentStatus: "ONLINE", maxActiveChats: 3 };
   const [form, setForm] = useState(emptyForm);
   const [filters, setFilters] = useState({ search: "", role: "" });
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(false);
@@ -88,6 +91,7 @@ export default function Users() {
     const matchesRole = !filters.role || user.role === filters.role;
     return matchesSearch && matchesRole;
   });
+  const pagedItems = filteredItems.slice((page - 1) * pageSize, page * pageSize);
   const columns = [
     { key: "name", label: "Name" },
     { key: "email", label: "Email" },
@@ -109,13 +113,14 @@ export default function Users() {
       </div>
       <Card className="mb-4 p-4">
         <div className="grid gap-3 md:grid-cols-[1fr_180px]">
-          <input className="app-field" placeholder="Search users" value={filters.search} onChange={(event) => setFilters({ ...filters, search: event.target.value })} />
-          <select className="app-field" value={filters.role} onChange={(event) => setFilters({ ...filters, role: event.target.value })}>
+          <input className="app-field" placeholder="Search users" value={filters.search} onChange={(event) => { setFilters({ ...filters, search: event.target.value }); setPage(1); }} />
+          <select className="app-field" value={filters.role} onChange={(event) => { setFilters({ ...filters, role: event.target.value }); setPage(1); }}>
             <option value="">All roles</option><option>ADMIN</option><option>AGENT</option><option>CUSTOMER</option>
           </select>
         </div>
       </Card>
-      <Table columns={columns} data={filteredItems} />
+      <Table columns={columns} data={pagedItems} />
+      <Pagination page={page} pageSize={pageSize} total={filteredItems.length} itemLabel="users" onPageChange={setPage} onPageSizeChange={(value) => { setPageSize(value); setPage(1); }} />
       <Modal
         open={modalOpen}
         title={editing ? "Edit user" : "Add user"}

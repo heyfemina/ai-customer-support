@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import PageHeader from "../../components/common/PageHeader.jsx";
 import Button from "../../components/common/Button.jsx";
 import Card from "../../components/common/Card.jsx";
+import Pagination from "../../components/common/Pagination.jsx";
 import TicketTable from "../../components/tickets/TicketTable.jsx";
 import api from "../../api/axios.js";
 import { normalizeItems } from "../../utils/helpers.js";
@@ -70,24 +71,7 @@ export default function Tickets() {
         </div>
       </Card>
       <TicketTable tickets={items} />
-      <Card className="mt-4 p-4">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <p className="text-sm font-semibold text-slate-600">
-            Showing {items.length ? (pagination.page - 1) * pagination.limit + 1 : 0}-{Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} tickets
-          </p>
-          <div className="flex flex-wrap items-center gap-2">
-            <select className="app-field h-10 w-28 text-sm" value={limit} onChange={(event) => { setLimit(Number(event.target.value)); setPage(1); }}>
-              <option value={10}>10 / page</option>
-              <option value={15}>15 / page</option>
-              <option value={25}>25 / page</option>
-              <option value={50}>50 / page</option>
-            </select>
-            <Button size="sm" variant="secondary" disabled={pagination.page <= 1} onClick={() => setPage((current) => Math.max(current - 1, 1))}>Previous</Button>
-            <span className="rounded-md bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700">Page {pagination.page} of {pagination.totalPages}</span>
-            <Button size="sm" variant="secondary" disabled={pagination.page >= pagination.totalPages} onClick={() => setPage((current) => Math.min(current + 1, pagination.totalPages))}>Next</Button>
-          </div>
-        </div>
-      </Card>
+      <Pagination page={pagination.page} pageSize={limit} total={pagination.total} itemLabel="tickets" onPageChange={setPage} onPageSizeChange={(value) => { setLimit(value); setPage(1); }} />
     </>
   );
 }

@@ -95,7 +95,7 @@ a {
   padding: 0.625rem 0.875rem;
   font-size: 0.875rem;
   color: var(--text-main);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.025);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.035);
 }
 
 .app-field::placeholder {
@@ -117,12 +117,19 @@ a {
   padding: 1rem;
   color: #475569;
   font-size: 0.875rem;
-  transition: border-color 160ms ease, background-color 160ms ease;
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.025);
+  transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
 }
 
 .app-upload:hover {
   border-color: #94a3b8;
   background: #ffffff;
+}
+
+.app-upload:focus {
+  border-color: var(--primary-light);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.14);
+  outline: none;
 }
 
 .ticket-action-link {
@@ -166,6 +173,11 @@ a {
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.06);
 }
 
+.support-page-hero-compact {
+  margin-bottom: 0.625rem;
+  padding: 0.625rem 0.875rem;
+}
+
 .support-page-kicker {
   margin: 0 0 0.35rem;
   font-size: 0.72rem;
@@ -183,12 +195,47 @@ a {
   font-weight: 850;
 }
 
+.support-page-hero-compact h1 {
+  font-size: 1.25rem;
+}
+
 .support-page-hero p {
   margin: 0.45rem 0 0;
   max-width: 48rem;
   color: var(--text-muted);
   font-size: 0.9rem;
   line-height: 1.55;
+}
+
+.support-page-hero-compact p {
+  margin-top: 0.25rem;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+}
+
+.support-page-hero-compact .support-page-kicker {
+  margin-bottom: 0.2rem;
+  font-size: 0.66rem;
+}
+
+.support-page-hero-compact .support-hero-agent {
+  min-width: 15rem;
+  padding: 0.5rem 0.625rem;
+}
+
+.support-page-hero-compact .support-hero-avatar {
+  width: 2rem;
+  height: 2rem;
+}
+
+.agent-console-toolbar {
+  align-items: center;
+  border-radius: 0.625rem;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.045);
+}
+
+.agent-console-toolbar .support-hero-agent {
+  box-shadow: none;
 }
 
 .support-hero-agent {
@@ -243,6 +290,11 @@ a {
   margin-bottom: 1rem;
 }
 
+.support-command-strip-compact {
+  gap: 0.625rem;
+  margin-bottom: 0.875rem;
+}
+
 .support-command-card {
   display: flex;
   align-items: center;
@@ -254,6 +306,28 @@ a {
   padding: 0.875rem 1rem;
   box-shadow: 0 10px 24px rgba(15, 23, 42, 0.045);
   transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.support-command-strip-compact .support-command-card {
+  padding: 0.75rem 0.875rem;
+}
+
+.agent-command-strip {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.agent-command-strip .support-command-card {
+  min-height: 3.75rem;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.035);
+}
+
+.agent-command-strip .support-command-card p {
+  font-size: 1.125rem;
+}
+
+.agent-command-strip .support-command-icon {
+  width: 2rem;
+  height: 2rem;
 }
 
 .support-command-card:hover {
@@ -296,6 +370,24 @@ a {
   grid-template-columns: minmax(0, 1fr) 20rem;
   align-items: start;
   gap: 1rem;
+}
+
+.support-workspace-agent {
+  grid-template-columns: minmax(0, 1fr) 19rem;
+  gap: 0.875rem;
+}
+
+.agent-chat-shell {
+  height: calc(100vh - 17.75rem);
+  min-height: 34rem;
+  max-height: 44rem;
+}
+
+.agent-inspector {
+  height: calc(100vh - 17.75rem);
+  min-height: 34rem;
+  max-height: 44rem;
+  overflow-y: auto;
 }
 
 .support-chat-shell,
@@ -378,7 +470,7 @@ a {
   gap: 0.75rem;
   min-width: 0;
   margin-top: 1rem;
-  border: 1px solid #dbeafe;
+  border: 1px solid #e2e8f0;
   border-radius: 0.625rem;
   background: #f8fafc;
   padding: 0.875rem;
@@ -390,7 +482,8 @@ a {
   text-overflow: ellipsis;
   white-space: nowrap;
   border-radius: 0.5rem;
-  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
   padding: 0.5rem 0.625rem;
   font-size: 0.75rem;
   font-weight: 700;
@@ -421,6 +514,26 @@ a {
   .support-command-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .agent-command-strip {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1080px) {
+  .support-workspace-agent {
+    grid-template-columns: 1fr;
+  }
+
+  .agent-chat-shell,
+  .agent-inspector {
+    height: auto;
+    max-height: none;
+  }
+
+  .agent-inspector {
+    min-height: 0;
+  }
 }
 
 @media (max-width: 720px) {
@@ -440,5 +553,13 @@ a {
 
   .support-command-strip {
     grid-template-columns: 1fr;
+  }
+
+  .agent-command-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .support-page-hero-compact {
+    padding: 0.75rem;
   }
 }

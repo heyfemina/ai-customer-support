@@ -5,6 +5,7 @@ import PageHeader from "../../components/common/PageHeader.jsx";
 import Card from "../../components/common/Card.jsx";
 import Badge from "../../components/common/Badge.jsx";
 import Button from "../../components/common/Button.jsx";
+import Table from "../../components/common/Table.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { formatDate } from "../../utils/helpers.js";
 
@@ -146,6 +147,32 @@ export default function Security() {
   };
 
   const readiness = health?.readiness || {};
+  const backupColumns = [
+    { key: "fileName", label: "File", render: (backup) => <span className="block max-w-56 whitespace-normal font-semibold text-slate-800">{backup.fileName}</span> },
+    { key: "provider", label: "Provider", render: (backup) => <span className="capitalize">{backup.provider}</span> },
+    {
+      key: "status",
+      label: "Status",
+      render: (backup) => (
+        <div>
+          <Badge tone={backup.status === "SUCCESS" ? "green" : backup.status === "FAILED" ? "red" : "amber"}>{backup.status}</Badge>
+          {backup.errorMessage ? <p className="mt-1 max-w-56 whitespace-normal text-xs font-semibold text-red-600">{backup.errorMessage}</p> : null}
+        </div>
+      ),
+    },
+    { key: "sizeBytes", label: "Size", render: (backup) => formatBytes(backup.sizeBytes) },
+    { key: "createdAt", label: "Created", render: (backup) => formatDate(backup.createdAt) },
+    {
+      key: "actions",
+      label: "Actions",
+      render: (backup) => (
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" variant="secondary" disabled={backup.status !== "SUCCESS"} onClick={() => downloadBackup(backup)}>Download</Button>
+          <Button size="sm" variant="danger" loading={deletingBackupId === backup.id} onClick={() => deleteBackup(backup)}>Delete</Button>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <>
@@ -176,44 +203,7 @@ export default function Security() {
             <h2 className="font-semibold text-slate-950">Backup history</h2>
             <Button variant="secondary" loading={backupBusy} onClick={createBackup}>Create</Button>
           </div>
-          <div className="mt-3 overflow-x-auto">
-            <table className="min-w-full divide-y divide-slate-100 text-sm">
-              <thead>
-                <tr className="text-left text-xs font-bold uppercase text-slate-500">
-                  <th className="py-2 pr-3">File</th>
-                  <th className="py-2 pr-3">Provider</th>
-                  <th className="py-2 pr-3">Status</th>
-                  <th className="py-2 pr-3">Size</th>
-                  <th className="py-2 pr-3">Created</th>
-                  <th className="py-2 pr-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {backups.length ? backups.map((backup) => (
-                  <tr key={backup.id} className="align-top">
-                    <td className="max-w-52 whitespace-normal py-3 pr-3 font-semibold text-slate-700">{backup.fileName}</td>
-                    <td className="py-3 pr-3 text-slate-600">{backup.provider}</td>
-                    <td className="py-3 pr-3">
-                      <Badge tone={backup.status === "SUCCESS" ? "green" : backup.status === "FAILED" ? "red" : "amber"}>{backup.status}</Badge>
-                      {backup.errorMessage ? <p className="mt-1 max-w-56 whitespace-normal text-xs text-red-600">{backup.errorMessage}</p> : null}
-                    </td>
-                    <td className="py-3 pr-3 text-slate-600">{formatBytes(backup.sizeBytes)}</td>
-                    <td className="py-3 pr-3 text-slate-600">{formatDate(backup.createdAt)}</td>
-                    <td className="py-3 pr-3">
-                      <div className="flex flex-wrap gap-2">
-                        <Button variant="secondary" disabled={backup.status !== "SUCCESS"} onClick={() => downloadBackup(backup)}>Download</Button>
-                        <Button variant="danger" loading={deletingBackupId === backup.id} onClick={() => deleteBackup(backup)}>Delete</Button>
-                      </div>
-                    </td>
-                  </tr>
-                )) : (
-                  <tr>
-                    <td colSpan="6" className="py-8 text-center text-slate-500">No backups yet.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+          <Table columns={backupColumns} data={backups} empty="No backups yet." className="mt-3" />
         </Card>
         <Card className="p-5">
           <h2 className="font-semibold text-slate-950">GDPR requests</h2>

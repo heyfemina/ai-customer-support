@@ -86,46 +86,56 @@ export default function AdminTicketDetails() {
       {!ticket ? <Card className="p-8 text-center text-sm text-slate-500">Ticket not loaded. Please check the API connection.</Card> : (
       <>
       <PageHeader title={ticket.subject} description="Assign agents, change status, review timeline, and reply to the customer." actions={<Button onClick={openTicketChat}>Open live chat with customer</Button>} />
-      <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-6">
-          <Card className="p-5">
-            <TicketStatusBadge status={ticket.status} />
-            <p className="mt-4 text-slate-700">{ticket.description}</p>
+          <Card className="p-5 sm:p-6">
+            <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 pb-4">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Current ticket</p>
+                <h2 className="mt-1 font-semibold text-slate-950">{ticket.subject}</h2>
+              </div>
+              <TicketStatusBadge status={ticket.status} />
+            </div>
+            <p className="mt-4 leading-7 text-slate-700">{ticket.description}</p>
             <div className="mt-5 border-t border-slate-200 pt-5">
               <h2 className="mb-3 font-semibold text-slate-950">Uploaded attachments</h2>
               <AttachmentPreview attachments={ticket.attachments || []} />
             </div>
-            <textarea className="mt-6 min-h-32 w-full rounded-md border border-slate-200 p-3" placeholder={t("ticketsUi.writeReply")} value={reply} onChange={(event) => setReply(event.target.value)} />
-            <input type="file" accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx" className="mt-3 w-full rounded-md border border-dashed border-slate-300 p-3" onChange={(event) => setFile(event.target.files?.[0] || null)} />
+            <textarea className="app-field mt-6 min-h-32" placeholder={t("ticketsUi.writeReply")} value={reply} onChange={(event) => setReply(event.target.value)} />
+            <input type="file" accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx" className="app-upload mt-3" onChange={(event) => setFile(event.target.files?.[0] || null)} />
             <Button className="mt-3" onClick={sendReply}>{t("buttons.sendReply")}</Button>
           </Card>
           <TicketTimeline ticket={ticket} />
         </div>
-        <Card className="p-5">
-          <div className="flex items-center justify-between gap-3"><h2 className="font-semibold text-slate-950">{t("ticketsUi.workflow")}</h2>{notice ? <Badge tone="green">{notice}</Badge> : null}</div>
+        <Card className="p-5 sm:p-6 lg:sticky lg:top-24">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4"><h2 className="font-semibold text-slate-950">{t("ticketsUi.workflow")}</h2>{notice ? <Badge tone="green">{notice}</Badge> : null}</div>
           <label className="mt-4 block">
-            <span className="text-sm font-semibold text-slate-700">{t("table.status")}</span>
-            <select className="mt-1 h-11 w-full rounded-md border border-slate-200 px-3" value={ticket.status || "OPEN"} onChange={(event) => updateTicket({ status: event.target.value })}>
+            <span className="app-label">{t("table.status")}</span>
+            <select className="app-field mt-1.5" value={ticket.status || "OPEN"} onChange={(event) => updateTicket({ status: event.target.value })}>
               <option>OPEN</option><option>IN_PROGRESS</option><option>WAITING_CUSTOMER</option><option>RESOLVED</option><option>CLOSED</option>
             </select>
           </label>
           <label className="mt-4 block">
-            <span className="text-sm font-semibold text-slate-700">{t("ticketsUi.assignAgent")}</span>
-            <select className="mt-1 h-11 w-full rounded-md border border-slate-200 px-3" value={ticket.agentId || ""} onChange={(event) => updateTicket({ agentId: event.target.value || null })}>
+            <span className="app-label">{t("ticketsUi.assignAgent")}</span>
+            <select className="app-field mt-1.5" value={ticket.agentId || ""} onChange={(event) => updateTicket({ agentId: event.target.value || null })}>
               <option value="">{t("ticketsUi.unassigned")}</option>
               {agents.map((agent) => <option key={agent.id} value={agent.id}>{agent.name}</option>)}
             </select>
           </label>
-          <dl className="mt-5 space-y-3 text-sm">
-            <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">Customer</dt><dd className="font-semibold">{ticket.customer?.name || ticket.customerName}</dd><dd className="text-xs text-slate-500">{ticket.customer?.email}</dd></div>
-            <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">Assigned agent</dt><dd className="font-semibold">{ticket.agent?.name || "Unassigned"}</dd><dd className="text-xs text-slate-500">{ticket.agent?.email}</dd></div>
-            <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">Ticket ID</dt><dd className="font-mono font-semibold">{ticket.id}</dd></div>
-            <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">Assignment</dt><dd className="font-semibold">{ticket.assignmentMode || "UNASSIGNED"}</dd><dd className="text-xs text-slate-500">{ticket.assignedAt ? formatDate(ticket.assignedAt) : "Not assigned"}</dd></div>
-            <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">Priority</dt><dd className="font-semibold">{ticket.priority}</dd></div>
-            <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">Category</dt><dd className="font-semibold">{ticket.category}</dd></div>
-            <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">Created</dt><dd className="font-semibold">{formatDate(ticket.createdAt)}</dd></div>
-            <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">First response</dt><dd className="font-semibold">{ticket.firstResponseMinutes ? `${ticket.firstResponseMinutes} minutes` : "Pending"}</dd></div>
-            <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">Resolution time</dt><dd className="font-semibold">{ticket.resolutionMinutes ? `${ticket.resolutionMinutes} minutes` : "Pending"}</dd></div>
+          <dl className="mt-5 grid gap-3 text-sm">
+            <div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Customer</dt><dd className="font-semibold text-slate-950">{ticket.customer?.name || ticket.customerName}</dd><dd className="truncate text-xs text-slate-500">{ticket.customer?.email}</dd></div>
+            <div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Assigned agent</dt><dd className="font-semibold text-slate-950">{ticket.agent?.name || "Unassigned"}</dd><dd className="truncate text-xs text-slate-500">{ticket.agent?.email}</dd></div>
+            <div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Ticket ID</dt><dd className="break-all font-mono font-semibold text-slate-950">{ticket.id}</dd></div>
+            <div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Assignment</dt><dd className="font-semibold text-slate-950">{ticket.assignmentMode || "UNASSIGNED"}</dd><dd className="text-xs text-slate-500">{ticket.assignedAt ? formatDate(ticket.assignedAt) : "Not assigned"}</dd></div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+              <div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Priority</dt><dd className="font-semibold text-slate-950">{ticket.priority}</dd></div>
+              <div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Category</dt><dd className="font-semibold text-slate-950">{ticket.category}</dd></div>
+            </div>
+            <div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Created</dt><dd className="font-semibold text-slate-950">{formatDate(ticket.createdAt)}</dd></div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+              <div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">First response</dt><dd className="font-semibold text-slate-950">{ticket.firstResponseMinutes ? `${ticket.firstResponseMinutes} minutes` : "Pending"}</dd></div>
+              <div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Resolution time</dt><dd className="font-semibold text-slate-950">{ticket.resolutionMinutes ? `${ticket.resolutionMinutes} minutes` : "Pending"}</dd></div>
+            </div>
           </dl>
           <div className="mt-5 border-t border-slate-200 pt-5">
             <h3 className="font-semibold text-slate-950">Feedback</h3>

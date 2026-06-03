@@ -46,10 +46,10 @@ export default function PageHeader({ title, description, actions }) {
   return (
     <div className="mb-6 flex flex-col gap-4 border-b border-slate-200 pb-5 md:flex-row md:items-end md:justify-between">
       <div className="min-w-0">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-950 md:text-3xl">{translatedTitle}</h1>
+        <h1 className="text-2xl font-bold leading-tight tracking-tight text-slate-950 md:text-3xl">{translatedTitle}</h1>
         {translatedDescription ? <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-500">{translatedDescription}</p> : null}
       </div>
-      {actions ? <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div> : null}
+      {actions ? <div className="flex w-full flex-wrap items-center gap-2 md:w-auto md:shrink-0 md:justify-end [&>a]:w-full [&>button]:w-full sm:[&>a]:w-auto sm:[&>button]:w-auto">{actions}</div> : null}
     </div>
   );
 }

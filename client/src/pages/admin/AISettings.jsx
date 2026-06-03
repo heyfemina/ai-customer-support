@@ -106,26 +106,26 @@ export default function AISettings() {
   return (
     <>
       <PageHeader title="AI configuration settings" description="Tune bot identity, fallback behavior, translation, summarization, and human transfer rules." actions={<Button loading={saving} onClick={save}>{t("aiSettings.actions.save")}</Button>} />
-      <Card className="p-5">
+      <Card className="p-5 sm:p-6">
         {notice ? <p className="mb-4 rounded-md bg-green-50 px-3 py-2 text-sm font-semibold text-green-700">{notice}</p> : null}
         {error ? <p className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">{error}</p> : null}
         <div className="grid gap-5 lg:grid-cols-2">
-          <label className="block"><span className="text-sm font-semibold text-slate-700">{t("aiSettings.fields.botName")}</span><input className="mt-1 h-11 w-full rounded-md border border-slate-200 px-3" value={form.botName || ""} onChange={(event) => setForm({ ...form, botName: event.target.value })} /></label>
-          <label className="block"><span className="text-sm font-semibold text-slate-700">{t("aiSettings.fields.aiActive")}</span><select className="mt-1 h-11 w-full rounded-md border border-slate-200 px-3" value={String(Boolean(form.isActive))} onChange={(event) => setForm({ ...form, isActive: event.target.value === "true" })}><option value="true">{t("aiSettings.states.enabled")}</option><option value="false">{t("aiSettings.states.disabled")}</option></select></label>
-          <label className="block"><span className="text-sm font-semibold text-slate-700">AI provider</span><select className="mt-1 h-11 w-full rounded-md border border-slate-200 px-3" value={form.apiProvider || "gemini"} onChange={(event) => updateProvider(event.target.value)}><option value="gemini">Gemini</option><option value="openai">OpenAI</option></select></label>
-          <label className="block"><span className="text-sm font-semibold text-slate-700">Model</span><input className="mt-1 h-11 w-full rounded-md border border-slate-200 px-3" value={form.model || providerModelDefaults[form.apiProvider || "gemini"]} onChange={(event) => setForm({ ...form, model: event.target.value })} /></label>
-          <label className="block"><span className="text-sm font-semibold text-slate-700">API key</span><input type="password" className="mt-1 h-11 w-full rounded-md border border-slate-200 px-3" value={form.apiKey || ""} onChange={(event) => setForm({ ...form, apiKey: event.target.value, removeApiKey: false })} placeholder={form.hasApiKey ? `Saved key ${form.apiKeyMasked || ""}` : "Paste provider API key"} /></label>
-          <label className="block"><span className="text-sm font-semibold text-slate-700">API key status</span><select className="mt-1 h-11 w-full rounded-md border border-slate-200 px-3" value={String(Boolean(form.apiKeyEnabled))} onChange={(event) => setForm({ ...form, apiKeyEnabled: event.target.value === "true" })}><option value="true">Enabled</option><option value="false">Disabled</option></select></label>
-          {form.hasApiKey ? <label className="flex items-center justify-between rounded-md border border-slate-200 px-3 py-3 text-sm font-semibold text-slate-700"><span>Remove saved API key {form.apiKeyMasked || ""}</span><input type="checkbox" checked={Boolean(form.removeApiKey)} onChange={(event) => setForm({ ...form, removeApiKey: event.target.checked, apiKey: "" })} /></label> : null}
-          <label className="block"><span className="text-sm font-semibold text-slate-700">{t("aiSettings.fields.aiTranslationSupport")}</span><select className="mt-1 h-11 w-full rounded-md border border-slate-200 px-3" value={String(Boolean(form.autoTranslate))} onChange={(event) => setForm({ ...form, autoTranslate: event.target.value === "true" })}><option value="true">{t("aiSettings.states.enabled")}</option><option value="false">{t("aiSettings.states.disabled")}</option></select></label>
-          <label className="block"><span className="text-sm font-semibold text-slate-700">{t("aiSettings.fields.handoffAfterFailedReplies")}</span><input type="number" min="1" max="5" className="mt-1 h-11 w-full rounded-md border border-slate-200 px-3" value={form.handoffAfterFailedReplies || 2} onChange={(event) => setForm({ ...form, handoffAfterFailedReplies: Number(event.target.value) })} /></label>
-          <label className="block lg:col-span-2"><span className="text-sm font-semibold text-slate-700">{t("aiSettings.fields.welcomeMessage")}</span><textarea className="mt-1 min-h-24 w-full rounded-md border border-slate-200 px-3 py-2" value={form.welcomeMessage || ""} onChange={(event) => setForm({ ...form, welcomeMessage: event.target.value })} /></label>
-          <label className="block lg:col-span-2"><span className="text-sm font-semibold text-slate-700">{t("aiSettings.fields.fallbackMessage")}</span><textarea className="mt-1 min-h-24 w-full rounded-md border border-slate-200 px-3 py-2" value={form.fallbackMessage || ""} onChange={(event) => setForm({ ...form, fallbackMessage: event.target.value })} /></label>
+          <label className="block"><span className="app-label">{t("aiSettings.fields.botName")}</span><input className="app-field mt-1.5" value={form.botName || ""} onChange={(event) => setForm({ ...form, botName: event.target.value })} /></label>
+          <label className="block"><span className="app-label">{t("aiSettings.fields.aiActive")}</span><select className="app-field mt-1.5" value={String(Boolean(form.isActive))} onChange={(event) => setForm({ ...form, isActive: event.target.value === "true" })}><option value="true">{t("aiSettings.states.enabled")}</option><option value="false">{t("aiSettings.states.disabled")}</option></select></label>
+          <label className="block"><span className="app-label">AI provider</span><select className="app-field mt-1.5" value={form.apiProvider || "gemini"} onChange={(event) => updateProvider(event.target.value)}><option value="gemini">Gemini</option><option value="openai">OpenAI</option></select></label>
+          <label className="block"><span className="app-label">Model</span><input className="app-field mt-1.5" value={form.model || providerModelDefaults[form.apiProvider || "gemini"]} onChange={(event) => setForm({ ...form, model: event.target.value })} /></label>
+          <label className="block"><span className="app-label">API key</span><input type="password" className="app-field mt-1.5" value={form.apiKey || ""} onChange={(event) => setForm({ ...form, apiKey: event.target.value, removeApiKey: false })} placeholder={form.hasApiKey ? `Saved key ${form.apiKeyMasked || ""}` : "Paste provider API key"} /></label>
+          <label className="block"><span className="app-label">API key status</span><select className="app-field mt-1.5" value={String(Boolean(form.apiKeyEnabled))} onChange={(event) => setForm({ ...form, apiKeyEnabled: event.target.value === "true" })}><option value="true">Enabled</option><option value="false">Disabled</option></select></label>
+          {form.hasApiKey ? <label className="flex min-h-11 items-center justify-between gap-3 rounded-md border border-slate-200 bg-slate-50 px-3 py-3 text-sm font-semibold text-slate-700"><span>Remove saved API key {form.apiKeyMasked || ""}</span><input type="checkbox" checked={Boolean(form.removeApiKey)} onChange={(event) => setForm({ ...form, removeApiKey: event.target.checked, apiKey: "" })} /></label> : null}
+          <label className="block"><span className="app-label">{t("aiSettings.fields.aiTranslationSupport")}</span><select className="app-field mt-1.5" value={String(Boolean(form.autoTranslate))} onChange={(event) => setForm({ ...form, autoTranslate: event.target.value === "true" })}><option value="true">{t("aiSettings.states.enabled")}</option><option value="false">{t("aiSettings.states.disabled")}</option></select></label>
+          <label className="block"><span className="app-label">{t("aiSettings.fields.handoffAfterFailedReplies")}</span><input type="number" min="1" max="5" className="app-field mt-1.5" value={form.handoffAfterFailedReplies || 2} onChange={(event) => setForm({ ...form, handoffAfterFailedReplies: Number(event.target.value) })} /></label>
+          <label className="block lg:col-span-2"><span className="app-label">{t("aiSettings.fields.welcomeMessage")}</span><textarea className="app-field mt-1.5 min-h-24" value={form.welcomeMessage || ""} onChange={(event) => setForm({ ...form, welcomeMessage: event.target.value })} /></label>
+          <label className="block lg:col-span-2"><span className="app-label">{t("aiSettings.fields.fallbackMessage")}</span><textarea className="app-field mt-1.5 min-h-24" value={form.fallbackMessage || ""} onChange={(event) => setForm({ ...form, fallbackMessage: event.target.value })} /></label>
           <div className="lg:col-span-2">
-            <p className="text-sm font-semibold text-slate-700">{t("aiSettings.sections.languageCoverage")}</p>
+            <p className="app-label">{t("aiSettings.sections.languageCoverage")}</p>
             <div className="mt-2 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               {languageOptions.map(({ code, nameKey, previewKey }) => (
-                <label key={code} className="flex items-center justify-between rounded-md border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700">
+                <label key={code} className="flex min-h-16 items-center justify-between gap-3 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-700">
                   <span><span className="block">{t(nameKey)}</span><span className="text-xs font-medium text-slate-500">{t(previewKey)}</span></span>
                   <input type="checkbox" checked={(form.supportedLanguages || []).includes(code)} onChange={() => toggleLanguage(code)} />
                 </label>
@@ -133,17 +133,17 @@ export default function AISettings() {
             </div>
           </div>
           <div className="lg:col-span-2">
-            <p className="text-sm font-semibold text-slate-700">{t("aiSettings.sections.regionalCustomization")}</p>
+            <p className="app-label">{t("aiSettings.sections.regionalCustomization")}</p>
             <div className="mt-2 grid gap-3 lg:grid-cols-2">
               {languageOptions.map(({ code, nameKey, regionKey }) => (
-                <label key={code} className="block rounded-md border border-slate-200 p-3">
-                  <span className="text-sm font-semibold text-slate-700">{t("aiSettings.fields.regionalProfile", { language: t(nameKey) })}</span>
-                  <input className="mt-2 h-10 w-full rounded-md border border-slate-200 px-3 text-sm" value={form.regionalProfiles?.[code] || t(regionKey)} onChange={(event) => updateRegionalProfile(code, event.target.value)} />
+                <label key={code} className="block rounded-md border border-slate-200 bg-slate-50 p-3">
+                  <span className="app-label">{t("aiSettings.fields.regionalProfile", { language: t(nameKey) })}</span>
+                  <input className="app-field mt-2" value={form.regionalProfiles?.[code] || t(regionKey)} onChange={(event) => updateRegionalProfile(code, event.target.value)} />
                 </label>
               ))}
             </div>
           </div>
-          <label className="block lg:col-span-2"><span className="text-sm font-semibold text-slate-700">{t("aiSettings.fields.regionalNotes")}</span><textarea className="mt-1 min-h-24 w-full rounded-md border border-slate-200 px-3 py-2" placeholder={t("aiSettings.placeholders.regionalNotes")} value={form.regionalNotes || ""} onChange={(event) => setForm({ ...form, regionalNotes: event.target.value })} /></label>
+          <label className="block lg:col-span-2"><span className="app-label">{t("aiSettings.fields.regionalNotes")}</span><textarea className="app-field mt-1.5 min-h-24" placeholder={t("aiSettings.placeholders.regionalNotes")} value={form.regionalNotes || ""} onChange={(event) => setForm({ ...form, regionalNotes: event.target.value })} /></label>
         </div>
       </Card>
     </>

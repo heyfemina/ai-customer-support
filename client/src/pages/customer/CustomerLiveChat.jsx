@@ -299,7 +299,7 @@ export default function CustomerLiveChat() {
                     <button
                       key={option.value}
                       type="button"
-                      className={`flex h-12 flex-col items-center justify-center rounded-lg border text-xs font-bold transition ${selected ? "border-blue-300 bg-blue-50 text-blue-800 ring-2 ring-blue-100" : "border-slate-200 bg-white text-slate-500 hover:border-blue-200 hover:bg-blue-50"}`}
+                      className={`flex h-12 flex-col items-center justify-center rounded-lg border text-xs font-bold shadow-sm transition ${selected ? "border-blue-300 bg-blue-50 text-blue-800 ring-2 ring-blue-100" : "border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-800"}`}
                       onClick={() => setRating(option.value)}
                       title={option.label}
                     >

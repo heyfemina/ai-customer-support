@@ -16,7 +16,7 @@ function customerName(session, fallback) {
   return session.customer?.name || session.customerName || fallback;
 }
 
-export default function ChatSidebar({ sessions, activeId, onSelect }) {
+export default function ChatSidebar({ sessions, activeId, onSelect, showMetrics = true }) {
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("ALL");
@@ -40,7 +40,7 @@ export default function ChatSidebar({ sessions, activeId, onSelect }) {
   };
 
   return (
-    <aside className="support-queue-panel flex min-h-0 w-full flex-col border-b border-slate-200 bg-white md:h-full md:w-[21rem] md:shrink-0 md:border-b-0 md:border-r xl:w-[22rem]">
+    <aside className="support-queue-panel flex min-h-0 w-full flex-col border-b border-slate-200 bg-white md:h-full md:w-[19rem] md:shrink-0 md:border-b-0 md:border-r xl:w-[20rem]">
       <div className="support-queue-header shrink-0 border-b border-slate-200/80 bg-white p-3.5">
         <div className="flex items-center justify-between gap-3">
           <div>
@@ -51,32 +51,34 @@ export default function ChatSidebar({ sessions, activeId, onSelect }) {
             <MessageCircle className="h-4 w-4" />
           </div>
         </div>
-        <div className="support-sidebar-metrics mt-3 grid grid-cols-3 gap-1.5 text-xs font-semibold">
-          <div>
-            <p>{waiting}</p>
-            <span>{t("chat.waiting")}</span>
+        {showMetrics ? (
+          <div className="support-sidebar-metrics mt-3 grid grid-cols-3 gap-1.5 text-xs font-semibold">
+            <div>
+              <p>{waiting}</p>
+              <span>{t("chat.waiting")}</span>
+            </div>
+            <div>
+              <p>{active}</p>
+              <span>{t("chat.active")}</span>
+            </div>
+            <div>
+              <p>{sessions.length}</p>
+              <span>{t("chat.total")}</span>
+            </div>
           </div>
-          <div>
-            <p>{active}</p>
-            <span>{t("chat.active")}</span>
-          </div>
-          <div>
-            <p>{sessions.length}</p>
-            <span>{t("chat.total")}</span>
-          </div>
-        </div>
+        ) : null}
         <div className="mt-3 flex h-9 items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3">
           <Search className="h-4 w-4 text-slate-400" />
           <input className="min-w-0 flex-1 border-0 bg-transparent text-sm outline-none focus:shadow-none" placeholder="Search chats" value={query} onChange={(event) => setQuery(event.target.value)} />
         </div>
-        <div className="app-scrollbar mt-2.5 flex gap-2 overflow-x-auto pb-1">
+        <div className="app-scrollbar mt-2.5 flex gap-1.5 overflow-x-auto pb-1">
           {filters.map((item) => (
             <button
               key={item}
               type="button"
               className={cx(
-                "inline-flex shrink-0 items-center gap-1 rounded-md px-2.5 py-1.5 text-[11px] font-bold transition",
-                filter === item ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900"
+                "inline-flex shrink-0 items-center gap-1 rounded-md border px-2 py-1.5 text-[11px] font-bold shadow-sm transition",
+                filter === item ? "border-blue-600 bg-blue-600 text-white" : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950"
               )}
               onClick={() => setFilter(item)}
             >

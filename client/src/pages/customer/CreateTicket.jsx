@@ -95,7 +95,7 @@ export default function CreateTicket() {
                       <p className="truncate font-semibold text-slate-800">{item.name}</p>
                       <p className="text-xs text-slate-500">{fileSize(item.size)}</p>
                     </div>
-                    <button type="button" className="grid h-8 w-8 place-items-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-900" onClick={() => setFiles((current) => current.filter((file) => file !== item))} aria-label={`Remove ${item.name}`}>
+                    <button type="button" className="grid h-8 w-8 shrink-0 place-items-center rounded-md border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-red-200 hover:bg-red-50 hover:text-red-700" onClick={() => setFiles((current) => current.filter((file) => file !== item))} aria-label={`Remove ${item.name}`}>
                       <X className="h-4 w-4" />
                     </button>
                   </div>

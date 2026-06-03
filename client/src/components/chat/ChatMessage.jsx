@@ -51,7 +51,7 @@ export default function ChatMessage({ message, currentUserId }) {
           </div>
         ) : null}
         <p className="whitespace-pre-wrap break-words leading-6">{body}</p>
-        {hasTranslation ? <button className={`mt-2 text-xs font-semibold underline ${mine ? "text-blue-100" : "text-blue-700"}`} onClick={() => setShowOriginal(!showOriginal)}>{showOriginal ? t("chat.showTranslation") : t("chat.showOriginal")}</button> : null}
+        {hasTranslation ? <button className={`mt-2 inline-flex min-h-8 items-center rounded-md border px-2.5 text-xs font-semibold no-underline transition ${mine ? "border-white/20 bg-white/10 text-white hover:bg-white/15" : "border-blue-200 bg-blue-50 text-blue-800 hover:border-blue-300 hover:bg-blue-100"}`} onClick={() => setShowOriginal(!showOriginal)}>{showOriginal ? t("chat.showTranslation") : t("chat.showOriginal")}</button> : null}
         <p className={`mt-1 text-[11px] ${mine ? "text-blue-100" : "text-slate-400"}`}>{formatDate(message.createdAt)}</p>
       </div>
     </div>

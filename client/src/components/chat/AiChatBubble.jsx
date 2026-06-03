@@ -77,7 +77,7 @@ export default function AiChatBubble() {
         <div className="mb-3 flex h-[420px] w-[330px] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl">
           <div className="flex items-center justify-between bg-blue-900 px-4 py-3 text-white">
             <div><p className="font-bold">AI Bot</p><p className="text-xs text-blue-100">Instant help before agent chat</p></div>
-            <button type="button" onClick={() => setOpen(false)}><X className="h-5 w-5" /></button>
+            <button type="button" className="grid h-9 w-9 place-items-center rounded-md border border-white/20 bg-white/10 text-white transition hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/40" onClick={() => setOpen(false)} aria-label="Close AI chat"><X className="h-5 w-5" /></button>
           </div>
           <div className="flex-1 space-y-3 overflow-auto bg-slate-50 p-3 text-sm">
             {messages.length ? messages.map((message) => (
@@ -98,7 +98,7 @@ export default function AiChatBubble() {
           </form>
         </div>
       ) : null}
-      <button onClick={() => setOpen(!open)} className="grid h-14 w-14 place-items-center rounded-full bg-blue-900 text-white shadow-2xl">
+      <button onClick={() => setOpen(!open)} className="grid h-14 w-14 place-items-center rounded-full border border-blue-800 bg-blue-900 text-white shadow-2xl shadow-blue-950/20 transition hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-200" aria-label="Open AI chat">
         <MessageCircle className="h-6 w-6" />
       </button>
     </div>

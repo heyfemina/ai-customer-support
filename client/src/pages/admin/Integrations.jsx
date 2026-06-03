@@ -96,47 +96,49 @@ export default function Integrations() {
     <>
       <PageHeader title="Integration settings" description="Configure WhatsApp, website chatbot, and email support channels." />
       {notice ? <p className="mb-4 rounded-md bg-amber-50 p-3 text-sm font-semibold text-amber-800">{notice}</p> : null}
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid items-stretch gap-4 lg:grid-cols-3">
         {items.map(({ id, title, text, isActive, status, config = {} }) => (
-          <Card key={id || title} className="p-5">
-            <div className="flex items-center justify-between gap-3"><h2 className="font-semibold text-slate-950">{t(`integrations.items.${id}.title`, { defaultValue: title })}</h2><Badge tone={isActive ? "green" : "slate"}>{isActive ? t("integrations.active") : t("integrations.inactive")}</Badge></div>
+          <Card key={id || title} className="flex h-full flex-col p-5 sm:p-6">
+            <div className="flex min-h-10 items-center justify-between gap-3 border-b border-slate-100 pb-4"><h2 className="font-semibold text-slate-950">{t(`integrations.items.${id}.title`, { defaultValue: title })}</h2><Badge tone={isActive ? "green" : "slate"}>{isActive ? t("integrations.active") : t("integrations.inactive")}</Badge></div>
             <p className="mt-2 text-sm text-slate-500">{t(`integrations.items.${id}.text`, { defaultValue: text })}</p>
-            <p className="mt-3 rounded-md bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-600">{status}</p>
-            <div className="mt-5 space-y-3">
+            <p className="mt-3 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-600">{status}</p>
+            <div className="mt-5 flex flex-1 flex-col gap-3">
               {(fields[id] || []).map(([key, label]) => (
                 <label key={key} className="block">
-                  <span className="text-xs font-semibold uppercase text-slate-500">{t(`integrations.fields.${key}`, { defaultValue: label })}</span>
-                  <input className="mt-1 h-10 w-full rounded-md border border-slate-200 px-3 text-sm" value={config[key] || ""} onChange={(event) => updateConfig(id, key, event.target.value)} placeholder={t(`integrations.fields.${key}`, { defaultValue: label })} />
+                  <span className="app-label">{t(`integrations.fields.${key}`, { defaultValue: label })}</span>
+                  <input className="app-field mt-1.5" value={config[key] || ""} onChange={(event) => updateConfig(id, key, event.target.value)} placeholder={t(`integrations.fields.${key}`, { defaultValue: label })} />
                 </label>
               ))}
               {id === "chatbot" ? (
                 <div className="space-y-3 rounded-md border border-blue-100 bg-blue-50 p-3">
                   <label className="block">
-                    <span className="text-xs font-semibold uppercase text-slate-500">Widget title</span>
-                    <input className="mt-1 h-10 w-full rounded-md border border-slate-200 px-3 text-sm" value={config.widgetTitle || "Support Chat"} onChange={(event) => updateConfig(id, "widgetTitle", event.target.value)} />
+                    <span className="app-label">Widget title</span>
+                    <input className="app-field mt-1.5" value={config.widgetTitle || "Support Chat"} onChange={(event) => updateConfig(id, "widgetTitle", event.target.value)} />
                   </label>
                   <label className="block">
-                    <span className="text-xs font-semibold uppercase text-slate-500">Welcome message</span>
-                    <input className="mt-1 h-10 w-full rounded-md border border-slate-200 px-3 text-sm" value={config.welcomeMessage || "Hi, how can we help?"} onChange={(event) => updateConfig(id, "welcomeMessage", event.target.value)} />
+                    <span className="app-label">Welcome message</span>
+                    <input className="app-field mt-1.5" value={config.welcomeMessage || "Hi, how can we help?"} onChange={(event) => updateConfig(id, "welcomeMessage", event.target.value)} />
                   </label>
                   <label className="block">
-                    <span className="text-xs font-semibold uppercase text-slate-500">Primary color</span>
-                    <input type="color" className="mt-1 h-10 w-full rounded-md border border-slate-200 px-3 text-sm" value={config.primaryColor || "#0284c7"} onChange={(event) => updateConfig(id, "primaryColor", event.target.value)} />
+                    <span className="app-label">Primary color</span>
+                    <input type="color" className="app-field mt-1.5 p-1.5" value={config.primaryColor || "#0284c7"} onChange={(event) => updateConfig(id, "primaryColor", event.target.value)} />
                   </label>
-                  <label className="flex items-center justify-between rounded-md bg-white px-3 py-2 text-sm font-semibold text-slate-700">
+                  <label className="flex items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700">
                     {t("integrations.fields.visitorTracking")}
                     <input type="checkbox" checked={Boolean(config.visitorTracking)} onChange={(event) => updateConfig(id, "visitorTracking", event.target.checked)} />
                   </label>
                   <div>
-                    <p className="text-xs font-semibold uppercase text-slate-500">Embed script</p>
-                    <textarea readOnly className="mt-1 min-h-20 w-full rounded-md border border-slate-200 bg-white p-2 text-xs" value={widgetCode} />
+                    <p className="app-label">Embed script</p>
+                    <textarea readOnly className="app-field mt-1.5 min-h-20 text-xs" value={widgetCode} />
                     <Button variant="secondary" className="mt-2 w-full" onClick={() => navigator.clipboard?.writeText(widgetCode)}>Copy embed code</Button>
                   </div>
                 </div>
               ) : null}
-              <Button variant="secondary" className="w-full" onClick={() => saveIntegration(id)}>{t("integrations.actions.save")}</Button>
-              <Button variant="secondary" className="w-full" onClick={() => testConnection(id)}>{isActive ? t("integrations.actions.test") : t("integrations.actions.check")}</Button>
-              <Button className="w-full" onClick={() => toggleIntegration(id)}>{isActive ? t("integrations.actions.pause") : t("integrations.actions.enable")}</Button>
+              <div className="mt-auto grid gap-2 border-t border-slate-100 pt-4">
+                <Button variant="secondary" className="w-full" onClick={() => saveIntegration(id)}>{t("integrations.actions.save")}</Button>
+                <Button variant="secondary" className="w-full" onClick={() => testConnection(id)}>{isActive ? t("integrations.actions.test") : t("integrations.actions.check")}</Button>
+                <Button className="w-full" onClick={() => toggleIntegration(id)}>{isActive ? t("integrations.actions.pause") : t("integrations.actions.enable")}</Button>
+              </div>
             </div>
           </Card>
         ))}

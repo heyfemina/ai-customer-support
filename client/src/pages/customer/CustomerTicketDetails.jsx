@@ -76,14 +76,20 @@ export default function CustomerTicketDetails() {
   return (
     <>
       <PageHeader title={ticket.subject} description="Track status, communicate with support, submit feedback, and raise complaints." actions={<Button onClick={openTicketChat}>Chat about this ticket</Button>} />
-      <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="space-y-6">
-          <Card className="p-5">
+          <Card className="p-5 sm:p-6">
             {notice ? <p className="mb-4 rounded-md border border-green-100 bg-green-50 px-3 py-2 text-sm font-semibold text-green-700">{notice}</p> : null}
-            <TicketStatusBadge status={ticket.status} />
+            <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 pb-4">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Support request</p>
+                <h2 className="mt-1 font-semibold text-slate-950">{ticket.subject}</h2>
+              </div>
+              <TicketStatusBadge status={ticket.status} />
+            </div>
             <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-              <div className="rounded-md bg-slate-50 p-3"><p className="text-slate-500">Ticket ID</p><p className="font-mono font-semibold">{ticket.id}</p></div>
-              <div className="rounded-md bg-slate-50 p-3"><p className="text-slate-500">Created</p><p className="font-semibold">{formatDate(ticket.createdAt)}</p></div>
+              <div className="rounded-md border border-slate-200 bg-slate-50 p-3"><p className="text-slate-500">Ticket ID</p><p className="break-all font-mono font-semibold text-slate-950">{ticket.id}</p></div>
+              <div className="rounded-md border border-slate-200 bg-slate-50 p-3"><p className="text-slate-500">Created</p><p className="font-semibold text-slate-950">{formatDate(ticket.createdAt)}</p></div>
             </div>
             <p className="mt-4 leading-7 text-slate-700">{ticket.description}</p>
             <div className="mt-5 border-t border-slate-200 pt-5">
@@ -91,24 +97,24 @@ export default function CustomerTicketDetails() {
               <AttachmentPreview attachments={ticket.attachments || []} />
             </div>
             <textarea className="app-field mt-6 min-h-32" placeholder="Add a reply" value={reply} onChange={(event) => setReply(event.target.value)} />
-            <input type="file" accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx" className="mt-3 w-full rounded-md border border-dashed border-slate-300 bg-slate-50 p-3 text-sm" onChange={(event) => setFile(event.target.files?.[0] || null)} />
+            <input type="file" accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx" className="app-upload mt-3" onChange={(event) => setFile(event.target.files?.[0] || null)} />
             {file ? <p className="mt-2 text-sm font-semibold text-slate-500">Selected: {file.name}</p> : null}
             <Button className="mt-3" onClick={sendReply}>Send reply</Button>
           </Card>
           <TicketTimeline ticket={ticket} />
         </div>
-        <div className="space-y-6">
-          <Card className="p-5">
-            <h2 className="font-semibold text-slate-950">Ticket summary</h2>
+        <div className="space-y-6 lg:sticky lg:top-24">
+          <Card className="p-5 sm:p-6">
+            <h2 className="border-b border-slate-100 pb-4 font-semibold text-slate-950">Ticket summary</h2>
             <dl className="mt-4 space-y-3 text-sm">
-              <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">Priority</dt><dd className="font-semibold">{ticket.priority}</dd></div>
-              <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">Category</dt><dd className="font-semibold">{ticket.category}</dd></div>
-              <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">Assigned agent</dt><dd className="font-semibold">{ticket.agent?.name || "Unassigned"}</dd><dd className="text-xs text-slate-500">{ticket.agent?.email}</dd></div>
-              <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">Last updated</dt><dd className="font-semibold">{formatDate(ticket.updatedAt)}</dd></div>
-              <div className="rounded-md bg-slate-50 p-3"><dt className="text-slate-500">Resolution time</dt><dd className="font-semibold">{ticket.resolutionMinutes ? `${ticket.resolutionMinutes} minutes` : "Pending"}</dd></div>
+              <div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Priority</dt><dd className="font-semibold text-slate-950">{ticket.priority}</dd></div>
+              <div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Category</dt><dd className="font-semibold text-slate-950">{ticket.category}</dd></div>
+              <div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Assigned agent</dt><dd className="font-semibold text-slate-950">{ticket.agent?.name || "Unassigned"}</dd><dd className="truncate text-xs text-slate-500">{ticket.agent?.email}</dd></div>
+              <div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Last updated</dt><dd className="font-semibold text-slate-950">{formatDate(ticket.updatedAt)}</dd></div>
+              <div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Resolution time</dt><dd className="font-semibold text-slate-950">{ticket.resolutionMinutes ? `${ticket.resolutionMinutes} minutes` : "Pending"}</dd></div>
             </dl>
           </Card>
-          <Card className="p-5">
+          <Card className="p-5 sm:p-6">
             <h2 className="font-semibold text-slate-950">Agent feedback</h2>
             <label className="mt-4 block">
               <span className="app-label">Rating</span>
@@ -124,7 +130,7 @@ export default function CustomerTicketDetails() {
             <Button className="mt-3 w-full" onClick={submitFeedback}>Submit feedback</Button>
             {ticket.feedbackRating ? <p className="mt-3 text-sm font-semibold text-slate-600">Current feedback: {ticket.feedbackRating}/5</p> : null}
           </Card>
-          <Card className="p-5">
+          <Card className="p-5 sm:p-6">
             <h2 className="font-semibold text-slate-950">Complaint to admin</h2>
             <input className="app-field mt-4" placeholder="Complaint subject" value={complaint.complaintSubject} onChange={(event) => setComplaint({ ...complaint, complaintSubject: event.target.value })} />
             <textarea className="app-field mt-3 min-h-24" placeholder="Explain the issue with response quality or delay" value={complaint.complaintText} onChange={(event) => setComplaint({ ...complaint, complaintText: event.target.value })} />

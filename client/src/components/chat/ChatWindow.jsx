@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { Info, LockKeyhole, Radio, Send, Users } from "lucide-react";
+import { LockKeyhole, Radio, Send, Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import Button from "../common/Button.jsx";
 import Badge from "../common/Badge.jsx";
@@ -67,7 +67,6 @@ export default function ChatWindow({
               <Badge tone={session.status === "WAITING" ? "amber" : session.status === "CLOSED" ? "slate" : "green"}>{statusLabel}</Badge>
               <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-1"><Radio className="h-3.5 w-3.5" /> {t("chat.realTime")}</span>
               <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-1"><LockKeyhole className="h-3.5 w-3.5" /> {t("chat.encrypted")}</span>
-              <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-1"><Info className="h-3.5 w-3.5" /> Notice</span>
               <span className="inline-flex min-w-0 max-w-48 items-center gap-1 rounded-md bg-slate-100 px-2 py-1"><Users className="h-3.5 w-3.5 shrink-0" /><span className="truncate">{agentDisplay}</span></span>
               <span className="rounded-md bg-blue-50 px-2 py-1 text-blue-700 ring-1 ring-blue-100">{language}</span>
             </div>

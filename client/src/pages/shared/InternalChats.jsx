@@ -72,14 +72,14 @@ export default function InternalChats() {
   return (
     <>
       <PageHeader title="Internal communication" description="Admin and agents coordinate customer issues, ticket escalations, and handoffs in real time." />
-      <div className="grid gap-6 xl:grid-cols-[340px_1fr]">
+      <div className="grid items-start gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">
         <Card className="overflow-hidden">
           <div className="border-b border-slate-200 p-4">
             <h2 className="font-semibold text-slate-950">Conversations</h2>
             <div className="mt-3 space-y-2">
-              <input className="h-10 w-full rounded-md border border-slate-200 px-3 text-sm" placeholder="Subject" value={form.subject} onChange={(event) => setForm({ ...form, subject: event.target.value })} />
+              <input className="app-field" placeholder="Subject" value={form.subject} onChange={(event) => setForm({ ...form, subject: event.target.value })} />
               {user?.role === "ADMIN" ? (
-                <select className="h-10 w-full rounded-md border border-slate-200 px-3 text-sm" value={form.participantIds[0] || ""} onChange={(event) => setForm({ ...form, participantIds: event.target.value ? [event.target.value] : [] })}>
+                <select className="app-field" value={form.participantIds[0] || ""} onChange={(event) => setForm({ ...form, participantIds: event.target.value ? [event.target.value] : [] })}>
                   <option value="">Select agent</option>
                   {agents.map((agent) => <option key={agent.id} value={agent.id}>{agent.name}</option>)}
                 </select>
@@ -89,14 +89,14 @@ export default function InternalChats() {
           </div>
           <div className="app-scrollbar max-h-[640px] overflow-y-auto p-3">
             {chats.map((chat) => (
-              <button key={chat.id} type="button" onClick={() => setActive(chat)} className={`mb-2 w-full rounded-md border p-3 text-left ${active?.id === chat.id ? "border-blue-300 bg-blue-50" : "border-slate-200 bg-white"}`}>
+              <button key={chat.id} type="button" onClick={() => setActive(chat)} className={`mb-2 w-full rounded-md border p-3 text-left shadow-sm transition hover:border-blue-200 hover:bg-blue-50 ${active?.id === chat.id ? "border-blue-300 bg-blue-50 ring-2 ring-blue-100" : "border-slate-200 bg-white"}`}>
                 <p className="font-semibold text-slate-900">{chat.subject}</p>
                 <p className="mt-1 truncate text-xs text-slate-500">{chat.messages?.at(-1)?.content || "No messages yet"}</p>
               </button>
             ))}
           </div>
         </Card>
-        <Card className="flex min-h-[640px] flex-col overflow-hidden">
+        <Card className="flex min-h-[640px] min-w-0 flex-col overflow-hidden">
           {active ? (
             <>
               <div className="border-b border-slate-200 p-4">
@@ -117,9 +117,9 @@ export default function InternalChats() {
                 })}
               </div>
               <div className="border-t border-slate-200 p-4">
-                <textarea className="min-h-20 w-full rounded-md border border-slate-200 p-3 text-sm" placeholder="Message admin or agent" value={message} onChange={(event) => setMessage(event.target.value)} />
+                <textarea className="app-field min-h-20" placeholder="Message admin or agent" value={message} onChange={(event) => setMessage(event.target.value)} />
                 <div className="mt-3 flex flex-wrap items-center gap-3">
-                  <input type="file" className="min-w-0 flex-1 rounded-md border border-dashed border-slate-300 p-2 text-sm" onChange={(event) => setFile(event.target.files?.[0] || null)} />
+                  <input type="file" className="app-upload min-w-0 flex-1 py-2" onChange={(event) => setFile(event.target.files?.[0] || null)} />
                   <Button icon={Send} onClick={send}>Send</Button>
                 </div>
               </div>

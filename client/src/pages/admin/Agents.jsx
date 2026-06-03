@@ -4,13 +4,17 @@ import PageHeader from "../../components/common/PageHeader.jsx";
 import Table from "../../components/common/Table.jsx";
 import Badge from "../../components/common/Badge.jsx";
 import Card from "../../components/common/Card.jsx";
+import Pagination from "../../components/common/Pagination.jsx";
 import { normalizeItems } from "../../utils/helpers.js";
 
 export default function Agents() {
   const [agents, setAgents] = useState([]);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   useEffect(() => {
     api.get("/reports/agents").then(({ data }) => setAgents(normalizeItems(data, []))).catch(() => setAgents([]));
   }, []);
+  const pagedAgents = agents.slice((page - 1) * pageSize, page * pageSize);
   const columns = [
     { key: "name", label: "Agent" },
     { key: "email", label: "Email" },
@@ -32,7 +36,8 @@ export default function Agents() {
         <Card className="p-4"><p className="text-sm font-semibold text-slate-500">Available</p><p className="mt-2 text-2xl font-bold text-slate-950">{available}</p></Card>
         <Card className="p-4"><p className="text-sm font-semibold text-slate-500">Active chats</p><p className="mt-2 text-2xl font-bold text-slate-950">{agents.reduce((total, agent) => total + Number(agent.activeChats || 0), 0)}</p></Card>
       </div>
-      <Table columns={columns} data={agents} />
+      <Table columns={columns} data={pagedAgents} />
+      <Pagination page={page} pageSize={pageSize} total={agents.length} itemLabel="agents" onPageChange={setPage} onPageSizeChange={(value) => { setPageSize(value); setPage(1); }} />
     </>
   );
 }

@@ -70,14 +70,14 @@ export default function AdminDashboard() {
   return (
     <>
       <PageHeader title={t("dashboard.admin.title")} description={t("dashboard.admin.description")} />
-      <section className="mb-6 overflow-hidden rounded-lg border border-blue-100 bg-white p-5 text-slate-900 shadow-sm">
-        <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center">
+      <section className="mb-6 overflow-hidden rounded-lg border border-slate-200 bg-white p-5 text-slate-900 shadow-sm shadow-slate-200/60 sm:p-6">
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
           <div>
             <p className="text-sm font-semibold text-blue-700">{t("dashboard.sections.systemMonitoring")}</p>
             <h2 className="mt-2 text-2xl font-bold text-slate-950">Support operations command center</h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">{t("dashboard.admin.description")}</p>
           </div>
-          <div className="grid grid-cols-3 gap-3 text-center">
+          <div className="grid gap-3 text-center sm:grid-cols-3 xl:w-[28rem]">
             <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3">
               <p className="text-2xl font-bold text-slate-950">{report.tickets}</p>
               <p className="text-xs font-semibold text-slate-500">{t("dashboard.stats.totalTickets")}</p>
@@ -93,7 +93,7 @@ export default function AdminDashboard() {
           </div>
         </div>
       </section>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
+      <div className="grid items-stretch gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
         {liveStats.map((stat) => <StatCard key={stat.title} {...stat} />)}
       </div>
       <div className="mt-6">
@@ -103,14 +103,14 @@ export default function AdminDashboard() {
         </div>
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {monitors.map((monitor) => (
-            <Card key={monitor.title} className="p-5">
+            <Card key={monitor.title} className="h-full p-5">
               <div className="flex items-center gap-3">
                 <div className={`grid h-10 w-10 place-items-center rounded-md ring-1 ${monitorToneClasses[monitor.tone]}`}>
                   <monitor.icon className="h-5 w-5" />
                 </div>
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm font-semibold text-slate-500">{monitor.title}</p>
-                  <p className="text-lg font-bold text-slate-950">{monitor.value}</p>
+                  <p className="truncate text-lg font-bold text-slate-950">{monitor.value}</p>
                 </div>
               </div>
               <p className="mt-3 text-sm text-slate-500">{monitor.detail}</p>
@@ -188,7 +188,7 @@ export default function AdminDashboard() {
               <p className="text-sm text-slate-500">Open issues, agent coverage, and secure workflows are monitored from the admin panel.</p>
             </div>
           </div>
-          <div className="mt-4 grid grid-cols-3 gap-3 text-center text-sm">
+          <div className="mt-4 grid gap-3 text-center text-sm sm:grid-cols-3">
             <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
               <p className="text-xl font-bold text-slate-950">{report.complaints || 0}</p>
               <p className="mt-1 text-xs font-semibold text-slate-500">Complaints</p>
