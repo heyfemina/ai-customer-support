@@ -4,12 +4,13 @@ import Badge from "../common/Badge.jsx";
 import TicketStatusBadge from "./TicketStatusBadge.jsx";
 import { formatDate } from "../../utils/helpers.js";
 import { Paperclip } from "lucide-react";
+import Button from "../common/Button.jsx";
 
 export default function TicketCard({ ticket, basePath = "/customer/tickets" }) {
   return (
-    <Card className="p-5">
+    <Card className="p-5 transition hover:border-slate-300 hover:shadow-md">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
+        <div className="min-w-0">
           <Link to={`${basePath}/${ticket.id}`} className="font-semibold text-slate-900 hover:text-blue-700">
             {ticket.subject}
           </Link>
@@ -25,6 +26,9 @@ export default function TicketCard({ ticket, basePath = "/customer/tickets" }) {
         <span>{formatDate(ticket.createdAt)}</span>
         <span>Updated {formatDate(ticket.updatedAt)}</span>
       </div>
+      <Link to={`${basePath}/${ticket.id}`} className="mt-4 inline-block">
+        <Button variant="secondary">View Details</Button>
+      </Link>
     </Card>
   );
 }

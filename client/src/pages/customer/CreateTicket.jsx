@@ -1,3 +1,4 @@
+import { X } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PageHeader from "../../components/common/PageHeader.jsx";
@@ -21,6 +22,11 @@ function validateFiles(files) {
     if (file.size > maxFileSize) return `${file.name} is larger than 10MB.`;
   }
   return "";
+}
+
+function fileSize(value) {
+  if (value < 1024 * 1024) return `${Math.round(value / 1024)} KB`;
+  return `${(value / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 export default function CreateTicket() {
@@ -71,7 +77,7 @@ export default function CreateTicket() {
   return (
     <>
       <PageHeader title="Create ticket" description="Submit a support request with priority, category, and optional files or images." />
-      <Card className="p-5">
+      <Card className="p-6">
         {error ? <p className="mb-4 rounded-md border border-red-100 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">{error}</p> : null}
         <form className="grid gap-5 lg:grid-cols-2" onSubmit={submit}>
           <label className="block lg:col-span-2"><span className="app-label">Subject</span><input required className="app-field mt-1" value={form.subject} onChange={(event) => setForm({ ...form, subject: event.target.value })} /></label>
@@ -80,14 +86,24 @@ export default function CreateTicket() {
           <label className="block lg:col-span-2"><span className="app-label">Description</span><textarea required className="app-field mt-1 min-h-40" value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} /></label>
           <label className="block lg:col-span-2">
             <span className="app-label">Upload files or images</span>
-            <input type="file" multiple accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx" className="mt-1 w-full rounded-md border border-dashed border-slate-300 bg-slate-50 p-4 text-sm" onChange={chooseFiles} />
+            <input type="file" multiple accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx" className="app-upload mt-1" onChange={chooseFiles} />
             {files.length ? (
-              <div className="mt-2 space-y-1 text-sm font-semibold text-slate-500">
-                {files.map((item) => <p key={`${item.name}-${item.size}`}>{item.name} ({Math.round(item.size / 1024)} KB)</p>)}
+              <div className="mt-3 grid gap-2">
+                {files.map((item) => (
+                  <div key={`${item.name}-${item.size}`} className="flex items-center justify-between gap-3 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm">
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold text-slate-800">{item.name}</p>
+                      <p className="text-xs text-slate-500">{fileSize(item.size)}</p>
+                    </div>
+                    <button type="button" className="grid h-8 w-8 place-items-center rounded-md text-slate-500 hover:bg-slate-100 hover:text-slate-900" onClick={() => setFiles((current) => current.filter((file) => file !== item))} aria-label={`Remove ${item.name}`}>
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
               </div>
             ) : null}
           </label>
-          <div className="lg:col-span-2"><Button loading={loading}>Create support ticket</Button></div>
+          <div className="flex flex-wrap justify-end gap-2 border-t border-slate-200 pt-5 lg:col-span-2"><Button variant="secondary" type="button" onClick={() => navigate("/customer/tickets")}>Cancel</Button><Button loading={loading}>Create support ticket</Button></div>
         </form>
       </Card>
     </>

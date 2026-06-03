@@ -6,9 +6,8 @@ import Card from "../../components/common/Card.jsx";
 import Button from "../../components/common/Button.jsx";
 import TicketStatusBadge from "../../components/tickets/TicketStatusBadge.jsx";
 import TicketTimeline from "../../components/tickets/TicketTimeline.jsx";
-import AttachmentList from "../../components/tickets/AttachmentList.jsx";
-import { normalizeItems } from "../../utils/helpers.js";
-import { formatDate } from "../../utils/helpers.js";
+import AttachmentPreview from "../../components/common/AttachmentPreview.jsx";
+import { formatDate, normalizeItems } from "../../utils/helpers.js";
 import Badge from "../../components/common/Badge.jsx";
 import { useTranslation } from "react-i18next";
 
@@ -94,7 +93,7 @@ export default function AdminTicketDetails() {
             <p className="mt-4 text-slate-700">{ticket.description}</p>
             <div className="mt-5 border-t border-slate-200 pt-5">
               <h2 className="mb-3 font-semibold text-slate-950">Uploaded attachments</h2>
-              <AttachmentList attachments={ticket.attachments || []} />
+              <AttachmentPreview attachments={ticket.attachments || []} />
             </div>
             <textarea className="mt-6 min-h-32 w-full rounded-md border border-slate-200 p-3" placeholder={t("ticketsUi.writeReply")} value={reply} onChange={(event) => setReply(event.target.value)} />
             <input type="file" accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx" className="mt-3 w-full rounded-md border border-dashed border-slate-300 p-3" onChange={(event) => setFile(event.target.files?.[0] || null)} />

@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --primary: #1E3A8A;
+  --primary: #2563EB;
   --primary-light: #3B82F6;
   --background: #F8FAFC;
   --surface: #FFFFFF;
@@ -9,7 +9,7 @@
   --text-main: #0F172A;
   --text-muted: #64748B;
   --success: #16A34A;
-  --warning: #F59E0B;
+  --warning: #D97706;
   --danger: #DC2626;
   --info: #0284C7;
   color-scheme: light;
@@ -89,13 +89,13 @@ a {
 .app-field {
   min-height: 2.75rem;
   width: 100%;
-  border-radius: 0.5rem;
+  border-radius: 0.375rem;
   border: 1px solid var(--border);
   background: var(--surface);
   padding: 0.625rem 0.875rem;
   font-size: 0.875rem;
   color: var(--text-main);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.025);
 }
 
 .app-field::placeholder {
@@ -107,6 +107,46 @@ a {
   font-size: 0.8125rem;
   font-weight: 700;
   color: #334155;
+}
+
+.app-upload {
+  width: 100%;
+  border-radius: 0.5rem;
+  border: 1px dashed #cbd5e1;
+  background: #f8fafc;
+  padding: 1rem;
+  color: #475569;
+  font-size: 0.875rem;
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+.app-upload:hover {
+  border-color: #94a3b8;
+  background: #ffffff;
+}
+
+.ticket-action-link {
+  display: inline-flex;
+  min-height: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #2563eb;
+  border-radius: 0.375rem;
+  background: #2563eb;
+  padding: 0.375rem 0.75rem;
+  color: #ffffff !important;
+  font-size: 0.75rem;
+  font-weight: 800;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.ticket-action-link:hover,
+.ticket-action-link:focus {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  color: #ffffff !important;
 }
 
 .support-console-page {

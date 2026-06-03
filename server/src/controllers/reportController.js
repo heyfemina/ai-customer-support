@@ -5,6 +5,19 @@ function monthKey(date) {
   return new Intl.DateTimeFormat("en", { month: "short" }).format(new Date(date));
 }
 
+function csvEscape(value) {
+  if (value === null || value === undefined) return "";
+  const text = String(value);
+  return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+function sendCsv(res, fileName, headers, rows) {
+  const csv = [headers, ...rows].map((row) => row.map(csvEscape).join(",")).join("\n");
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader("Content-Disposition", `attachment; filename="${fileName}"`);
+  return res.send(csv);
+}
+
 export async function dashboardReport(req, res, next) {
   try {
     const [tickets, open, resolved, complaints, chats, agents, customers, allTickets, ratedChats, recentTickets] = await Promise.all([
@@ -202,5 +215,127 @@ export async function slaReport(req, res, next) {
         createdAt: ticket.createdAt,
       })),
     });
+  } catch (error) { next(error); }
+}
+
+export async function exportTicketsReport(req, res, next) {
+  try {
+    const tickets = await prisma.ticket.findMany({
+      include: {
+        customer: { select: { name: true, email: true } },
+        agent: { select: { name: true } },
+        attachments: { select: { id: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+    return sendCsv(res, "tickets-report.csv", [
+      "Ticket ID",
+      "Subject",
+      "Customer Name",
+      "Customer Email",
+      "Agent Name",
+      "Category",
+      "Priority",
+      "Status",
+      "Created At",
+      "Resolved At",
+      "First Response Time",
+      "Resolution Time",
+      "Attachment Count",
+    ], tickets.map((ticket) => [
+      ticket.id,
+      ticket.subject,
+      ticket.customer?.name,
+      ticket.customer?.email,
+      ticket.agent?.name || "Unassigned",
+      ticket.category,
+      ticket.priority,
+      ticket.status,
+      ticket.createdAt?.toISOString(),
+      ticket.resolvedAt?.toISOString() || "",
+      ticket.firstResponseMinutes ?? "",
+      ticket.resolutionMinutes ?? "",
+      ticket.attachments.length,
+    ]));
+  } catch (error) { next(error); }
+}
+
+export async function exportAgentsReport(req, res, next) {
+  try {
+    const agents = await prisma.user.findMany({
+      where: { role: "AGENT" },
+      select: {
+        name: true,
+        email: true,
+        department: true,
+        assigned: { select: { status: true, firstResponseMinutes: true, feedbackRating: true } },
+        agentChats: { select: { status: true, rating: true } },
+      },
+      orderBy: { name: "asc" },
+    });
+    return sendCsv(res, "agents-report.csv", [
+      "Agent Name",
+      "Email",
+      "Department",
+      "Tickets Assigned",
+      "Tickets Resolved",
+      "Active Chats",
+      "Average Response Time",
+      "Rating",
+    ], agents.map((agent) => {
+      const responded = agent.assigned.filter((ticket) => ticket.firstResponseMinutes !== null);
+      const ticketRatings = agent.assigned.map((ticket) => ticket.feedbackRating).filter(Boolean);
+      const chatRatings = agent.agentChats.map((chat) => chat.rating).filter(Boolean);
+      const ratings = [...ticketRatings, ...chatRatings];
+      return [
+        agent.name,
+        agent.email,
+        agent.department,
+        agent.assigned.length,
+        agent.assigned.filter((ticket) => ["RESOLVED", "CLOSED"].includes(ticket.status)).length,
+        agent.agentChats.filter((chat) => ["ASSIGNED", "ACTIVE", "WAITING", "TRANSFERRED"].includes(chat.status)).length,
+        responded.length ? (responded.reduce((sum, ticket) => sum + Number(ticket.firstResponseMinutes || 0), 0) / responded.length).toFixed(1) : "",
+        ratings.length ? (ratings.reduce((sum, value) => sum + Number(value || 0), 0) / ratings.length).toFixed(1) : "",
+      ];
+    }));
+  } catch (error) { next(error); }
+}
+
+export async function exportCustomersReport(req, res, next) {
+  try {
+    const customers = await prisma.user.findMany({
+      where: { role: "CUSTOMER" },
+      select: {
+        name: true,
+        email: true,
+        updatedAt: true,
+        tickets: { select: { feedbackRating: true, updatedAt: true } },
+        customerChats: { select: { updatedAt: true } },
+      },
+      orderBy: { name: "asc" },
+    });
+    return sendCsv(res, "customers-report.csv", [
+      "Customer Name",
+      "Email",
+      "Tickets Created",
+      "Chats Started",
+      "Last Activity",
+      "Feedback Count",
+    ], customers.map((customer) => {
+      const dates = [
+        customer.updatedAt,
+        ...customer.tickets.map((ticket) => ticket.updatedAt),
+        ...customer.customerChats.map((chat) => chat.updatedAt),
+      ].filter(Boolean).map((date) => new Date(date));
+      const lastActivity = dates.length ? new Date(Math.max(...dates.map((date) => date.getTime()))).toISOString() : "";
+      return [
+        customer.name,
+        customer.email,
+        customer.tickets.length,
+        customer.customerChats.length,
+        lastActivity,
+        customer.tickets.filter((ticket) => ticket.feedbackRating).length,
+      ];
+    }));
   } catch (error) { next(error); }
 }

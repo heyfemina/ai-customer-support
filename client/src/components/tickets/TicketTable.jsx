@@ -18,6 +18,7 @@ export default function TicketTable({ tickets, basePath = "/admin/tickets" }) {
     { key: "timing", label: "Timing", render: (row) => <span className="text-sm text-slate-600">{row.resolutionMinutes ? `${row.resolutionMinutes}m resolved` : row.firstResponseMinutes ? `${row.firstResponseMinutes}m first` : "Pending"}</span> },
     { key: "createdAt", labelKey: "table.created", render: (row) => formatDate(row.createdAt) },
     { key: "updatedAt", label: "Updated", render: (row) => formatDate(row.updatedAt) },
+    { key: "action", label: "Action", render: (row) => <Link className="ticket-action-link" to={`${basePath}/${row.id}`}>{basePath.includes("/agent") ? "Open" : "View"}</Link> },
   ];
 
   return <Table columns={columns} data={tickets} empty="No tickets found" />;

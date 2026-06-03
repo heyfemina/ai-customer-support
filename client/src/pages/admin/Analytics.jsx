@@ -3,8 +3,10 @@ import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContai
 import { useTranslation } from "react-i18next";
 import api from "../../api/axios.js";
 import Card from "../../components/common/Card.jsx";
+import Button from "../../components/common/Button.jsx";
 import PageHeader from "../../components/common/PageHeader.jsx";
 import { normalizeItems, unwrapData } from "../../utils/helpers.js";
+import { downloadReport } from "../../utils/downloadReport.js";
 
 export default function Analytics() {
   const { t } = useTranslation();
@@ -14,6 +16,8 @@ export default function Analytics() {
   const [customers, setCustomers] = useState([]);
   const [agents, setAgents] = useState([]);
   const [chats, setChats] = useState([]);
+  const [exporting, setExporting] = useState("");
+  const [notice, setNotice] = useState("");
 
   useEffect(() => {
     api.get("/reports/tickets").then(({ data }) => setTicketReport(unwrapData(data))).catch(() => {
@@ -58,10 +62,27 @@ export default function Analytics() {
     { label: "Avg first response", value: `${sla?.averageFirstResponseMinutes ?? 0}m` },
     { label: "Avg resolution", value: `${sla?.averageResolutionMinutes ?? 0}m` },
   ];
+  const runExport = async (key, path, fileName) => {
+    setExporting(key);
+    setNotice("");
+    try {
+      await downloadReport(path, fileName);
+      setNotice(`${fileName} downloaded.`);
+    } catch {
+      setNotice("Unable to download report. Please try again.");
+    } finally {
+      setExporting("");
+    }
+  };
 
   return (
     <>
-      <PageHeader title={t("reports.title")} description={t("reports.description")} />
+      <PageHeader
+        title={t("reports.title")}
+        description={t("reports.description")}
+        actions={<div className="flex flex-wrap gap-2"><Button variant="secondary" loading={exporting === "tickets"} onClick={() => runExport("tickets", "/reports/export/tickets?format=csv", "tickets-report.csv")}>Tickets CSV</Button><Button variant="secondary" loading={exporting === "agents"} onClick={() => runExport("agents", "/reports/export/agents?format=csv", "agents-report.csv")}>Agents CSV</Button><Button variant="secondary" loading={exporting === "customers"} onClick={() => runExport("customers", "/reports/export/customers?format=csv", "customers-report.csv")}>Customers CSV</Button></div>}
+      />
+      {notice ? <p className="mb-4 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm">{notice}</p> : null}
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {summary.map((item) => (
           <Card key={item.label} className="p-5">

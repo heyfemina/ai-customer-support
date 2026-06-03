@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import Card from "../common/Card.jsx";
 import { formatDate } from "../../utils/helpers.js";
-import AttachmentList from "./AttachmentList.jsx";
+import AttachmentPreview from "../common/AttachmentPreview.jsx";
 
 export default function TicketTimeline({ ticket }) {
   const { t } = useTranslation();
@@ -19,7 +19,7 @@ export default function TicketTimeline({ ticket }) {
           </div>
           <p className="mt-2 text-sm text-slate-700">{ticket?.description}</p>
         </div>
-        <AttachmentList attachments={attachments} />
+        <AttachmentPreview attachments={attachments} />
         {messages.map((message) => (
           <div key={message.id} className="rounded-lg border border-slate-200 p-4">
             <div className="flex items-center justify-between gap-3">
@@ -27,7 +27,7 @@ export default function TicketTimeline({ ticket }) {
               <span className="text-xs text-slate-500">{formatDate(message.createdAt)}</span>
             </div>
             <p className="mt-2 text-sm text-slate-700">{message.content}</p>
-            <div className="mt-3"><AttachmentList attachments={message.attachments || (message.fileUrl ? [message] : [])} /></div>
+            <div className="mt-3"><AttachmentPreview attachments={message.attachments || (message.fileUrl ? [message] : [])} /></div>
           </div>
         ))}
       </div>

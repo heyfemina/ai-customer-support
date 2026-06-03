@@ -59,13 +59,13 @@ export default function Sidebar({ open, onClose }) {
       <div className={cx("fixed inset-0 z-30 bg-slate-900/30 backdrop-blur-sm lg:hidden", open ? "block" : "hidden")} onClick={onClose} />
       <aside
         className={cx(
-          "fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-slate-200/80 bg-white/96 text-slate-900 shadow-xl shadow-slate-200/70 backdrop-blur-xl transition-transform lg:static lg:translate-x-0 lg:shadow-none",
+          "fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-slate-200 bg-white text-slate-900 shadow-xl shadow-slate-200/70 transition-transform lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 lg:shadow-none",
           open ? "translate-x-0" : "-translate-x-full"
         )}
       >
         <div className="flex h-16 items-center justify-between border-b border-slate-200/80 px-5">
           <div className="flex items-center gap-3">
-            <div className="grid h-10 w-10 place-items-center rounded-md bg-blue-900 text-white shadow-sm">
+            <div className="grid h-10 w-10 place-items-center rounded-md bg-blue-600 text-white shadow-sm">
               <Bot className="h-5 w-5" />
             </div>
             <div>
@@ -89,7 +89,7 @@ export default function Sidebar({ open, onClose }) {
               className={({ isActive }) =>
                 cx(
                   "group relative flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-semibold transition before:absolute before:left-0 before:h-6 before:w-1 before:rounded-r-full",
-                  isActive ? "bg-blue-900 text-white shadow-sm before:bg-blue-300" : "text-slate-600 before:bg-transparent hover:bg-blue-50 hover:text-blue-900"
+                  isActive ? "bg-blue-600 text-white shadow-sm before:bg-blue-200" : "text-slate-600 before:bg-transparent hover:bg-slate-100 hover:text-slate-950"
                 )
               }
             >
@@ -98,7 +98,7 @@ export default function Sidebar({ open, onClose }) {
                   <span
                     className={cx(
                       "grid h-8 w-8 place-items-center rounded-md transition",
-                      isActive ? "bg-white/12 text-blue-100 ring-1 ring-white/15" : "bg-slate-100 text-slate-500 group-hover:bg-white group-hover:text-blue-700"
+                      isActive ? "bg-white/15 text-blue-50 ring-1 ring-white/15" : "bg-slate-100 text-slate-500 group-hover:bg-white group-hover:text-blue-700"
                     )}
                   >
                     <item.icon className="h-4 w-4" />

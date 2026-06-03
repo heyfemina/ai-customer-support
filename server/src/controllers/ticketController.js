@@ -128,7 +128,7 @@ export async function createTicket(req, res, next) {
 
 export async function getTickets(req, res, next) {
   try {
-    const { search, status, priority, agentId, customerId, dateFrom, dateTo } = req.query;
+    const { search, status, priority, agentId, customerId, dateFrom, dateTo, page, limit } = req.query;
     const where = req.user.role === "CUSTOMER" ? { customerId: req.user.id } : req.user.role === "AGENT" ? { AND: [{ OR: [{ agentId: req.user.id }, { agentId: null }] }] } : {};
     if (status) where.status = status;
     if (priority) where.priority = priority;
@@ -155,6 +155,25 @@ export async function getTickets(req, res, next) {
       };
       if (where.AND) where.AND.push(searchFilter);
       else Object.assign(where, searchFilter);
+    }
+    const wantsPagination = page !== undefined || limit !== undefined;
+    if (wantsPagination) {
+      const currentPage = Math.max(Number.parseInt(page, 10) || 1, 1);
+      const perPage = Math.min(Math.max(Number.parseInt(limit, 10) || 15, 5), 100);
+      const [tickets, total] = await Promise.all([
+        prisma.ticket.findMany({ where, include, orderBy: { createdAt: "desc" }, skip: (currentPage - 1) * perPage, take: perPage }),
+        prisma.ticket.count({ where }),
+      ]);
+      success(res, {
+        items: tickets,
+        pagination: {
+          page: currentPage,
+          limit: perPage,
+          total,
+          totalPages: Math.max(Math.ceil(total / perPage), 1),
+        },
+      });
+      return;
     }
     success(res, await prisma.ticket.findMany({ where, include, orderBy: { createdAt: "desc" } }));
   } catch (error) { next(error); }
