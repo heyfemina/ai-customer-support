@@ -35,7 +35,7 @@ export default function ChatInput({ onSend, onTyping, onStopTyping }) {
         placeholder={t("chat.writeMessage")}
       />
       {file ? <span className="hidden max-w-32 truncate text-xs font-semibold text-slate-500 sm:block">{file.name}</span> : null}
-      <Button className="h-10 w-10 shrink-0 p-0" aria-label="Send message">
+      <Button className="h-10 w-10 shrink-0 p-0" aria-label="Send message" disabled={!content.trim() && !file}>
         <Send className="h-4 w-4" />
       </Button>
     </form>

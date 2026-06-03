@@ -76,7 +76,7 @@ export default function ChatSidebar({ sessions, activeId, onSelect }) {
               type="button"
               className={cx(
                 "inline-flex shrink-0 items-center gap-1 rounded-md px-2.5 py-1.5 text-[11px] font-bold transition",
-                filter === item ? "bg-blue-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-800"
+                filter === item ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900"
               )}
               onClick={() => setFilter(item)}
             >
@@ -98,7 +98,7 @@ export default function ChatSidebar({ sessions, activeId, onSelect }) {
           >
             {activeId === session.id ? <span className="absolute inset-y-2.5 left-0 w-1 rounded-r-full bg-blue-700" /> : null}
             <div className="flex items-start gap-2.5">
-              <div className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-blue-900 text-xs font-bold text-white">
+              <div className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-blue-600 text-xs font-bold text-white">
                 {customerName(session, t("chat.customerFallback")).slice(0, 1).toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">

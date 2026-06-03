@@ -6,7 +6,7 @@ import Card from "../../components/common/Card.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { roleHome } from "../../utils/constants.js";
 
-const inputGroupClass = "mt-1.5 flex min-h-12 items-center overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition focus-within:border-blue-400 focus-within:ring-4 focus-within:ring-blue-100";
+const inputGroupClass = "mt-1.5 flex min-h-12 items-center overflow-hidden rounded-md border border-slate-200 bg-white shadow-sm transition focus-within:border-blue-400 focus-within:ring-4 focus-within:ring-blue-100";
 const iconSlotClass = "flex h-12 w-12 shrink-0 items-center justify-center border-r border-slate-200 bg-slate-50 text-slate-400";
 const fieldClass = "min-w-0 flex-1 border-0 bg-transparent px-3 py-3 text-sm text-slate-950 outline-none placeholder:text-slate-400";
 const passwordToggleClass = "mr-1.5 inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-slate-500 transition hover:bg-slate-100 hover:text-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-200";
@@ -49,10 +49,10 @@ export default function Login() {
   };
 
   return (
-    <Card className="w-full overflow-hidden border-slate-200 shadow-xl shadow-slate-200/70">
+    <Card className="w-full overflow-hidden border-slate-200 shadow-xl shadow-slate-200/60">
       <div className="border-b border-slate-200 bg-white px-5 py-5 sm:px-6">
         <div className="flex items-start gap-3">
-          <div className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-blue-900 text-white lg:hidden">
+          <div className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-blue-600 text-white lg:hidden">
             <Bot className="h-6 w-6" />
           </div>
           <div className="min-w-0">
@@ -62,7 +62,7 @@ export default function Login() {
           </div>
         </div>
       </div>
-      <div className="space-y-5 bg-slate-50/60 p-5 sm:p-6">
+      <div className="space-y-5 bg-white p-5 sm:p-6">
         {location.state?.registered ? (
           <p className="rounded-md border border-green-100 bg-green-50 p-3 text-sm font-semibold text-green-700">
             Customer account created. Sign in to open the customer panel.
@@ -91,7 +91,7 @@ export default function Login() {
             </div>
           </label>
           {error ? <p className="rounded-md border border-red-100 bg-red-50 p-3 text-sm font-medium text-red-700">{error}</p> : null}
-          <Button className="min-h-12 w-full rounded-lg" loading={loading}>Sign In</Button>
+          <Button className="min-h-12 w-full" loading={loading}>Sign In</Button>
         </form>
         <div className="flex flex-col gap-3 border-t border-slate-200 pt-5 text-sm sm:flex-row sm:items-center sm:justify-between">
           <Link className="font-semibold text-blue-700" to="/forgot-password">Forgot password?</Link>

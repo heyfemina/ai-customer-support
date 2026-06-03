@@ -34,7 +34,7 @@ export default function ChatWindow({
   }, [messages, session?.id]);
 
   if (!session) {
-    return <div className="grid min-h-[420px] flex-1 place-items-center bg-white p-6 text-center text-sm text-slate-500">{t("chat.selectSession")}</div>;
+    return <div className="grid min-h-[420px] flex-1 place-items-center bg-white p-6 text-center"><div className="max-w-sm rounded-lg border border-dashed border-slate-200 bg-slate-50 p-6"><p className="font-semibold text-slate-900">{t("chat.selectSession")}</p><p className="mt-2 text-sm leading-6 text-slate-500">Choose a conversation from the queue to view history and reply.</p></div></div>;
   }
 
   const viewingAsCustomer = currentUserId && session.customerId === currentUserId;
@@ -55,7 +55,7 @@ export default function ChatWindow({
         <div className="flex min-w-0 flex-wrap items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-3">
-              <div className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-blue-900 text-sm font-bold text-white">
+              <div className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-blue-600 text-sm font-bold text-white">
                 {headerName.slice(0, 1).toUpperCase()}
               </div>
               <div className="min-w-0">
@@ -73,13 +73,14 @@ export default function ChatWindow({
             </div>
           </div>
           <div className="flex shrink-0 flex-wrap justify-end gap-2">
-            {onAiTransfer ? <Button variant="secondary" onClick={onAiTransfer} loading={aiTransferLoading} disabled={aiTransferDisabled}>{t("chat.requestAgent")}</Button> : null}
-            {onTransfer ? <Button variant="secondary" icon={Send} onClick={onTransfer} loading={transferLoading} disabled={transferDisabled}>{t("buttons.transfer")}</Button> : null}
-            {onClose ? <Button variant="danger" onClick={onClose} loading={closeLoading} disabled={closeDisabled}>{t("buttons.close")}</Button> : null}
+            {onAiTransfer ? <Button size="sm" variant="secondary" onClick={onAiTransfer} loading={aiTransferLoading} disabled={aiTransferDisabled}>{t("chat.requestAgent")}</Button> : null}
+            {onTransfer ? <Button size="sm" variant="secondary" icon={Send} onClick={onTransfer} loading={transferLoading} disabled={transferDisabled}>{t("buttons.transfer")}</Button> : null}
+            {onClose ? <Button size="sm" variant="danger" onClick={onClose} loading={closeLoading} disabled={closeDisabled}>{t("buttons.close")}</Button> : null}
           </div>
         </div>
       </div>
       <div className="support-message-wall app-scrollbar flex-1 space-y-3 overflow-y-auto bg-slate-50 p-4 sm:p-5">
+        {session.status === "WAITING" ? <div className="mx-auto max-w-md rounded-lg border border-amber-100 bg-white p-4 text-center text-sm text-slate-600 shadow-sm"><p className="font-semibold text-slate-900">Waiting for an available agent</p><p className="mt-1 leading-6 text-slate-500">Your conversation is in the support queue. Messages are saved here while you wait.</p></div> : null}
         {messages.length ? messages.map((message) => <ChatMessage key={message.id} message={message} currentUserId={currentUserId} />) : <p className="rounded-lg border border-dashed border-slate-200 bg-white p-5 text-center text-sm text-slate-500">{t("chat.noHistory")}</p>}
         {typingUsers.length ? <TypingIndicator name={typingUsers[0]?.name || "Someone"} /> : null}
         <div ref={endRef} />
