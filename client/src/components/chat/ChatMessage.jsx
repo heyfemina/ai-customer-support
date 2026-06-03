@@ -3,13 +3,16 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { formatDate } from "../../utils/helpers.js";
 
+const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const serverUrl = (import.meta.env.VITE_SERVER_URL || import.meta.env.VITE_SOCKET_URL || apiUrl.replace(/\/api\/?$/, "")).replace(/\/$/, "");
+
 export default function ChatMessage({ message, currentUserId }) {
   const { t } = useTranslation();
   const [showOriginal, setShowOriginal] = useState(false);
   const senderId = message.senderId || message.sender?.id;
   const mine = !message.isAI && (message.mine === true || Boolean(currentUserId && senderId && senderId === currentUserId));
   const system = message.senderId === "system";
-  const fileHref = message.fileUrl === "#" ? "#" : message.fileUrl?.startsWith("http") || message.fileUrl?.startsWith("data:") ? message.fileUrl : `http://localhost:5000${message.fileUrl}`;
+  const fileHref = message.fileUrl === "#" ? "#" : message.fileUrl?.startsWith("http") || message.fileUrl?.startsWith("data:") ? message.fileUrl : `${serverUrl}${message.fileUrl}`;
   const displayFileName = message.fileName || message.content || t("chat.attachment");
   const imageFile = message.fileType?.startsWith("image/") || message.messageType === "IMAGE" || /\.(png|jpe?g|gif|webp)$/i.test(displayFileName);
   const hasTranslation = Boolean(message.translatedContent && message.translatedContent !== message.originalContent);

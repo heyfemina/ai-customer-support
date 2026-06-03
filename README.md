@@ -159,6 +159,7 @@ DATABASE_URL=
 DIRECT_URL=
 JWT_SECRET=
 CLIENT_URL=
+CLIENT_URLS=https://your-frontend.vercel.app
 AI_PROVIDER=openai
 OPENAI_API_KEY=
 OPENAI_MODEL=gpt-5.4-mini
@@ -174,6 +175,7 @@ Frontend environment variables:
 ```env
 VITE_API_URL=https://your-backend.onrender.com/api
 VITE_SOCKET_URL=https://your-backend.onrender.com
+VITE_SERVER_URL=https://your-backend.onrender.com
 ```
 
 Integrations:
@@ -204,7 +206,8 @@ Socket.IO:
 2. Set root directory to `client`.
 3. Build command: `npm run build`.
 4. Output directory: `dist`.
-5. Add `VITE_API_URL=https://your-backend-url/api` and `VITE_SOCKET_URL=https://your-backend-url`.
+5. Add `VITE_API_URL=https://your-backend-url/api`, `VITE_SOCKET_URL=https://your-backend-url`, and `VITE_SERVER_URL=https://your-backend-url`.
+6. Redeploy after changing environment variables. Vite only reads these values during build.
 
 ### Backend on Render or Railway
 
@@ -212,8 +215,9 @@ Socket.IO:
 2. Build command: `npm install && npx prisma generate`.
 3. Start command: `npm start`.
 4. Add all environment variables from `server/.env`.
-5. Run migration command after database is attached: `npx prisma migrate deploy`.
-6. Run seed once if needed: `npm run prisma:seed`.
+5. Set `CLIENT_URLS=https://your-frontend.vercel.app` so browser requests from Vercel are allowed by CORS.
+6. Run migration command after database is attached: `npx prisma migrate deploy`.
+7. Run seed once if needed: `npm run prisma:seed`.
 
 ### Database on Supabase
 

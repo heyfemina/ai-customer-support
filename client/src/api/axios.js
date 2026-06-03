@@ -1,7 +1,12 @@
 import axios from "axios";
 
+const fallbackApiUrl = "http://localhost:5000/api";
+const apiUrl = import.meta.env.VITE_API_URL || fallbackApiUrl;
+const missingProductionApiUrl = import.meta.env.PROD && !import.meta.env.VITE_API_URL;
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+  baseURL: apiUrl,
+  timeout: 45000,
   headers: {
     "Content-Type": "application/json",
   },
@@ -21,10 +26,14 @@ api.interceptors.response.use(
       localStorage.removeItem("user");
       window.dispatchEvent(new Event("auth:logout"));
     }
-    const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+    const isTimeout = error.code === "ECONNABORTED";
     const isNetworkError = error.message === "Network Error" || !error.response;
     error.friendlyMessage = isNetworkError
-      ? `Unable to reach the backend API. Check that ${apiUrl} is running and allowed by CORS.`
+      ? missingProductionApiUrl
+        ? "Vercel is missing VITE_API_URL. Add your backend API URL in Vercel environment variables and redeploy."
+        : isTimeout
+          ? `The backend did not respond in time. Check that ${apiUrl} is awake and reachable.`
+          : `Unable to reach the backend API. Check that ${apiUrl} is running and allowed by CORS.`
       : error.response?.data?.message || error.message || "Something went wrong";
     return Promise.reject(error);
   }
