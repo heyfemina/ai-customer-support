@@ -1,10 +1,7 @@
 import { Download, Paperclip } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { formatDate } from "../../utils/helpers.js";
-
-const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
-const serverUrl = (import.meta.env.VITE_SERVER_URL || import.meta.env.VITE_SOCKET_URL || apiUrl.replace(/\/api\/?$/, "")).replace(/\/$/, "");
+import { formatDate, resolveFileUrl } from "../../utils/helpers.js";
 
 export default function ChatMessage({ message, currentUserId }) {
   const { t } = useTranslation();
@@ -12,7 +9,7 @@ export default function ChatMessage({ message, currentUserId }) {
   const senderId = message.senderId || message.sender?.id;
   const mine = !message.isAI && (message.mine === true || Boolean(currentUserId && senderId && senderId === currentUserId));
   const system = message.senderId === "system";
-  const fileHref = message.fileUrl === "#" ? "#" : message.fileUrl?.startsWith("http") || message.fileUrl?.startsWith("data:") ? message.fileUrl : `${serverUrl}${message.fileUrl}`;
+  const fileHref = resolveFileUrl(message.fileUrl);
   const displayFileName = message.fileName || message.content || t("chat.attachment");
   const imageFile = message.fileType?.startsWith("image/") || message.messageType === "IMAGE" || /\.(png|jpe?g|gif|webp)$/i.test(displayFileName);
   const hasTranslation = Boolean(message.translatedContent && message.translatedContent !== message.originalContent);
@@ -36,7 +33,7 @@ export default function ChatMessage({ message, currentUserId }) {
       <div className={`max-w-[88%] overflow-hidden rounded-xl px-3.5 py-2.5 text-sm shadow-sm sm:max-w-[82%] xl:max-w-[76%] ${mine ? "rounded-br-md bg-blue-600 text-white shadow-blue-600/10" : "rounded-bl-md border border-slate-200 bg-white text-slate-700"}`}>
         {message.fileUrl ? (
           <div className="mb-2">
-            {imageFile && fileHref !== "#" ? <img src={fileHref} alt={message.fileName || t("chat.sharedImage")} className="mb-2 h-36 w-full rounded-md object-cover" /> : null}
+            {imageFile && fileHref !== "#" ? <img src={fileHref} alt={message.fileName || t("chat.sharedImage")} className="mb-2 max-h-56 w-full rounded-md bg-slate-100 object-contain" loading="lazy" /> : null}
             <a href={fileHref} target="_blank" rel="noreferrer" className={`flex min-w-0 items-center gap-2 rounded-md px-2 py-1.5 font-semibold no-underline ${mine ? "bg-blue-700 text-white" : "bg-slate-50 text-blue-700"}`}>
               {imageFile ? <Paperclip className="h-4 w-4 shrink-0" /> : <Download className="h-4 w-4 shrink-0" />}
               <span className="truncate">{displayFileName}</span>

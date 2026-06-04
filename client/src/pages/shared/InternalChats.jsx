@@ -6,7 +6,7 @@ import Card from "../../components/common/Card.jsx";
 import PageHeader from "../../components/common/PageHeader.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { useSocket } from "../../context/SocketContext.jsx";
-import { formatDate, normalizeItems } from "../../utils/helpers.js";
+import { formatDate, normalizeItems, resolveFileUrl } from "../../utils/helpers.js";
 
 export default function InternalChats() {
   const { user } = useAuth();
@@ -110,17 +110,17 @@ export default function InternalChats() {
                     <div key={item.id} className={`max-w-[78%] rounded-lg px-4 py-3 text-sm shadow-sm ${mine ? "ml-auto bg-blue-900 text-white" : "border border-slate-200 bg-white text-slate-700"}`}>
                       <p className="mb-1 text-xs font-bold">{item.sender?.name || "User"}</p>
                       <p className="whitespace-pre-wrap break-words">{item.content}</p>
-                      {item.fileUrl ? <a className="mt-2 block font-semibold underline" href={item.fileUrl} target="_blank" rel="noreferrer">{item.fileName || "Attachment"}</a> : null}
+                      {item.fileUrl ? <a className="mt-2 block truncate font-semibold underline" href={resolveFileUrl(item.fileUrl)} target="_blank" rel="noreferrer">{item.fileName || "Attachment"}</a> : null}
                       <p className={`mt-1 text-[11px] ${mine ? "text-blue-100" : "text-slate-400"}`}>{formatDate(item.createdAt)}</p>
                     </div>
                   );
                 })}
               </div>
-              <div className="border-t border-slate-200 p-4">
+              <div className="border-t border-slate-200 p-3 sm:p-4">
                 <textarea className="app-field min-h-20" placeholder="Message admin or agent" value={message} onChange={(event) => setMessage(event.target.value)} />
-                <div className="mt-3 flex flex-wrap items-center gap-3">
+                <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
                   <input type="file" className="app-upload min-w-0 flex-1 py-2" onChange={(event) => setFile(event.target.files?.[0] || null)} />
-                  <Button icon={Send} onClick={send}>Send</Button>
+                  <Button className="h-11 w-full sm:w-auto" icon={Send} onClick={send}>Send</Button>
                 </div>
               </div>
             </>

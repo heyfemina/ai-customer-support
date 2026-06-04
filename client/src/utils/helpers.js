@@ -59,3 +59,13 @@ export function mergeMessages(currentMessages = [], incomingMessages = []) {
   incomingMessages.filter(Boolean).forEach((message) => byId.set(message.id, message));
   return Array.from(byId.values()).sort((a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0));
 }
+
+export function resolveFileUrl(fileUrl = "") {
+  if (!fileUrl || fileUrl === "#") return fileUrl || "";
+  if (/^(https?:|data:|blob:)/i.test(fileUrl)) return fileUrl;
+
+  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+  const serverUrl = (import.meta.env.VITE_SERVER_URL || import.meta.env.VITE_SOCKET_URL || apiUrl.replace(/\/api\/?$/, "")).replace(/\/$/, "");
+  const path = fileUrl.startsWith("/") ? fileUrl : `/${fileUrl}`;
+  return `${serverUrl}${path}`;
+}
