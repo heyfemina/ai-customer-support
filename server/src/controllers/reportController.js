@@ -205,6 +205,7 @@ export async function slaReport(req, res, next) {
       tickets: tickets.map((ticket) => ({
         id: ticket.id,
         subject: ticket.subject,
+        category: ticket.category,
         priority: ticket.priority,
         status: ticket.status,
         agent: ticket.agent,

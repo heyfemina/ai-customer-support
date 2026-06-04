@@ -40,8 +40,8 @@ export default function ChatSidebar({ sessions, activeId, onSelect, showMetrics 
   };
 
   return (
-    <aside className="support-queue-panel flex min-h-0 w-full flex-col border-b border-slate-200 bg-white md:h-full md:w-[19rem] md:shrink-0 md:border-b-0 md:border-r xl:w-[20rem]">
-      <div className="support-queue-header shrink-0 border-b border-slate-200/80 bg-white p-3.5">
+    <aside className="support-queue-panel flex min-h-0 w-full flex-col border-b border-slate-300 bg-white md:h-full md:w-[19rem] md:shrink-0 md:border-b-0 md:border-r xl:w-[20rem]">
+      <div className="support-queue-header shrink-0 border-b border-slate-200 bg-white p-3.5">
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-wide text-blue-700">Live inbox</p>
@@ -67,7 +67,7 @@ export default function ChatSidebar({ sessions, activeId, onSelect, showMetrics 
             </div>
           </div>
         ) : null}
-        <div className="mt-3 flex h-9 items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3">
+        <div className="mt-3 flex h-9 items-center gap-2 rounded-lg border border-slate-300 bg-slate-50 px-3 shadow-sm">
           <Search className="h-4 w-4 text-slate-400" />
           <input className="min-w-0 flex-1 border-0 bg-transparent text-sm outline-none focus:shadow-none" placeholder="Search chats" value={query} onChange={(event) => setQuery(event.target.value)} />
         </div>
@@ -94,8 +94,8 @@ export default function ChatSidebar({ sessions, activeId, onSelect, showMetrics 
             key={session.id}
             onClick={() => onSelect?.(session)}
             className={cx(
-              "support-queue-item relative w-full overflow-hidden rounded-md border bg-white p-2.5 text-left transition hover:border-blue-200 hover:shadow-sm",
-              activeId === session.id ? "border-blue-300 shadow-sm ring-2 ring-blue-100" : "border-slate-200"
+              "support-queue-item relative w-full overflow-hidden rounded-xl border bg-white p-2.5 text-left transition hover:border-blue-200 hover:shadow-sm",
+              activeId === session.id ? "border-blue-300 shadow-sm ring-2 ring-blue-100" : "border-slate-300"
             )}
           >
             {activeId === session.id ? <span className="absolute inset-y-2.5 left-0 w-1 rounded-r-full bg-blue-700" /> : null}

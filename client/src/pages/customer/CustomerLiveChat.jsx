@@ -10,7 +10,7 @@ import { useSocket } from "../../context/SocketContext.jsx";
 import { mergeMessages, normalizeItems, sortByRecent } from "../../utils/helpers.js";
 import { useTranslation } from "react-i18next";
 import { useLanguage } from "../../context/LanguageContext.jsx";
-import { MessageSquare, ShieldCheck, Star } from "lucide-react";
+import { Star } from "lucide-react";
 
 const chatCategories = ["Technical", "Billing", "Account", "Refund", "General", "Complaint"];
 
@@ -236,6 +236,39 @@ export default function CustomerLiveChat() {
     pushNotification({ message: `Customer submitted a ${rating}/5 chat rating.`, type: "rating" });
   };
 
+  const ratingCard = activeClosed ? (
+    <div className="mb-5 rounded-2xl border border-slate-300 bg-white p-5 shadow-[0_14px_34px_rgba(15,23,42,0.07)]">
+      <div className="grid h-10 w-10 place-items-center rounded-full bg-blue-50 text-blue-700 ring-1 ring-blue-100">
+        <Star className="h-5 w-5" />
+      </div>
+      <h3 className="mt-3 font-semibold text-slate-950">{t("chat.rateThisChat")}</h3>
+      <p className="mt-1 text-sm text-slate-500">{active?.rating ? t("chat.feedbackSaved") : t("chat.closedRatingHelp")}</p>
+      {!active?.rating ? (
+        <>
+          <div className="mt-4 grid max-w-md grid-cols-5 gap-2">
+            {ratingOptions.map((option) => {
+              const selected = Number(rating) === option.value;
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={`flex h-11 items-center justify-center rounded-xl border text-xs font-bold transition ${selected ? "border-blue-300 bg-blue-50 text-blue-800 ring-2 ring-blue-100" : "border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-800"}`}
+                  onClick={() => setRating(option.value)}
+                  title={option.label}
+                >
+                  <Star className={`h-4 w-4 ${selected ? "fill-blue-700 text-blue-700" : "text-slate-400"}`} />
+                  <span className="ml-1">{option.value}</span>
+                </button>
+              );
+            })}
+          </div>
+          <textarea className="app-field mt-3 min-h-24 resize-none rounded-xl" placeholder={t("chat.feedback")} value={feedback} onChange={(event) => setFeedback(event.target.value)} />
+          <Button className="mt-3 min-h-11 rounded-xl" onClick={submitRating} loading={actionLoading === "rating"} disabled={Boolean(actionLoading)}>{t("buttons.submitRating")}</Button>
+        </>
+      ) : null}
+    </div>
+  ) : null;
+
   return (
     <>
       <PageHeader
@@ -251,8 +284,9 @@ export default function CustomerLiveChat() {
         }
       />
       {notice ? <p className={`mb-4 rounded-md border px-3 py-2 text-sm font-semibold ${noticeClass}`}>{notice}</p> : null}
-      <div className="grid items-start gap-5 2xl:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="flex min-h-[660px] min-w-0 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm md:flex-row xl:h-[calc(100vh-11rem)] xl:min-h-[680px] xl:max-h-[900px]">
+      {ratingCard}
+      <div className="grid items-start gap-5">
+        <div className="flex min-h-[660px] min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-[0_14px_34px_rgba(15,23,42,0.07)] md:flex-row xl:h-[calc(100vh-11rem)] xl:min-h-[680px] xl:max-h-[900px]">
           <ChatSidebar sessions={sessions} activeId={active?.id} onSelect={selectSession} />
           <ChatWindow
             session={active}
@@ -270,58 +304,6 @@ export default function CustomerLiveChat() {
             closeDisabled={!active?.id || activeClosed || Boolean(actionLoading)}
           />
         </div>
-        <aside className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm 2xl:sticky 2xl:top-24">
-          <div className="border-b border-slate-200 bg-slate-50 px-5 py-4">
-            <div className="flex items-start gap-3">
-              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-blue-50 text-blue-700 ring-1 ring-blue-100">
-                <Star className="h-5 w-5" />
-              </div>
-              <div>
-                <h2 className="font-semibold text-slate-950">{t("chat.ratingTitle")}</h2>
-                <p className="mt-1 text-sm leading-5 text-slate-500">{t("chat.ratingHelp")}</p>
-              </div>
-            </div>
-          </div>
-          <div className="space-y-4 p-5">
-            <div className="rounded-lg border border-slate-200 bg-white p-3">
-              <div className="flex items-center gap-2 text-sm font-semibold text-slate-900">
-                <MessageSquare className="h-4 w-4 text-blue-700" />
-                <span>{active?.customer?.name || active?.customerName || t("chat.customerFallback")}</span>
-              </div>
-              <p className="mt-1 truncate text-xs text-slate-500">{active?.lastMessage || t("chat.noMessages")}</p>
-            </div>
-            <div>
-              <span className="app-label">Rate this chat</span>
-              <div className="mt-2 grid grid-cols-5 gap-2">
-                {ratingOptions.map((option) => {
-                  const selected = Number(rating) === option.value;
-                  return (
-                    <button
-                      key={option.value}
-                      type="button"
-                      className={`flex h-12 flex-col items-center justify-center rounded-lg border text-xs font-bold shadow-sm transition ${selected ? "border-blue-300 bg-blue-50 text-blue-800 ring-2 ring-blue-100" : "border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-800"}`}
-                      onClick={() => setRating(option.value)}
-                      title={option.label}
-                    >
-                      <Star className={`h-4 w-4 ${selected ? "fill-blue-700 text-blue-700" : "text-slate-400"}`} />
-                      {option.value}
-                    </button>
-                  );
-                })}
-              </div>
-              <p className="mt-2 text-xs font-semibold text-slate-500">{ratingOptions.find((option) => option.value === Number(rating))?.label}</p>
-            </div>
-            <label className="block">
-              <span className="app-label">Feedback</span>
-              <textarea className="app-field mt-1.5 min-h-28 resize-none rounded-lg bg-white" placeholder={t("chat.feedback")} value={feedback} onChange={(event) => setFeedback(event.target.value)} />
-            </label>
-            <div className="rounded-lg border border-blue-100 bg-blue-50 p-3 text-sm text-blue-900">
-              <p className="inline-flex items-center gap-2 font-semibold"><ShieldCheck className="h-4 w-4" />Secure feedback</p>
-              <p className="mt-1 text-xs leading-5 text-blue-800">Your rating is saved with this conversation history.</p>
-            </div>
-            <Button className="min-h-11 w-full rounded-lg" onClick={submitRating} loading={actionLoading === "rating"} disabled={!active?.id || Boolean(actionLoading)}>{t("buttons.submitRating")}</Button>
-          </div>
-        </aside>
       </div>
     </>
   );

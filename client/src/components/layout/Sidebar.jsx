@@ -59,7 +59,7 @@ export default function Sidebar({ open, onClose }) {
       <div className={cx("fixed inset-0 z-30 bg-slate-900/30 backdrop-blur-sm lg:hidden", open ? "block" : "hidden")} onClick={onClose} />
       <aside
         className={cx(
-          "fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-slate-200 bg-white text-slate-900 shadow-xl shadow-slate-200/70 transition-transform lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 lg:shadow-none",
+          "fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-slate-200 bg-white text-slate-900 shadow-xl shadow-slate-200/70 transition-transform lg:translate-x-0 lg:shadow-none",
           open ? "translate-x-0" : "-translate-x-full"
         )}
       >

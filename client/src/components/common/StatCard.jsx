@@ -13,7 +13,7 @@ export default function StatCard({ title, value, icon: Icon, trend = "+8%", tone
   };
 
   return (
-    <Card className="relative min-h-32 overflow-hidden p-5 transition duration-200 hover:border-slate-300 hover:shadow-md">
+    <Card className="relative min-h-32 overflow-hidden p-5 transition duration-200 hover:border-slate-300 hover:shadow-[0_16px_34px_rgba(15,23,42,0.09)]">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="truncate text-[11px] font-bold uppercase tracking-[0.08em] text-slate-500">{title}</p>

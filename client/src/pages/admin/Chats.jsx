@@ -215,8 +215,22 @@ export default function Chats() {
     <>
       <PageHeader title="Chat monitoring" description="Monitor live conversations, AI-to-agent handoffs, queues, notifications, and visitor sessions." />
       {notice ? <p className={`mb-4 rounded-md border px-3 py-2 text-sm font-semibold ${noticeClass}`}>{notice}</p> : null}
-      <div className="grid items-start gap-4 2xl:grid-cols-[minmax(0,1fr)_300px]">
-        <div className="flex min-h-[620px] min-w-0 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm md:flex-row xl:h-[calc(100vh-10.25rem)] xl:min-h-[640px] xl:max-h-[860px]">
+      <div className="mb-4 grid gap-3 sm:grid-cols-3">
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 shadow-sm">
+          <p className="text-xs font-bold uppercase tracking-wide text-amber-700">{t("chat.waiting")}</p>
+          <p className="mt-1 text-2xl font-bold text-amber-900">{queueStats.waiting}</p>
+        </div>
+        <div className="rounded-2xl border border-green-200 bg-green-50 px-4 py-3 shadow-sm">
+          <p className="text-xs font-bold uppercase tracking-wide text-green-700">{t("chat.active")}</p>
+          <p className="mt-1 text-2xl font-bold text-green-900">{queueStats.active}</p>
+        </div>
+        <div className="rounded-2xl border border-slate-300 bg-white px-4 py-3 shadow-sm">
+          <p className="text-xs font-bold uppercase tracking-wide text-slate-500">{t("chat.closed")}</p>
+          <p className="mt-1 text-2xl font-bold text-slate-950">{queueStats.closed}</p>
+        </div>
+      </div>
+      <div className="grid items-start gap-4 2xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="flex min-h-[620px] min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-[0_14px_34px_rgba(15,23,42,0.07)] md:flex-row xl:h-[calc(100vh-13.5rem)] xl:min-h-[640px] xl:max-h-[860px]">
           <ChatSidebar sessions={sessions} activeId={active?.id} onSelect={selectSession} />
           <ChatWindow
             session={active}
@@ -228,13 +242,15 @@ export default function Chats() {
             onSend={sendMessage}
           />
         </div>
-        <aside className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm 2xl:sticky 2xl:top-24 2xl:max-h-[calc(100vh-6.5rem)] 2xl:overflow-y-auto">
-          <h2 className="font-semibold text-slate-950">{t("ticketsUi.workflow")}</h2>
-          <p className="mt-1 text-sm text-slate-500">{t("chat.manageSelectedConversation")}</p>
+        <aside className="rounded-2xl border border-slate-300 bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.07)] 2xl:sticky 2xl:top-24 2xl:max-h-[calc(100vh-6.5rem)] 2xl:overflow-y-auto">
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <h2 className="font-semibold text-slate-950">{t("ticketsUi.workflow")}</h2>
+            <p className="mt-1 text-sm leading-5 text-slate-500">{t("chat.manageSelectedConversation")}</p>
+          </div>
           <div className="mt-4 grid grid-cols-3 gap-2 text-center text-xs">
-            <div className="rounded-md border border-amber-100 bg-amber-50 p-2 font-semibold text-amber-700"><p className="text-base font-bold">{queueStats.waiting}</p><p className="truncate">{t("chat.waiting")}</p></div>
-            <div className="rounded-md border border-green-100 bg-green-50 p-2 font-semibold text-green-700"><p className="text-base font-bold">{queueStats.active}</p><p className="truncate">{t("chat.active")}</p></div>
-            <div className="rounded-md border border-slate-200 bg-slate-100 p-2 font-semibold text-slate-700"><p className="text-base font-bold">{queueStats.closed}</p><p className="truncate">{t("chat.closed")}</p></div>
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-2 font-semibold text-amber-700"><p className="text-base font-bold">{queueStats.waiting}</p><p className="truncate">{t("chat.waiting")}</p></div>
+            <div className="rounded-xl border border-green-200 bg-green-50 p-2 font-semibold text-green-700"><p className="text-base font-bold">{queueStats.active}</p><p className="truncate">{t("chat.active")}</p></div>
+            <div className="rounded-xl border border-slate-300 bg-slate-50 p-2 font-semibold text-slate-700"><p className="text-base font-bold">{queueStats.closed}</p><p className="truncate">{t("chat.closed")}</p></div>
           </div>
           <label className="mt-4 block">
             <span className="app-label">{t("chat.transferTo")}</span>
@@ -250,10 +266,10 @@ export default function Chats() {
           <div className="mt-5 border-t border-slate-200 pt-4">
             <h3 className="text-sm font-semibold text-slate-950">{t("chat.visitorAndSecurity")}</h3>
             <dl className="mt-3 grid grid-cols-2 gap-2 text-sm">
-              <div className="rounded-md bg-slate-50 p-2.5"><dt className="text-xs text-slate-500">{t("chat.visitorPage")}</dt><dd className="mt-1 truncate font-semibold text-slate-800" title={visitorPage(active)}>{visitorPage(active)}</dd></div>
-              <div className="rounded-md bg-slate-50 p-2.5"><dt className="text-xs text-slate-500">{t("chat.device")}</dt><dd className="mt-1 truncate font-semibold text-slate-800">{visitorDevice(active)}</dd></div>
-              <div className="rounded-md bg-slate-50 p-2.5"><dt className="text-xs text-slate-500">{t("chat.channel")}</dt><dd className="mt-1 truncate font-semibold text-slate-800">{active?.channel || "Website chatbot"}</dd></div>
-              <div className="rounded-md bg-slate-50 p-2.5"><dt className="text-xs text-slate-500">{t("chat.encryption")}</dt><dd className="mt-1 font-semibold text-slate-800">{t("aiSettings.states.enabled")}</dd></div>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-2.5"><dt className="text-xs text-slate-500">{t("chat.visitorPage")}</dt><dd className="mt-1 truncate font-semibold text-slate-800" title={visitorPage(active)}>{visitorPage(active)}</dd></div>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-2.5"><dt className="text-xs text-slate-500">{t("chat.device")}</dt><dd className="mt-1 truncate font-semibold text-slate-800">{visitorDevice(active)}</dd></div>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-2.5"><dt className="text-xs text-slate-500">{t("chat.channel")}</dt><dd className="mt-1 truncate font-semibold text-slate-800">{active?.channel || "Website chatbot"}</dd></div>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-2.5"><dt className="text-xs text-slate-500">{t("chat.encryption")}</dt><dd className="mt-1 font-semibold text-slate-800">{t("aiSettings.states.enabled")}</dd></div>
             </dl>
           </div>
         </aside>

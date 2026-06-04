@@ -62,10 +62,20 @@ export function mergeMessages(currentMessages = [], incomingMessages = []) {
 
 export function resolveFileUrl(fileUrl = "") {
   if (!fileUrl || fileUrl === "#") return fileUrl || "";
-  if (/^(https?:|data:|blob:)/i.test(fileUrl)) return fileUrl;
+  if (/^(data:|blob:)/i.test(fileUrl)) return fileUrl;
+  if (/^https?:/i.test(fileUrl)) {
+    try {
+      const url = new URL(fileUrl);
+      url.pathname = url.pathname.replace(/^\/api\/uploads(?=\/|$)/, "/uploads");
+      return url.toString();
+    } catch {
+      return fileUrl.replace(/\/api\/uploads(?=\/|$)/, "/uploads");
+    }
+  }
 
-  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+  const apiUrl = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://localhost:5000/api";
   const serverUrl = (import.meta.env.VITE_SERVER_URL || import.meta.env.VITE_SOCKET_URL || apiUrl.replace(/\/api\/?$/, "")).replace(/\/$/, "");
-  const path = fileUrl.startsWith("/") ? fileUrl : `/${fileUrl}`;
+  const rawPath = fileUrl.startsWith("/") ? fileUrl : `/${fileUrl}`;
+  const path = rawPath.replace(/^\/api\/uploads(?=\/|$)/, "/uploads");
   return `${serverUrl}${path}`;
 }

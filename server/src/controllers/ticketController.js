@@ -55,10 +55,7 @@ async function pickAgentForTicket(category = "General") {
       role: "AGENT",
       isActive: true,
       agentStatus: { not: "OFFLINE" },
-      OR: [
-        { categories: { has: category } },
-        { categories: { has: "General" } },
-      ],
+      categories: { has: category },
     },
     select: {
       id: true,
@@ -80,11 +77,15 @@ async function pickAgentForTicket(category = "General") {
   return ranked[0]?.id || null;
 }
 
+function agentCategories(user) {
+  return Array.isArray(user?.categories) && user.categories.length ? user.categories : ["General"];
+}
+
 function canAccessTicket(user, ticket) {
   if (!user || !ticket) return false;
   if (user.role === "ADMIN") return true;
   if (user.role === "CUSTOMER") return ticket.customerId === user.id;
-  if (user.role === "AGENT") return ticket.agentId === user.id || !ticket.agentId;
+  if (user.role === "AGENT") return ticket.agentId === user.id || (!ticket.agentId && agentCategories(user).includes(ticket.category));
   return false;
 }
 
@@ -129,7 +130,11 @@ export async function createTicket(req, res, next) {
 export async function getTickets(req, res, next) {
   try {
     const { search, status, priority, agentId, customerId, dateFrom, dateTo, page, limit } = req.query;
-    const where = req.user.role === "CUSTOMER" ? { customerId: req.user.id } : req.user.role === "AGENT" ? { AND: [{ OR: [{ agentId: req.user.id }, { agentId: null }] }] } : {};
+    const where = req.user.role === "CUSTOMER"
+      ? { customerId: req.user.id }
+      : req.user.role === "AGENT"
+        ? { AND: [{ OR: [{ agentId: req.user.id }, { AND: [{ agentId: null }, { category: { in: agentCategories(req.user) } }] }] }] }
+        : {};
     if (status) where.status = status;
     if (priority) where.priority = priority;
     if (agentId && req.user.role === "ADMIN") where.agentId = agentId;

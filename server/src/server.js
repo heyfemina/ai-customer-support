@@ -28,11 +28,19 @@ import { errorHandler, notFound } from "./middleware/errorMiddleware.js";
 import chatSocket from "./sockets/chatSocket.js";
 import { assertEncryptionReady } from "./utils/encryption.js";
 
-const defaultClientUrl = "http://localhost:5173,http://127.0.0.1:5173";
-const allowedOrigins = (process.env.CLIENT_URLS || process.env.CLIENT_URL || defaultClientUrl)
+const localClientUrls = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://localhost:5175",
+  "http://127.0.0.1:5173",
+  "http://127.0.0.1:5174",
+  "http://127.0.0.1:5175",
+];
+const configuredClientUrls = (process.env.CLIENT_URLS || process.env.CLIENT_URL || localClientUrls.join(","))
   .split(",")
   .map((origin) => origin.trim().replace(/\/$/, ""))
   .filter(Boolean);
+const allowedOrigins = Array.from(new Set([...configuredClientUrls, ...localClientUrls]));
 const corsOptions = {
   origin(origin, callback) {
     if (!origin) return callback(null, true);

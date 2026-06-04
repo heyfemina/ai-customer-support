@@ -36,6 +36,13 @@ export default function Users() {
     setError("");
     setModalOpen(true);
   };
+  const closeForm = () => {
+    setEditing(null);
+    setModalOpen(false);
+    setForm(emptyForm);
+    setError("");
+    setLoading(false);
+  };
   const saveUser = async () => {
     if (!form.name.trim() || !form.email.trim()) {
       setError("Name and email are required.");
@@ -123,14 +130,9 @@ export default function Users() {
       <Pagination page={page} pageSize={pageSize} total={filteredItems.length} itemLabel="users" onPageChange={setPage} onPageSizeChange={(value) => { setPageSize(value); setPage(1); }} />
       <Modal
         open={modalOpen}
-        title={editing ? "Edit user" : "Add user"}
-        onClose={() => {
-          setEditing(null);
-          setModalOpen(false);
-          setForm(emptyForm);
-          setError("");
-        }}
-        footer={<><Button variant="secondary" onClick={() => setForm(emptyForm)}>Reset</Button><Button loading={loading} onClick={saveUser}>Save user</Button></>}
+        title={editing ? "Edit user" : form.role === "AGENT" ? "Add agent" : "Add customer"}
+        onClose={closeForm}
+        footer={<><Button variant="secondary" onClick={closeForm}>Cancel</Button><Button loading={loading} onClick={saveUser}>{editing ? "Save user" : "Create user"}</Button></>}
       >
         <div className="grid gap-4">
           {error ? <p className="rounded-md border border-red-100 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">{error}</p> : null}

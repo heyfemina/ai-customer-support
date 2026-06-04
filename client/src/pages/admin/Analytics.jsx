@@ -3,10 +3,11 @@ import { Bar, BarChart, CartesianGrid, Legend, Line, LineChart, ResponsiveContai
 import { useTranslation } from "react-i18next";
 import api from "../../api/axios.js";
 import Card from "../../components/common/Card.jsx";
+import Badge from "../../components/common/Badge.jsx";
 import Button from "../../components/common/Button.jsx";
 import PageHeader from "../../components/common/PageHeader.jsx";
 import Table from "../../components/common/Table.jsx";
-import { normalizeItems, unwrapData } from "../../utils/helpers.js";
+import { formatDate, normalizeItems, unwrapData } from "../../utils/helpers.js";
 import { downloadReport } from "../../utils/downloadReport.js";
 
 export default function Analytics() {
@@ -64,11 +65,17 @@ export default function Analytics() {
     { label: "Avg resolution", value: `${sla?.averageResolutionMinutes ?? 0}m` },
   ];
   const slaColumns = [
-    { key: "subject", label: "Ticket", render: (ticket) => <span className="block max-w-72 truncate font-semibold text-slate-900">{ticket.subject}</span> },
-    { key: "priority", label: "Priority", align: "center" },
-    { key: "firstResponseMinutes", label: "First response", align: "center", render: (ticket) => ticket.firstResponseMinutes ?? "Pending" },
-    { key: "resolutionMinutes", label: "Resolution", align: "center", render: (ticket) => ticket.resolutionMinutes ?? "Pending" },
-    { key: "sla", label: "SLA", align: "center", render: (ticket) => <span className={ticket.slaBreached ? "font-bold text-red-700" : "font-bold text-green-700"}>{ticket.slaBreached ? "Breached" : "OK"}</span> },
+    { key: "id", label: "Ticket ID", render: (ticket) => <span className="font-mono text-xs font-semibold text-slate-600">{ticket.id?.slice(0, 8)}</span> },
+    { key: "customer", label: "Customer", render: (ticket) => <span className="block max-w-40 truncate font-semibold text-slate-800">{ticket.customer?.name || "Customer"}</span> },
+    { key: "agent", label: "Agent", render: (ticket) => <span className="block max-w-40 truncate font-semibold text-slate-800">{ticket.agent?.name || "Unassigned"}</span> },
+    { key: "category", label: "Category", align: "center", render: (ticket) => ticket.category || "General" },
+    { key: "priority", label: "Priority", align: "center", render: (ticket) => <Badge tone={["HIGH", "URGENT"].includes(ticket.priority) ? "red" : "slate"}>{ticket.priority}</Badge> },
+    { key: "status", label: "Status", align: "center", render: (ticket) => <Badge tone={ticket.status === "RESOLVED" || ticket.status === "CLOSED" ? "green" : "blue"}>{ticket.status}</Badge> },
+    { key: "firstResponseMinutes", label: "First Response", align: "center", render: (ticket) => ticket.firstResponseMinutes !== null ? `${ticket.firstResponseMinutes}m` : "Pending" },
+    { key: "resolutionMinutes", label: "Resolution", align: "center", render: (ticket) => ticket.resolutionMinutes !== null ? `${ticket.resolutionMinutes}m` : "Pending" },
+    { key: "slaTarget", label: "SLA Target", align: "center", render: () => "24h" },
+    { key: "sla", label: "SLA Status", align: "center", render: (ticket) => <Badge tone={ticket.slaBreached ? "red" : ticket.resolutionMinutes === null ? "amber" : "green"}>{ticket.slaBreached ? "Breached" : ticket.resolutionMinutes === null ? "Pending" : "Within SLA"}</Badge> },
+    { key: "createdAt", label: "Created At", align: "center", render: (ticket) => formatDate(ticket.createdAt) },
   ];
   const runExport = async (key, path, fileName) => {
     setExporting(key);
@@ -101,8 +108,19 @@ export default function Analytics() {
       </div>
       {sla?.tickets?.length ? (
         <Card className="mb-6 p-5">
-          <h2 className="mb-4 font-semibold text-slate-950">SLA monitoring</h2>
-          <Table columns={slaColumns} data={sla.tickets.slice(0, 8)} />
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="font-semibold text-slate-950">SLA monitoring</h2>
+              <p className="mt-1 text-sm text-slate-500">Ticket response and resolution performance by customer, agent, and category.</p>
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-center sm:grid-cols-4">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2"><p className="text-sm font-bold text-slate-950">{sla.totalTickets}</p><p className="text-[11px] font-semibold text-slate-500">Total</p></div>
+              <div className="rounded-xl border border-red-100 bg-red-50 px-3 py-2"><p className="text-sm font-bold text-red-700">{sla.breached}</p><p className="text-[11px] font-semibold text-red-600">Breached</p></div>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2"><p className="text-sm font-bold text-slate-950">{sla.averageFirstResponseMinutes}m</p><p className="text-[11px] font-semibold text-slate-500">First</p></div>
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2"><p className="text-sm font-bold text-slate-950">{sla.averageResolutionMinutes}m</p><p className="text-[11px] font-semibold text-slate-500">Resolve</p></div>
+            </div>
+          </div>
+          <Table columns={slaColumns} data={sla.tickets.slice(0, 12)} />
         </Card>
       ) : null}
       <div className="grid gap-6 xl:grid-cols-2">

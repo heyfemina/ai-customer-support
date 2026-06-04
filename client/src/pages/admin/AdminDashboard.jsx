@@ -128,23 +128,28 @@ export default function AdminDashboard() {
   return (
     <>
       <PageHeader title={t("dashboard.admin.title")} description={t("dashboard.admin.description")} />
-      <section className="mb-6 overflow-hidden rounded-lg border border-slate-200 bg-white p-5 text-slate-900 shadow-sm shadow-slate-200/60 sm:p-6">
+      <section className="mb-6 overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 text-slate-900 shadow-sm shadow-slate-200/70 sm:p-6">
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
-          <div>
-            <p className="text-sm font-semibold text-blue-700">{t("dashboard.sections.systemMonitoring")}</p>
-            <h2 className="mt-2 text-2xl font-bold text-slate-950">Support operations command center</h2>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">{t("dashboard.admin.description")}</p>
+          <div className="flex min-w-0 gap-4">
+            <div className="hidden h-12 w-12 shrink-0 place-items-center rounded-2xl bg-blue-600 text-white shadow-sm shadow-blue-600/20 sm:grid">
+              <BarChart3 className="h-6 w-6" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-blue-700">{t("dashboard.sections.systemMonitoring")}</p>
+              <h2 className="mt-2 text-2xl font-bold text-slate-950">Support operations command center</h2>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">{t("dashboard.admin.description")}</p>
+            </div>
           </div>
           <div className="grid gap-3 text-center sm:grid-cols-3 xl:w-[28rem]">
-            <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 shadow-sm shadow-slate-200/60">
               <p className="text-2xl font-bold text-slate-950">{report.tickets}</p>
               <p className="text-xs font-semibold text-slate-500">{t("dashboard.stats.totalTickets")}</p>
             </div>
-            <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 shadow-sm shadow-slate-200/60">
               <p className="text-2xl font-bold text-slate-950">{report.csat}%</p>
               <p className="text-xs font-semibold text-slate-500">{t("dashboard.stats.customerSatisfaction")}</p>
             </div>
-            <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 shadow-sm shadow-slate-200/60">
               <p className="text-2xl font-bold text-slate-950">{report.aiResolved}%</p>
               <p className="text-xs font-semibold text-slate-500">{t("dashboard.stats.aiResolvedTickets")}</p>
             </div>
