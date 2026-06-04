@@ -37,9 +37,9 @@ export default function ChatMessage({ message, currentUserId }) {
         {message.fileUrl ? (
           <div className="mb-2">
             {imageFile && fileHref !== "#" ? <img src={fileHref} alt={message.fileName || t("chat.sharedImage")} className="mb-2 h-36 w-full rounded-md object-cover" /> : null}
-            <a href={fileHref} target="_blank" rel="noreferrer" className={`flex items-center gap-2 rounded-md px-2 py-1.5 font-semibold no-underline ${mine ? "bg-blue-700 text-white" : "bg-slate-50 text-blue-700"}`}>
-              {imageFile ? <Paperclip className="h-4 w-4" /> : <Download className="h-4 w-4" />}
-              {displayFileName}
+            <a href={fileHref} target="_blank" rel="noreferrer" className={`flex min-w-0 items-center gap-2 rounded-md px-2 py-1.5 font-semibold no-underline ${mine ? "bg-blue-700 text-white" : "bg-slate-50 text-blue-700"}`}>
+              {imageFile ? <Paperclip className="h-4 w-4 shrink-0" /> : <Download className="h-4 w-4 shrink-0" />}
+              <span className="truncate">{displayFileName}</span>
             </a>
           </div>
         ) : null}

@@ -3,6 +3,12 @@ import i18n from "../i18n/index.js";
 
 const LanguageContext = createContext(null);
 const supportedLanguages = ["en", "it", "es", "fr"];
+export const languageOptions = [
+  { code: "en", label: "English" },
+  { code: "it", label: "Italian" },
+  { code: "es", label: "Spanish" },
+  { code: "fr", label: "French" },
+];
 const normalizeLanguage = (language) => supportedLanguages.includes(language) ? language : "en";
 
 export function LanguageProvider({ children }) {

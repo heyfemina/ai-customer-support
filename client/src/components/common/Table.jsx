@@ -19,7 +19,7 @@ export default function Table({ columns, data, empty, className }) {
                 <th
                   key={column.key}
                   className={cx(
-                    "h-11 whitespace-nowrap border-b border-slate-200 px-5 py-3 text-[11px] font-extrabold uppercase tracking-[0.08em] text-slate-500 first:pl-6 last:pr-6",
+                    "h-11 whitespace-nowrap border-b border-slate-200 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 first:pl-5 last:pr-5",
                     alignClasses[column.align || "left"],
                     column.headerClassName
                   )}
@@ -32,12 +32,12 @@ export default function Table({ columns, data, empty, className }) {
           <tbody>
             {data.length ? (
               data.map((row, index) => (
-                <tr key={row.id || index} className="group transition hover:bg-blue-50/35">
+                <tr key={row.id || index} className="group border-b border-slate-100 transition hover:bg-slate-50/70">
                   {columns.map((column) => (
                     <td
                       key={column.key}
                       className={cx(
-                        "h-14 border-b border-slate-100 px-5 py-3 align-middle text-sm leading-5 text-slate-700 first:pl-6 last:pr-6 group-last:border-b-0",
+                        "h-[52px] border-b border-slate-100 px-4 py-3 align-middle text-sm leading-5 text-slate-700 first:pl-5 last:pr-5 group-last:border-b-0",
                         column.nowrap === false ? "whitespace-normal" : "whitespace-nowrap",
                         alignClasses[column.align || "left"],
                         column.className

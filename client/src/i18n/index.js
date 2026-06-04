@@ -5,6 +5,10 @@ import it from "./it.json";
 import es from "./es.json";
 import fr from "./fr.json";
 
+const supportedLanguages = ["en", "it", "es", "fr"];
+const savedLanguage = localStorage.getItem("language");
+const initialLanguage = supportedLanguages.includes(savedLanguage) ? savedLanguage : "en";
+
 i18n.use(initReactI18next).init({
   resources: {
     en: { translation: en },
@@ -12,8 +16,9 @@ i18n.use(initReactI18next).init({
     es: { translation: es },
     fr: { translation: fr },
   },
-  lng: localStorage.getItem("language") || "en",
+  lng: initialLanguage,
   fallbackLng: "en",
+  returnEmptyString: false,
   interpolation: { escapeValue: false },
 });
 

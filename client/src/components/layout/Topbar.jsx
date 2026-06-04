@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Bell, ChevronDown, LogOut, Menu, Plus, Search, UserCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Button from "../common/Button.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
-import { useLanguage } from "../../context/LanguageContext.jsx";
+import { languageOptions, useLanguage } from "../../context/LanguageContext.jsx";
 import { useSocket } from "../../context/SocketContext.jsx";
 import { initials } from "../../utils/helpers.js";
 
@@ -15,6 +15,23 @@ export default function Topbar({ onMenu }) {
   const { notifications, clearNotifications } = useSocket();
   const navigate = useNavigate();
   const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef(null);
+
+  useEffect(() => {
+    const closeProfile = (event) => {
+      if (profileRef.current && !profileRef.current.contains(event.target)) setProfileOpen(false);
+    };
+    const closeOnEscape = (event) => {
+      if (event.key === "Escape") setProfileOpen(false);
+    };
+
+    document.addEventListener("mousedown", closeProfile);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("mousedown", closeProfile);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, []);
 
   const handleLogout = () => {
     setProfileOpen(false);
@@ -45,18 +62,16 @@ export default function Topbar({ onMenu }) {
         <select
           value={language}
           onChange={(event) => changeLanguage(event.target.value)}
-          className="h-10 max-w-[104px] rounded-md border border-slate-200 bg-white px-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 sm:max-w-none sm:px-3"
+          className="hidden h-10 rounded-md border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 focus:border-blue-400 focus:ring-4 focus:ring-blue-100 xl:block"
+          aria-label="Select language"
         >
-          <option value="en">EN - English</option>
-          <option value="it">IT - Italian</option>
-          <option value="es">ES - Spanish</option>
-          <option value="fr">FR - French</option>
+          {languageOptions.map((option) => <option key={option.code} value={option.code}>{option.label}</option>)}
         </select>
         <button className="relative grid h-10 w-10 place-items-center rounded-md border border-slate-200 bg-white text-slate-600 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-800" title={notifications[0]?.message || t("chat.notifications")} onClick={clearNotifications}>
           <Bell className="h-4 w-4" />
           {notifications.length ? <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500" /> : null}
         </button>
-        <div className="relative shrink-0">
+        <div className="relative shrink-0" ref={profileRef}>
           <button
             type="button"
             className="flex h-10 max-w-[210px] items-center gap-2 rounded-md border border-slate-200 bg-white py-1 pl-1 pr-2 text-left shadow-sm transition hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-blue-100 sm:max-w-[260px]"
@@ -72,14 +87,30 @@ export default function Topbar({ onMenu }) {
             <ChevronDown className={`h-4 w-4 shrink-0 text-slate-400 transition ${profileOpen ? "rotate-180" : ""}`} />
           </button>
           {profileOpen ? (
-            <div className="absolute right-0 mt-2 w-52 overflow-hidden rounded-md border border-slate-200 bg-white py-1 shadow-lg shadow-slate-900/10 ring-1 ring-slate-900/[0.03]" role="menu">
-              <div className="border-b border-slate-100 px-3 py-2 sm:hidden">
-                <p className="truncate text-sm font-semibold text-slate-950">{user?.name || "User"}</p>
-                <p className="text-xs font-medium uppercase text-slate-500">{userRole || "USER"}</p>
+            <div className="absolute right-0 z-50 mt-2 w-[min(18rem,calc(100vw-1rem))] overflow-hidden rounded-xl border border-slate-200 bg-white py-2 shadow-xl shadow-slate-900/12 ring-1 ring-slate-900/[0.03]" role="menu">
+              <div className="border-b border-slate-100 px-4 pb-3 pt-2">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-blue-600 text-sm font-bold text-white shadow-sm">{initials(user?.name)}</span>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-semibold text-slate-950">{user?.name || "User"}</p>
+                    <p className="truncate text-xs text-slate-500">{user?.email || userRole || "Signed in"}</p>
+                    <p className="mt-1 inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase text-slate-600">{userRole || "USER"}</p>
+                  </div>
+                </div>
+                <label className="mt-3 block">
+                  <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Language</span>
+                  <select
+                    value={language}
+                    onChange={(event) => changeLanguage(event.target.value)}
+                    className="h-10 w-full rounded-md border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
+                  >
+                    {languageOptions.map((option) => <option key={option.code} value={option.code}>{option.label}</option>)}
+                  </select>
+                </label>
               </div>
               <button
                 type="button"
-                className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-slate-950"
+                className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-slate-950"
                 onClick={() => {
                   setProfileOpen(false);
                   navigate(profilePath);
@@ -91,7 +122,7 @@ export default function Topbar({ onMenu }) {
               </button>
               <button
                 type="button"
-                className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-semibold text-red-600 transition hover:bg-red-50 hover:text-red-700"
+                className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm font-semibold text-red-600 transition hover:bg-red-50 hover:text-red-700"
                 onClick={handleLogout}
                 role="menuitem"
               >
