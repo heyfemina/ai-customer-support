@@ -165,12 +165,15 @@ export default function CustomerProfile() {
           <label><span className="app-label">Name</span><input className="app-field mt-1" defaultValue={user?.name} /></label>
           <label><span className="app-label">Email</span><input className="app-field mt-1" defaultValue={user?.email} /></label>
           <label><span className="app-label">Language</span><select value={language} onChange={(event) => changeLanguage(event.target.value)} className="app-field mt-1"><option value="en">English</option><option value="it">Italian</option><option value="es">Spanish</option><option value="fr">French</option></select></label>
-          <div className="rounded-md border border-slate-200 bg-slate-50 p-4">
-            <p className="font-semibold">Two-factor authentication</p>
-            <p className="mt-1 text-sm text-slate-500">Email OTP flow with development OTP display until SMTP is configured.</p>
-            <div className="mt-3 flex flex-wrap gap-2"><Button variant="secondary" onClick={toggle2FA}>{twoFactorOn ? "Disable 2FA" : "Enable 2FA"}</Button><Button variant="secondary" onClick={generateCodes}>Generate recovery codes</Button></div>
-            {recoveryCodes.length ? <div className="mt-3 rounded-md bg-slate-50 p-3 text-sm font-mono">{recoveryCodes.map((code) => <p key={code}>{code}</p>)}</div> : null}
-          </div>
+          {/*
+            Temporarily hidden while 2FA is paused.
+            <div className="rounded-md border border-slate-200 bg-slate-50 p-4">
+              <p className="font-semibold">Two-factor authentication</p>
+              <p className="mt-1 text-sm text-slate-500">Email OTP flow with development OTP display until SMTP is configured.</p>
+              <div className="mt-3 flex flex-wrap gap-2"><Button variant="secondary" onClick={toggle2FA}>{twoFactorOn ? "Disable 2FA" : "Enable 2FA"}</Button><Button variant="secondary" onClick={generateCodes}>Generate recovery codes</Button></div>
+              {recoveryCodes.length ? <div className="mt-3 rounded-md bg-slate-50 p-3 text-sm font-mono">{recoveryCodes.map((code) => <p key={code}>{code}</p>)}</div> : null}
+            </div>
+          */}
           <div className="rounded-md border border-slate-200 bg-slate-50 p-4">
             <p className="font-semibold">Privacy requests</p>
             <p className="mt-1 text-sm text-slate-500">Request export or deletion review under GDPR workflow.</p>

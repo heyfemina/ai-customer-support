@@ -13,7 +13,8 @@ const controls = [
   { id: "auth", state: "Active" },
   { id: "roles", state: "Active" },
   { id: "encryption", state: "Active" },
-  { id: "twoFactor", state: "Ready" },
+  // Temporarily hidden while 2FA is paused.
+  // { id: "twoFactor", state: "Ready" },
   { id: "backup", state: "Ready" },
   { id: "activity", state: "Active" },
   { id: "gdpr", state: "Ready" },

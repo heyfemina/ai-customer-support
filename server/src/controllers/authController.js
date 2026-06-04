@@ -144,10 +144,11 @@ export async function login(req, res, next) {
     if (!user.isActive) {
       return res.status(403).json({ success: false, message: "This account is inactive. Contact an administrator." });
     }
-    if (user.twoFactorOn) {
-      const { password: _, ...safeUser } = user;
-      return success(res, { user: safeUser, ...(await createTwoFactorChallenge(user, req)) }, "Two-factor verification required");
-    }
+    // Temporarily disabled: skip the email OTP challenge even when twoFactorOn is true.
+    // if (user.twoFactorOn) {
+    //   const { password: _, ...safeUser } = user;
+    //   return success(res, { user: safeUser, ...(await createTwoFactorChallenge(user, req)) }, "Two-factor verification required");
+    // }
     await prisma.activityLog.create({ data: { userId: user.id, action: "Logged in", ipAddress: req.ip } });
     const { password: _, ...safeUser } = user;
     success(res, { user: safeUser, token: generateToken(user) }, "Logged in successfully");

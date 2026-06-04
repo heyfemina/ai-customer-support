@@ -1,4 +1,5 @@
-import { Bell, ChevronDown, LogOut, Menu, Plus, Search } from "lucide-react";
+import { useState } from "react";
+import { Bell, ChevronDown, LogOut, Menu, Plus, Search, UserCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Button from "../common/Button.jsx";
@@ -13,14 +14,18 @@ export default function Topbar({ onMenu }) {
   const { t } = useTranslation();
   const { notifications, clearNotifications } = useSocket();
   const navigate = useNavigate();
+  const [profileOpen, setProfileOpen] = useState(false);
 
   const handleLogout = () => {
+    setProfileOpen(false);
     logout();
     navigate("/login");
   };
 
-  const quickActionPath = user?.role === "CUSTOMER" ? "/customer/tickets/create" : user?.role === "AGENT" ? "/agent/live-chats" : "/admin/tickets";
-  const quickActionLabel = user?.role === "CUSTOMER" ? "New ticket" : user?.role === "AGENT" ? "Open queue" : "Review tickets";
+  const userRole = String(user?.role || "").toUpperCase();
+  const quickActionPath = userRole === "CUSTOMER" ? "/customer/tickets/create" : userRole === "AGENT" ? "/agent/live-chats" : "/admin/tickets";
+  const quickActionLabel = userRole === "CUSTOMER" ? "New ticket" : userRole === "AGENT" ? "Open queue" : "Review tickets";
+  const profilePath = userRole === "CUSTOMER" ? "/customer/profile" : userRole === "AGENT" ? "/agent/dashboard" : "/admin/security";
 
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-3 border-b border-slate-200 bg-white/95 px-4 shadow-sm backdrop-blur-xl lg:px-8">
@@ -51,18 +56,51 @@ export default function Topbar({ onMenu }) {
           <Bell className="h-4 w-4" />
           {notifications.length ? <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-red-500" /> : null}
         </button>
-        <div className="hidden min-w-0 items-center gap-3 rounded-md border border-slate-200 bg-white py-1 pl-1 pr-2 shadow-sm sm:flex">
-          <div className="grid h-9 w-9 place-items-center rounded-md bg-blue-600 text-sm font-bold text-white shadow-sm">{initials(user?.name)}</div>
-          <div className="min-w-0 leading-tight">
-            <p className="max-w-32 truncate text-sm font-semibold text-slate-950 xl:max-w-44">{user?.name}</p>
-            <p className="max-w-40 truncate text-xs text-slate-500">{user?.email}</p>
-          </div>
-          <span className="hidden rounded-full bg-blue-50 px-2 py-1 text-[11px] font-bold uppercase text-blue-700 xl:inline-flex">{user?.role}</span>
-          <ChevronDown className="h-4 w-4 text-slate-400" />
+        <div className="relative shrink-0">
+          <button
+            type="button"
+            className="flex h-10 max-w-[210px] items-center gap-2 rounded-md border border-slate-200 bg-white py-1 pl-1 pr-2 text-left shadow-sm transition hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-4 focus:ring-blue-100 sm:max-w-[260px]"
+            onClick={() => setProfileOpen((open) => !open)}
+            aria-haspopup="menu"
+            aria-expanded={profileOpen}
+          >
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-blue-600 text-xs font-bold text-white shadow-sm">{initials(user?.name)}</span>
+            <span className="hidden min-w-0 leading-tight sm:block">
+              <span className="block max-w-32 truncate text-sm font-semibold text-slate-950 xl:max-w-40">{user?.name || "User"}</span>
+              <span className="block text-xs font-medium uppercase text-slate-500">{userRole || "USER"}</span>
+            </span>
+            <ChevronDown className={`h-4 w-4 shrink-0 text-slate-400 transition ${profileOpen ? "rotate-180" : ""}`} />
+          </button>
+          {profileOpen ? (
+            <div className="absolute right-0 mt-2 w-52 overflow-hidden rounded-md border border-slate-200 bg-white py-1 shadow-lg shadow-slate-900/10 ring-1 ring-slate-900/[0.03]" role="menu">
+              <div className="border-b border-slate-100 px-3 py-2 sm:hidden">
+                <p className="truncate text-sm font-semibold text-slate-950">{user?.name || "User"}</p>
+                <p className="text-xs font-medium uppercase text-slate-500">{userRole || "USER"}</p>
+              </div>
+              <button
+                type="button"
+                className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-slate-950"
+                onClick={() => {
+                  setProfileOpen(false);
+                  navigate(profilePath);
+                }}
+                role="menuitem"
+              >
+                <UserCircle className="h-4 w-4 text-slate-400" />
+                Profile
+              </button>
+              <button
+                type="button"
+                className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-sm font-semibold text-red-600 transition hover:bg-red-50 hover:text-red-700"
+                onClick={handleLogout}
+                role="menuitem"
+              >
+                <LogOut className="h-4 w-4" />
+                Logout
+              </button>
+            </div>
+          ) : null}
         </div>
-        <Button variant="ghost" className="h-10 w-10 p-0" onClick={handleLogout} aria-label="Logout">
-          <LogOut className="h-4 w-4" />
-        </Button>
       </div>
     </header>
   );

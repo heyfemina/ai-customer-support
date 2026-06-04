@@ -9,14 +9,16 @@ import Button from "../common/Button.jsx";
 export default function TicketCard({ ticket, basePath = "/customer/tickets" }) {
   return (
     <Card className="p-5 transition hover:border-slate-300 hover:shadow-md">
-      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 pb-4">
-        <div className="min-w-0">
-          <Link to={`${basePath}/${ticket.id}`} className="font-semibold text-slate-900 hover:text-blue-700">
+      <div className="flex items-start justify-between gap-3 border-b border-slate-100 pb-4">
+        <div className="min-w-0 flex-1">
+          <Link to={`${basePath}/${ticket.id}`} className="block truncate font-semibold text-slate-900 hover:text-blue-700" title={ticket.subject}>
             {ticket.subject}
           </Link>
           <p className="mt-1 line-clamp-2 text-sm text-slate-500">{ticket.description}</p>
         </div>
-        <TicketStatusBadge status={ticket.status} />
+        <div className="shrink-0">
+          <TicketStatusBadge status={ticket.status} />
+        </div>
       </div>
       <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-500">
         <Badge tone={ticket.priority === "URGENT" || ticket.priority === "HIGH" ? "red" : "slate"}>{ticket.priority}</Badge>

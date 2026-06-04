@@ -8,7 +8,19 @@ import { Paperclip } from "lucide-react";
 export default function TicketTable({ tickets, basePath = "/admin/tickets" }) {
   const columns = [
     { key: "id", label: "Ticket ID", render: (row) => <span className="font-mono text-xs text-slate-600">{row.id.slice(0, 8)}</span> },
-    { key: "subject", labelKey: "table.subject", render: (row) => <Link className="font-semibold text-blue-700 hover:text-blue-900" to={`${basePath}/${row.id}`}>{row.subject}</Link> },
+    {
+      key: "subject",
+      labelKey: "table.subject",
+      render: (row) => (
+        <Link
+          className="block max-w-[260px] truncate font-semibold text-blue-700 hover:text-blue-900"
+          title={row.subject}
+          to={`${basePath}/${row.id}`}
+        >
+          {row.subject}
+        </Link>
+      ),
+    },
     { key: "customer", labelKey: "table.customer", render: (row) => <div><p className="font-semibold text-slate-800">{row.customer?.name || row.customerName || "Customer"}</p><p className="text-xs text-slate-500">{row.customer?.email}</p></div> },
     { key: "agent", labelKey: "table.agent", render: (row) => <div><p className="font-semibold text-slate-800">{row.agent?.name || row.agentName || "Unassigned"}</p><p className="text-xs text-slate-500">{row.agent?.email}</p></div> },
     { key: "category", label: "Category", render: (row) => row.category },
