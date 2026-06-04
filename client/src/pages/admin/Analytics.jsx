@@ -65,10 +65,10 @@ export default function Analytics() {
   ];
   const slaColumns = [
     { key: "subject", label: "Ticket", render: (ticket) => <span className="block max-w-72 truncate font-semibold text-slate-900">{ticket.subject}</span> },
-    { key: "priority", label: "Priority" },
-    { key: "firstResponseMinutes", label: "First response", render: (ticket) => ticket.firstResponseMinutes ?? "Pending" },
-    { key: "resolutionMinutes", label: "Resolution", render: (ticket) => ticket.resolutionMinutes ?? "Pending" },
-    { key: "sla", label: "SLA", render: (ticket) => <span className={ticket.slaBreached ? "font-bold text-red-700" : "font-bold text-green-700"}>{ticket.slaBreached ? "Breached" : "OK"}</span> },
+    { key: "priority", label: "Priority", align: "center" },
+    { key: "firstResponseMinutes", label: "First response", align: "center", render: (ticket) => ticket.firstResponseMinutes ?? "Pending" },
+    { key: "resolutionMinutes", label: "Resolution", align: "center", render: (ticket) => ticket.resolutionMinutes ?? "Pending" },
+    { key: "sla", label: "SLA", align: "center", render: (ticket) => <span className={ticket.slaBreached ? "font-bold text-red-700" : "font-bold text-green-700"}>{ticket.slaBreached ? "Breached" : "OK"}</span> },
   ];
   const runExport = async (key, path, fileName) => {
     setExporting(key);

@@ -24,11 +24,11 @@ export default function ActivityLogs() {
 
   const columns = [
     { key: "user", label: "User", render: (row) => row.user?.name || row.user || "System" },
-    { key: "role", label: "Role", render: (row) => row.user?.role || "System" },
+    { key: "role", label: "Role", align: "center", render: (row) => row.user?.role || "System" },
     { key: "email", label: "Email", render: (row) => row.user?.email || "-" },
     { key: "action", label: "Action" },
     { key: "ipAddress", label: "IP address" },
-    { key: "createdAt", label: "Date", render: (row) => formatDate(row.createdAt) },
+    { key: "createdAt", label: "Date", align: "center", render: (row) => formatDate(row.createdAt) },
   ];
   const pagedItems = items.slice((page - 1) * pageSize, page * pageSize);
   const updateFilters = (patch) => {

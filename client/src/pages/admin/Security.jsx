@@ -149,25 +149,28 @@ export default function Security() {
 
   const readiness = health?.readiness || {};
   const backupColumns = [
-    { key: "fileName", label: "File", render: (backup) => <span className="block max-w-56 whitespace-normal font-semibold text-slate-800">{backup.fileName}</span> },
+    { key: "fileName", label: "File", nowrap: false, render: (backup) => <span className="block max-w-56 font-semibold leading-5 text-slate-800">{backup.fileName}</span> },
     { key: "provider", label: "Provider", render: (backup) => <span className="capitalize">{backup.provider}</span> },
     {
       key: "status",
       label: "Status",
+      align: "center",
+      nowrap: false,
       render: (backup) => (
-        <div>
+        <div className="inline-block text-center">
           <Badge tone={backup.status === "SUCCESS" ? "green" : backup.status === "FAILED" ? "red" : "amber"}>{backup.status}</Badge>
           {backup.errorMessage ? <p className="mt-1 max-w-56 whitespace-normal text-xs font-semibold text-red-600">{backup.errorMessage}</p> : null}
         </div>
       ),
     },
-    { key: "sizeBytes", label: "Size", render: (backup) => formatBytes(backup.sizeBytes) },
-    { key: "createdAt", label: "Created", render: (backup) => formatDate(backup.createdAt) },
+    { key: "sizeBytes", label: "Size", align: "center", render: (backup) => formatBytes(backup.sizeBytes) },
+    { key: "createdAt", label: "Created", align: "center", render: (backup) => formatDate(backup.createdAt) },
     {
       key: "actions",
       label: "Actions",
+      align: "center",
       render: (backup) => (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center justify-center gap-2">
           <Button size="sm" variant="secondary" disabled={backup.status !== "SUCCESS"} onClick={() => downloadBackup(backup)}>Download</Button>
           <Button size="sm" variant="danger" loading={deletingBackupId === backup.id} onClick={() => deleteBackup(backup)}>Delete</Button>
         </div>

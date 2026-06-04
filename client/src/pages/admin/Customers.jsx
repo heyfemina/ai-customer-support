@@ -18,11 +18,11 @@ export default function Customers() {
   const columns = [
     { key: "name", label: "Customer" },
     { key: "email", label: "Email" },
-    { key: "tickets", label: "Tickets", render: (row) => row.ticketCount ?? row.tickets?.length ?? 0 },
-    { key: "feedbackCount", label: "Feedback", render: (row) => row.feedbackCount ?? 0 },
-    { key: "complaintCount", label: "Complaints", render: (row) => row.complaintCount ?? 0 },
-    { key: "activeChats", label: "Active chats", render: (row) => row.activeChats ?? 0 },
-    { key: "plan", label: "Plan", render: () => <Badge tone="blue">Business</Badge> },
+    { key: "tickets", label: "Tickets", align: "center", render: (row) => row.ticketCount ?? row.tickets?.length ?? 0 },
+    { key: "feedbackCount", label: "Feedback", align: "center", render: (row) => row.feedbackCount ?? 0 },
+    { key: "complaintCount", label: "Complaints", align: "center", render: (row) => row.complaintCount ?? 0 },
+    { key: "activeChats", label: "Active chats", align: "center", render: (row) => row.activeChats ?? 0 },
+    { key: "plan", label: "Plan", align: "center", render: () => <Badge tone="blue">Business</Badge> },
   ];
   return (
     <>

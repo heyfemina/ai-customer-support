@@ -7,7 +7,7 @@ import Card from "../../components/common/Card.jsx";
 import PageHeader from "../../components/common/PageHeader.jsx";
 import StatCard from "../../components/common/StatCard.jsx";
 import TicketTable from "../../components/tickets/TicketTable.jsx";
-import { unwrapData } from "../../utils/helpers.js";
+import { normalizeItems, unwrapData } from "../../utils/helpers.js";
 
 const pieColors = ["#1E3A8A", "#16A34A", "#F59E0B", "#DC2626"];
 const monitorToneClasses = {
@@ -35,12 +35,70 @@ function emptyReport() {
   };
 }
 
+function buildTicketFallbackReport(tickets = [], baseReport = emptyReport()) {
+  const monthlyMap = new Map();
+  const ratings = tickets.map((ticket) => Number(ticket.feedbackRating || 0)).filter(Boolean);
+
+  for (const ticket of tickets) {
+    const month = new Intl.DateTimeFormat("en", { month: "short" }).format(new Date(ticket.createdAt));
+    const current = monthlyMap.get(month) || { month, tickets: 0, resolved: 0 };
+    current.tickets += 1;
+    if (["RESOLVED", "CLOSED"].includes(ticket.status)) current.resolved += 1;
+    monthlyMap.set(month, current);
+  }
+
+  return {
+    ...emptyReport(),
+    ...baseReport,
+    tickets: tickets.length,
+    open: tickets.filter((ticket) => ticket.status === "OPEN").length,
+    resolved: tickets.filter((ticket) => ["RESOLVED", "CLOSED"].includes(ticket.status)).length,
+    complaints: tickets.filter((ticket) => ticket.complaintStatus && ticket.complaintStatus !== "NONE").length,
+    csat: ratings.length ? Math.round((ratings.filter((rating) => rating >= 4).length / ratings.length) * 100) : baseReport.csat || 0,
+    agentRating: ratings.length ? (ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length).toFixed(1) : baseReport.agentRating || "N/A",
+    monthlyTickets: Array.from(monthlyMap.values()),
+    satisfaction: [
+      { name: "Very happy", value: ratings.filter((rating) => rating === 5).length },
+      { name: "Happy", value: ratings.filter((rating) => rating === 4).length },
+      { name: "Neutral", value: ratings.filter((rating) => rating === 3).length },
+      { name: "Unhappy", value: ratings.filter((rating) => rating <= 2).length },
+    ],
+    recentTickets: [...tickets].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)).slice(0, 6),
+  };
+}
+
 export default function AdminDashboard() {
   const { t } = useTranslation();
   const [report, setReport] = useState(() => emptyReport());
 
   useEffect(() => {
-    api.get("/reports/dashboard").then(({ data }) => setReport(unwrapData(data) || emptyReport())).catch(() => setReport(emptyReport()));
+    let active = true;
+
+    async function loadDashboard() {
+      try {
+        const { data } = await api.get("/reports/dashboard");
+        const dashboard = unwrapData(data);
+        if (dashboard && active) {
+          setReport({ ...emptyReport(), ...dashboard });
+          return;
+        }
+      } catch {
+        // Fall back to tickets below so the deployed dashboard does not render empty.
+      }
+
+      try {
+        const { data } = await api.get("/tickets");
+        const tickets = normalizeItems(data, []);
+        if (active) setReport(buildTicketFallbackReport(tickets));
+      } catch {
+        if (active) setReport(emptyReport());
+      }
+    }
+
+    loadDashboard();
+    return () => {
+      active = false;
+    };
   }, []);
 
   const chartData = report?.monthlyTickets || [];

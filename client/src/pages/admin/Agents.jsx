@@ -18,14 +18,14 @@ export default function Agents() {
   const columns = [
     { key: "name", label: "Agent" },
     { key: "email", label: "Email" },
-    { key: "assignedTickets", label: "Assigned", render: (row) => row.assignedTickets ?? row.assigned?.length ?? 0 },
-    { key: "resolvedTickets", label: "Resolved", render: (row) => row.resolvedTickets ?? 0 },
-    { key: "avgFirstResponseMinutes", label: "First response", render: (row) => row.avgFirstResponseMinutes ? `${row.avgFirstResponseMinutes}m` : "N/A" },
-    { key: "avgResolutionMinutes", label: "Resolution", render: (row) => row.avgResolutionMinutes ? `${row.avgResolutionMinutes}m` : "N/A" },
-    { key: "complaintCount", label: "Complaints", render: (row) => row.complaintCount ?? 0 },
-    { key: "rating", label: "Rating", render: (row) => `${row.rating || "N/A"}/5` },
-    { key: "activeChats", label: "Active chats", render: (row) => row.activeChats ?? 0 },
-    { key: "status", label: "Status", render: (row) => <Badge tone={row.isActive === false ? "red" : "green"}>{row.isActive === false ? "Inactive" : "Available"}</Badge> },
+    { key: "assignedTickets", label: "Assigned", align: "center", render: (row) => row.assignedTickets ?? row.assigned?.length ?? 0 },
+    { key: "resolvedTickets", label: "Resolved", align: "center", render: (row) => row.resolvedTickets ?? 0 },
+    { key: "avgFirstResponseMinutes", label: "First response", align: "center", render: (row) => row.avgFirstResponseMinutes ? `${row.avgFirstResponseMinutes}m` : "N/A" },
+    { key: "avgResolutionMinutes", label: "Resolution", align: "center", render: (row) => row.avgResolutionMinutes ? `${row.avgResolutionMinutes}m` : "N/A" },
+    { key: "complaintCount", label: "Complaints", align: "center", render: (row) => row.complaintCount ?? 0 },
+    { key: "rating", label: "Rating", align: "center", render: (row) => `${row.rating || "N/A"}/5` },
+    { key: "activeChats", label: "Active chats", align: "center", render: (row) => row.activeChats ?? 0 },
+    { key: "status", label: "Status", align: "center", render: (row) => <Badge tone={row.isActive === false ? "red" : "green"}>{row.isActive === false ? "Inactive" : "Available"}</Badge> },
   ];
   const available = agents.filter((agent) => agent.isActive !== false).length;
   return (

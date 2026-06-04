@@ -95,9 +95,9 @@ export default function Users() {
   const columns = [
     { key: "name", label: "Name" },
     { key: "email", label: "Email" },
-    { key: "role", label: "Role", render: (row) => <Badge tone={row.role === "ADMIN" ? "violet" : row.role === "AGENT" ? "blue" : "green"}>{row.role}</Badge> },
-    { key: "isActive", label: "Status", render: (row) => <Badge tone={row.isActive ? "green" : "red"}>{row.isActive ? "Active" : "Inactive"}</Badge> },
-    { key: "actions", label: "Actions", render: (row) => row.role === "ADMIN" ? <span className="text-sm font-semibold text-slate-500">Seed admin</span> : <div className="flex gap-2"><Button variant="secondary" onClick={() => openForm(row)}>Edit</Button><Button variant={row.isActive ? "danger" : "secondary"} onClick={() => toggleStatus(row)}>{row.isActive ? "Deactivate" : "Activate"}</Button></div> },
+    { key: "role", label: "Role", align: "center", render: (row) => <Badge tone={row.role === "ADMIN" ? "violet" : row.role === "AGENT" ? "blue" : "green"}>{row.role}</Badge> },
+    { key: "isActive", label: "Status", align: "center", render: (row) => <Badge tone={row.isActive ? "green" : "red"}>{row.isActive ? "Active" : "Inactive"}</Badge> },
+    { key: "actions", label: "Actions", align: "center", render: (row) => row.role === "ADMIN" ? <span className="text-sm font-semibold text-slate-500">Seed admin</span> : <div className="flex items-center justify-center gap-2"><Button variant="secondary" onClick={() => openForm(row)}>Edit</Button><Button variant={row.isActive ? "danger" : "secondary"} onClick={() => toggleStatus(row)}>{row.isActive ? "Deactivate" : "Activate"}</Button></div> },
   ];
   const activeUsers = items.filter((item) => item.isActive).length;
   return (
