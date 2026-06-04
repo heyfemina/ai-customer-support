@@ -283,7 +283,7 @@ export default function AgentLiveChats() {
       </div>
 
       <div className="support-workspace support-workspace-agent">
-        <div className="support-chat-shell agent-chat-shell flex min-h-[640px] min-w-0 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm md:flex-row">
+        <div className="support-chat-shell agent-chat-shell flex min-h-[560px] min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-[0_14px_34px_rgba(15,23,42,0.07)] md:flex-row xl:h-[calc(100vh-17rem)] xl:min-h-[520px] xl:max-h-[720px]">
           <ChatSidebar sessions={sessions} activeId={active?.id} onSelect={selectSession} showMetrics={false} />
           <ChatWindow
             session={active}
@@ -295,7 +295,7 @@ export default function AgentLiveChats() {
             onSend={sendMessage}
           />
         </div>
-        <aside className="support-inspector agent-inspector rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+        <aside className="support-inspector agent-inspector rounded-2xl border border-slate-300 bg-white p-4 shadow-[0_14px_34px_rgba(15,23,42,0.07)]">
           <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
             <div className="grid h-9 w-9 place-items-center rounded-md bg-blue-50 text-blue-700 ring-1 ring-blue-100">
               <UserCheck className="h-5 w-5" />

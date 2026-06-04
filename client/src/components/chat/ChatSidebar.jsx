@@ -71,7 +71,7 @@ export default function ChatSidebar({ sessions, activeId, onSelect, showMetrics 
           <Search className="h-4 w-4 text-slate-400" />
           <input className="min-w-0 flex-1 border-0 bg-transparent text-sm outline-none focus:shadow-none" placeholder="Search chats" value={query} onChange={(event) => setQuery(event.target.value)} />
         </div>
-        <div className="app-scrollbar mt-2.5 flex gap-1.5 overflow-x-auto pb-1">
+        <div className="mt-2.5 flex flex-wrap gap-1.5">
           {filters.map((item) => (
             <button
               key={item}

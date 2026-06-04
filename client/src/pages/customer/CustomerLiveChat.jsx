@@ -275,18 +275,18 @@ export default function CustomerLiveChat() {
         title={t("pages.customerLiveChat.title")}
         description={t("pages.customerLiveChat.description")}
         actions={
-          <div className="flex flex-wrap items-center gap-2">
-            <select className="app-field h-10 min-w-40 rounded-lg bg-white text-sm" value={chatCategory} onChange={(event) => setChatCategory(event.target.value)}>
+          <div className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:w-[24rem]">
+            <select className="app-field h-10 min-w-0 rounded-lg bg-white text-sm" value={chatCategory} onChange={(event) => setChatCategory(event.target.value)}>
               {chatCategories.map((category) => <option key={category} value={category}>{category}</option>)}
             </select>
-            <Button onClick={startChat} loading={startingChat}>{t("buttons.startChat")}</Button>
+            <Button className="whitespace-nowrap" onClick={startChat} loading={startingChat}>{t("buttons.startChat")}</Button>
           </div>
         }
       />
       {notice ? <p className={`mb-4 rounded-md border px-3 py-2 text-sm font-semibold ${noticeClass}`}>{notice}</p> : null}
       {ratingCard}
       <div className="grid items-start gap-5">
-        <div className="flex min-h-[660px] min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-[0_14px_34px_rgba(15,23,42,0.07)] md:flex-row xl:h-[calc(100vh-11rem)] xl:min-h-[680px] xl:max-h-[900px]">
+        <div className="flex min-h-[560px] min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-[0_14px_34px_rgba(15,23,42,0.07)] md:flex-row xl:h-[calc(100vh-15rem)] xl:min-h-[520px] xl:max-h-[760px]">
           <ChatSidebar sessions={sessions} activeId={active?.id} onSelect={selectSession} />
           <ChatWindow
             session={active}

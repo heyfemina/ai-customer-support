@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { LockKeyhole, Radio, Send, Users } from "lucide-react";
+import { LockKeyhole, MessageCircle, Radio, Send, Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import Button from "../common/Button.jsx";
 import Badge from "../common/Badge.jsx";
@@ -54,7 +54,7 @@ export default function ChatWindow({
 
   return (
     <div className="support-chat-window flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white">
-      <div className="support-chat-header shrink-0 border-b border-slate-200 bg-white px-4 py-3.5 sm:px-5">
+      <div className="support-chat-header shrink-0 border-b border-slate-200 bg-white px-4 py-3 sm:px-5">
         <div className="flex min-w-0 flex-wrap items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-3">
@@ -89,9 +89,19 @@ export default function ChatWindow({
           </div>
         </div>
       </div>
-      <div className="support-message-wall app-scrollbar flex-1 space-y-3 overflow-y-auto bg-slate-50 p-4 sm:p-5">
+      <div className="support-message-wall app-scrollbar flex-1 space-y-3 overflow-y-auto bg-slate-50/80 p-4 sm:p-5">
         {session.status === "WAITING" ? <div className="mx-auto max-w-md rounded-lg border border-amber-100 bg-white p-4 text-center text-sm text-slate-600 shadow-sm"><p className="font-semibold text-slate-900">Waiting for an available agent</p><p className="mt-1 leading-6 text-slate-500">Your conversation is in the support queue. Messages are saved here while you wait.</p></div> : null}
-        {messages.length ? messages.map((message) => <ChatMessage key={message.id} message={message} currentUserId={currentUserId} />) : <p className="rounded-lg border border-dashed border-slate-200 bg-white p-5 text-center text-sm text-slate-500">{t("chat.noHistory")}</p>}
+        {messages.length ? messages.map((message) => <ChatMessage key={message.id} message={message} currentUserId={currentUserId} />) : (
+          <div className="grid min-h-[18rem] place-items-center">
+            <div className="max-w-md rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-500 shadow-sm">
+              <div className="mx-auto grid h-11 w-11 place-items-center rounded-full bg-blue-50 text-blue-700 ring-1 ring-blue-100">
+                <MessageCircle className="h-5 w-5" />
+              </div>
+              <p className="mt-3 font-semibold text-slate-950">{t("chat.noMessages")}</p>
+              <p className="mt-1 leading-6">{t("chat.noHistory")}</p>
+            </div>
+          </div>
+        )}
         {typingUsers.length ? <TypingIndicator name={typingUsers[0]?.name || "Someone"} /> : null}
         {afterMessages}
         <div ref={endRef} />

@@ -230,7 +230,7 @@ export default function Chats() {
         </div>
       </div>
       <div className="grid items-start gap-4 2xl:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="flex min-h-[620px] min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-[0_14px_34px_rgba(15,23,42,0.07)] md:flex-row xl:h-[calc(100vh-13.5rem)] xl:min-h-[640px] xl:max-h-[860px]">
+        <div className="flex min-h-[560px] min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-[0_14px_34px_rgba(15,23,42,0.07)] md:flex-row xl:h-[calc(100vh-17rem)] xl:min-h-[520px] xl:max-h-[720px]">
           <ChatSidebar sessions={sessions} activeId={active?.id} onSelect={selectSession} />
           <ChatWindow
             session={active}

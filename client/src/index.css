@@ -409,15 +409,15 @@ a {
 }
 
 .agent-chat-shell {
-  height: calc(100vh - 17.75rem);
-  min-height: 34rem;
-  max-height: 44rem;
+  height: calc(100vh - 17rem);
+  min-height: 32.5rem;
+  max-height: 45rem;
 }
 
 .agent-inspector {
-  height: calc(100vh - 17.75rem);
-  min-height: 34rem;
-  max-height: 44rem;
+  height: calc(100vh - 17rem);
+  min-height: 32.5rem;
+  max-height: 45rem;
   overflow-y: auto;
 }
 
@@ -429,7 +429,7 @@ a {
 }
 
 .support-chat-shell {
-  border-radius: 0.75rem;
+  border-radius: 1rem;
 }
 
 .support-queue-header,
@@ -491,7 +491,7 @@ a {
 }
 
 .support-inspector {
-  border-radius: 0.75rem;
+  border-radius: 1rem;
   background:
     linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
 }
