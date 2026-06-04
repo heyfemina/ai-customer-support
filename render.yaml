@@ -5,6 +5,7 @@ services:
     rootDir: server
     buildCommand: npm ci && npm run prisma:generate
     startCommand: npm start
+    healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
@@ -17,6 +18,10 @@ services:
       - key: DATABASE_URL
         sync: false
       - key: JWT_SECRET
+        sync: false
+      - key: ENCRYPTION_SECRET
+        sync: false
+      - key: API_KEY_ENCRYPTION_SECRET
         sync: false
       - key: OPENAI_API_KEY
         sync: false
