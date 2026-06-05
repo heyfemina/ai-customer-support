@@ -57,7 +57,7 @@ export default function ActivityLogs() {
           <input type="date" className="app-field" value={filters.dateTo} onChange={(event) => updateFilters({ dateTo: event.target.value })} />
         </div>
       </Card>
-      <Table columns={columns} data={pagedItems} />
+      <Table columns={columns} data={pagedItems} paginated={false} />
       <Pagination page={page} pageSize={pageSize} total={items.length} itemLabel="logs" onPageChange={setPage} onPageSizeChange={(value) => { setPageSize(value); setPage(1); }} />
     </>
   );

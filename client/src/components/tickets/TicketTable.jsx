@@ -5,7 +5,7 @@ import TicketStatusBadge from "./TicketStatusBadge.jsx";
 import { formatDate } from "../../utils/helpers.js";
 import { Paperclip } from "lucide-react";
 
-export default function TicketTable({ tickets, basePath = "/admin/tickets" }) {
+export default function TicketTable({ tickets, basePath = "/admin/tickets", paginated = true }) {
   const columns = [
     { key: "id", label: "Ticket ID", render: (row) => <span className="font-mono text-xs text-slate-600">{row.id.slice(0, 8)}</span> },
     {
@@ -33,5 +33,5 @@ export default function TicketTable({ tickets, basePath = "/admin/tickets" }) {
     { key: "action", label: "Action", align: "center", render: (row) => <Link className="ticket-action-link" to={`${basePath}/${row.id}`}>{basePath.includes("/agent") ? "Open" : "View"}</Link> },
   ];
 
-  return <Table columns={columns} data={tickets} empty="No tickets found" />;
+  return <Table columns={columns} data={tickets} empty="No tickets found" paginated={paginated} itemLabel="tickets" />;
 }

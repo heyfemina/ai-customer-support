@@ -8,6 +8,7 @@ import { useAuth } from "../../context/AuthContext.jsx";
 export default function DashboardLayout() {
   const [open, setOpen] = useState(false);
   const { user } = useAuth();
+  const role = String(user?.role || "").toUpperCase();
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-slate-50 text-slate-900">
@@ -22,7 +23,7 @@ export default function DashboardLayout() {
           </main>
         </div>
       </div>
-      {user?.role === "CUSTOMER" ? <AiChatBubble /> : null}
+      {role === "CUSTOMER" ? <AiChatBubble /> : null}
     </div>
   );
 }

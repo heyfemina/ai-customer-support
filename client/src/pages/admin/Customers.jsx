@@ -32,7 +32,7 @@ export default function Customers() {
         <Card className="p-4"><p className="text-sm font-semibold text-slate-500">Support tickets</p><p className="mt-2 text-2xl font-bold text-slate-950">{customers.reduce((total, customer) => total + Number(customer.ticketCount || customer.tickets?.length || 0), 0)}</p></Card>
         <Card className="p-4"><p className="text-sm font-semibold text-slate-500">Active chats</p><p className="mt-2 text-2xl font-bold text-slate-950">{customers.reduce((total, customer) => total + Number(customer.activeChats || 0), 0)}</p></Card>
       </div>
-      <Table columns={columns} data={pagedCustomers} />
+      <Table columns={columns} data={pagedCustomers} paginated={false} />
       <Pagination page={page} pageSize={pageSize} total={customers.length} itemLabel="customers" onPageChange={setPage} onPageSizeChange={(value) => { setPageSize(value); setPage(1); }} />
     </>
   );

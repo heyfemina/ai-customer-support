@@ -70,7 +70,7 @@ export default function Tickets() {
           <input type="date" className="app-field" value={filters.dateTo} onChange={(event) => updateFilter({ dateTo: event.target.value })} />
         </div>
       </Card>
-      <TicketTable tickets={items} />
+      <TicketTable tickets={items} paginated={false} />
       <Pagination page={pagination.page} pageSize={limit} total={pagination.total} itemLabel="tickets" onPageChange={setPage} onPageSizeChange={(value) => { setLimit(value); setPage(1); }} />
     </>
   );

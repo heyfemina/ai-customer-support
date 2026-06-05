@@ -36,7 +36,7 @@ export default function Agents() {
         <Card className="p-4"><p className="text-sm font-semibold text-slate-500">Available</p><p className="mt-2 text-2xl font-bold text-slate-950">{available}</p></Card>
         <Card className="p-4"><p className="text-sm font-semibold text-slate-500">Active chats</p><p className="mt-2 text-2xl font-bold text-slate-950">{agents.reduce((total, agent) => total + Number(agent.activeChats || 0), 0)}</p></Card>
       </div>
-      <Table columns={columns} data={pagedAgents} />
+      <Table columns={columns} data={pagedAgents} paginated={false} />
       <Pagination page={page} pageSize={pageSize} total={agents.length} itemLabel="agents" onPageChange={setPage} onPageSizeChange={(value) => { setPageSize(value); setPage(1); }} />
     </>
   );

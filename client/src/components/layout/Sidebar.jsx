@@ -52,7 +52,8 @@ const nav = {
 export default function Sidebar({ open, onClose }) {
   const { user } = useAuth();
   const { t } = useTranslation();
-  const items = nav[user?.role] || [];
+  const role = String(user?.role || "").toUpperCase();
+  const items = nav[role] || [];
 
   return (
     <>
@@ -70,7 +71,7 @@ export default function Sidebar({ open, onClose }) {
             </div>
             <div>
               <p className="text-sm font-bold text-slate-950">{t("appShortName")}</p>
-              <p className="text-xs font-semibold uppercase text-slate-500">{user?.role || t("workspace")}</p>
+              <p className="text-xs font-semibold uppercase text-slate-500">{role || t("workspace")}</p>
             </div>
           </div>
           <button className="rounded-md border border-slate-200 bg-white p-2 text-slate-600 shadow-sm hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 lg:hidden" onClick={onClose}>

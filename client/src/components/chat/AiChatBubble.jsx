@@ -1,6 +1,6 @@
 import { MessageCircle, X } from "lucide-react";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import api from "../../api/axios.js";
 import Button from "../common/Button.jsx";
 import { useLanguage } from "../../context/LanguageContext.jsx";
@@ -8,6 +8,7 @@ import { useSocket } from "../../context/SocketContext.jsx";
 
 export default function AiChatBubble() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { language } = useLanguage();
   const { pushNotification } = useSocket();
   const [open, setOpen] = useState(false);
@@ -16,6 +17,7 @@ export default function AiChatBubble() {
   const [loading, setLoading] = useState(false);
   const [transferLoading, setTransferLoading] = useState(false);
   const [notice, setNotice] = useState("");
+  const isCustomerLiveChat = location.pathname === "/customer/live-chat";
 
   const openAgentChat = async (content) => {
     const lastCustomerMessage = content || [...messages].reverse().find((message) => message.role === "You")?.content;
@@ -72,7 +74,7 @@ export default function AiChatBubble() {
   };
 
   return (
-    <div className="fixed bottom-5 right-5 z-50">
+    <div className={`fixed right-5 z-50 ${isCustomerLiveChat ? "bottom-24" : "bottom-5"}`}>
       {open ? (
         <div className="mb-3 flex h-[420px] w-[330px] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl">
           <div className="flex items-center justify-between bg-blue-900 px-4 py-3 text-white">

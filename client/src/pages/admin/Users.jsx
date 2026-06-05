@@ -126,7 +126,7 @@ export default function Users() {
           </select>
         </div>
       </Card>
-      <Table columns={columns} data={pagedItems} />
+      <Table columns={columns} data={pagedItems} paginated={false} />
       <Pagination page={page} pageSize={pageSize} total={filteredItems.length} itemLabel="users" onPageChange={setPage} onPageSizeChange={(value) => { setPageSize(value); setPage(1); }} />
       <Modal
         open={modalOpen}

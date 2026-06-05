@@ -8,16 +8,23 @@ const demoKeys = ["demo:tickets", "demo:users", "demo:chats", "demo:activity-log
 function readStoredUser() {
   try {
     const stored = localStorage.getItem("user");
-    return stored ? JSON.parse(stored) : null;
+    return stored ? normalizeAuthUser(JSON.parse(stored)) : null;
   } catch {
     localStorage.removeItem("user");
     return null;
   }
 }
 
+function normalizeAuthUser(authUser) {
+  if (!authUser) return null;
+  return { ...authUser, role: String(authUser.role || "").toUpperCase() };
+}
+
 function persistSession(authToken, authUser) {
+  const normalizedUser = normalizeAuthUser(authUser);
   localStorage.setItem("token", authToken);
-  localStorage.setItem("user", JSON.stringify(authUser));
+  localStorage.setItem("user", JSON.stringify(normalizedUser));
+  return normalizedUser;
 }
 
 function clearStoredSession() {
@@ -61,8 +68,8 @@ export function AuthProvider({ children }) {
         const { data } = await api.get("/auth/profile");
         const profile = data.data || data.user || data;
         if (!profile?.id || !profile?.role) throw new Error("Invalid profile response");
-        persistSession(token, profile);
-        if (active) setUser(profile);
+        const normalizedProfile = persistSession(token, profile);
+        if (active) setUser(normalizedProfile);
       } catch {
         clearStoredSession();
         if (active) {
@@ -97,20 +104,20 @@ export function AuthProvider({ children }) {
     const { data, token: authToken, user: authUser, requires2FA } = readAuthPayload(response.data);
     if (requires2FA) return data;
     if (!authToken || !authUser) throw new Error("Invalid login response");
-    persistSession(authToken, authUser);
+    const normalizedUser = persistSession(authToken, authUser);
     setToken(authToken);
-    setUser(authUser);
+    setUser(normalizedUser);
     setAuthReady(true);
-    return authUser;
+    return normalizedUser;
   };
 
   const complete2FA = ({ authToken, authUser }) => {
     if (!authToken || !authUser) throw new Error("Invalid 2FA response");
-    persistSession(authToken, authUser);
+    const normalizedUser = persistSession(authToken, authUser);
     setToken(authToken);
-    setUser(authUser);
+    setUser(normalizedUser);
     setAuthReady(true);
-    return authUser;
+    return normalizedUser;
   };
 
   const register = async (payload) => {

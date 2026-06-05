@@ -120,7 +120,7 @@ export default function Analytics() {
               <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2"><p className="text-sm font-bold text-slate-950">{sla.averageResolutionMinutes}m</p><p className="text-[11px] font-semibold text-slate-500">Resolve</p></div>
             </div>
           </div>
-          <Table columns={slaColumns} data={sla.tickets.slice(0, 12)} />
+          <Table columns={slaColumns} data={sla.tickets} itemLabel="tickets" />
         </Card>
       ) : null}
       <div className="grid gap-6 xl:grid-cols-2">
