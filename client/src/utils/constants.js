@@ -9,8 +9,12 @@ export const priorityOptions = ["LOW", "MEDIUM", "HIGH", "URGENT"];
 
 export const demoUsers = [];
 
+export const normalizeRole = (role) => String(role || "").toUpperCase();
+
 export const roleHome = {
   ADMIN: "/admin/dashboard",
   AGENT: "/agent/dashboard",
   CUSTOMER: "/customer/dashboard",
 };
+
+export const getDashboardPath = (role) => roleHome[normalizeRole(role)] || "/login";

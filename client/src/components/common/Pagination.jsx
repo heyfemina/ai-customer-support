@@ -1,6 +1,8 @@
 import Button from "./Button.jsx";
+import { useTranslation } from "react-i18next";
 
 export default function Pagination({ page, pageSize, total, onPageChange, onPageSizeChange, pageSizeOptions = [10, 15, 25, 50], itemLabel = "records" }) {
+  const { t } = useTranslation();
   const safeTotal = Number(total || 0);
   const safePageSize = Number(pageSize || 10);
   const totalPages = Math.max(1, Math.ceil(safeTotal / safePageSize));
@@ -8,10 +10,12 @@ export default function Pagination({ page, pageSize, total, onPageChange, onPage
   const start = safeTotal ? (currentPage - 1) * safePageSize + 1 : 0;
   const end = Math.min(currentPage * safePageSize, safeTotal);
 
+  const translatedItemLabel = t(`pagination.${itemLabel}`, { defaultValue: itemLabel });
+
   return (
     <div className="mt-4 flex flex-col gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm shadow-slate-200/50 sm:flex-row sm:items-center sm:justify-between">
       <p className="text-sm font-semibold text-slate-600">
-        Showing <span className="text-slate-950">{start}-{end}</span> of <span className="text-slate-950">{safeTotal}</span> {itemLabel}
+        {t("pagination.showing")} <span className="text-slate-950">{start}-{end}</span> {t("pagination.of")} <span className="text-slate-950">{safeTotal}</span> {translatedItemLabel}
       </p>
       <div className="flex flex-wrap items-center gap-2">
         {onPageSizeChange ? (
@@ -19,11 +23,11 @@ export default function Pagination({ page, pageSize, total, onPageChange, onPage
             {pageSizeOptions.map((option) => <option key={option} value={option}>{option}</option>)}
           </select>
         ) : null}
-        <Button size="sm" variant="secondary" disabled={currentPage <= 1} onClick={() => onPageChange?.(currentPage - 1)}>Previous</Button>
+        <Button size="sm" variant="secondary" disabled={currentPage <= 1} onClick={() => onPageChange?.(currentPage - 1)}>{t("pagination.previous")}</Button>
         <span className="inline-flex min-h-9 items-center rounded-md border border-slate-200 bg-slate-50 px-3 text-sm font-bold text-slate-700">
-          Page {currentPage} of {totalPages}
+          {t("pagination.page")} {currentPage} {t("pagination.of")} {totalPages}
         </span>
-        <Button size="sm" variant="secondary" disabled={currentPage >= totalPages} onClick={() => onPageChange?.(currentPage + 1)}>Next</Button>
+        <Button size="sm" variant="secondary" disabled={currentPage >= totalPages} onClick={() => onPageChange?.(currentPage + 1)}>{t("pagination.next")}</Button>
       </div>
     </div>
   );

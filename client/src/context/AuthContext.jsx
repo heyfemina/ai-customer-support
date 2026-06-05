@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import api from "../api/axios.js";
-import { roleHome } from "../utils/constants.js";
+import { getDashboardPath, normalizeRole, roleHome } from "../utils/constants.js";
 
 const AuthContext = createContext(null);
 const demoKeys = ["demo:tickets", "demo:users", "demo:chats", "demo:activity-logs"];
@@ -17,7 +17,7 @@ function readStoredUser() {
 
 function normalizeAuthUser(authUser) {
   if (!authUser) return null;
-  return { ...authUser, role: String(authUser.role || "").toUpperCase() };
+  return { ...authUser, role: normalizeRole(authUser.role) };
 }
 
 function persistSession(authToken, authUser) {
@@ -69,7 +69,10 @@ export function AuthProvider({ children }) {
         const profile = data.data || data.user || data;
         if (!profile?.id || !profile?.role) throw new Error("Invalid profile response");
         const normalizedProfile = persistSession(token, profile);
-        if (active) setUser(normalizedProfile);
+        if (active) {
+          setUser(normalizedProfile);
+          window.dispatchEvent(new CustomEvent("auth:profile", { detail: normalizedProfile }));
+        }
       } catch {
         clearStoredSession();
         if (active) {
@@ -133,7 +136,7 @@ export function AuthProvider({ children }) {
   };
 
   const value = useMemo(
-    () => ({ token, user, authReady, isAuthenticated: Boolean(token && user), login, register, logout, complete2FA, roleHome }),
+    () => ({ token, user, authReady, isAuthenticated: Boolean(token && user), login, register, logout, complete2FA, roleHome, getDashboardPath }),
     [token, user, authReady]
   );
 

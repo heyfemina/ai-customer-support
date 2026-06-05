@@ -14,7 +14,7 @@ export default function ChatMessage({ message, currentUserId }) {
   const imageFile = message.fileType?.startsWith("image/") || message.messageType === "IMAGE" || /\.(png|jpe?g|gif|webp)$/i.test(displayFileName);
   const hasTranslation = Boolean(message.translatedContent && message.translatedContent !== message.originalContent);
   const body = hasTranslation && !showOriginal ? message.translatedContent : message.content;
-  const senderName = mine ? "You" : message.sender?.name || message.senderName || "Support";
+  const senderName = mine ? t("chat.you", { defaultValue: "You" }) : message.sender?.name || message.senderName || t("chat.support", { defaultValue: "Support" });
   const senderRole = !mine && message.sender?.role ? message.sender.role : "";
 
   if (system) {

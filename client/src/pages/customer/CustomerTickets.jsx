@@ -7,8 +7,10 @@ import Card from "../../components/common/Card.jsx";
 import Pagination from "../../components/common/Pagination.jsx";
 import TicketCard from "../../components/tickets/TicketCard.jsx";
 import { normalizeItems } from "../../utils/helpers.js";
+import { useTranslation } from "react-i18next";
 
 export default function CustomerTickets() {
+  const { t } = useTranslation();
   const [items, setItems] = useState([]);
   const [filters, setFilters] = useState({ search: "", status: "" });
   const [page, setPage] = useState(1);
@@ -24,12 +26,12 @@ export default function CustomerTickets() {
   };
   return (
     <>
-      <PageHeader title="My tickets" description="Track support requests, status, replies, and attachments." actions={<Link to="/customer/tickets/create"><Button>Create ticket</Button></Link>} />
+      <PageHeader title={t("pages.myTickets.title")} description={t("pages.myTickets.description")} actions={<Link to="/customer/tickets/create"><Button>{t("buttons.createTicket")}</Button></Link>} />
       <Card className="mb-4 p-4">
         <div className="grid gap-3 md:grid-cols-[1fr_180px]">
-          <input className="app-field" placeholder="Search tickets" value={filters.search} onChange={(event) => updateFilters({ search: event.target.value })} />
+          <input className="app-field" placeholder={t("ticketsUi.searchTickets")} value={filters.search} onChange={(event) => updateFilters({ search: event.target.value })} />
           <select className="app-field" value={filters.status} onChange={(event) => updateFilters({ status: event.target.value })}>
-            <option value="">All statuses</option><option>OPEN</option><option>IN_PROGRESS</option><option>WAITING_CUSTOMER</option><option>RESOLVED</option><option>CLOSED</option>
+            <option value="">{t("ticketsUi.allStatuses")}</option><option>OPEN</option><option>IN_PROGRESS</option><option>WAITING_CUSTOMER</option><option>RESOLVED</option><option>CLOSED</option>
           </select>
         </div>
       </Card>
@@ -40,9 +42,9 @@ export default function CustomerTickets() {
         </>
       ) : (
         <Card className="p-8 text-center">
-          <h2 className="font-semibold text-slate-950">No tickets found</h2>
-          <p className="mt-2 text-sm text-slate-500">Try changing the filters or create a new support request.</p>
-          <Link to="/customer/tickets/create"><Button className="mt-4">Create ticket</Button></Link>
+          <h2 className="font-semibold text-slate-950">{t("empty.noTickets")}</h2>
+          <p className="mt-2 text-sm text-slate-500">{t("empty.noTicketsHelp")}</p>
+          <Link to="/customer/tickets/create"><Button className="mt-4">{t("buttons.createTicket")}</Button></Link>
         </Card>
       )}
     </>

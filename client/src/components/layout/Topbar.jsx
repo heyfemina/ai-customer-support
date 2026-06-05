@@ -41,7 +41,7 @@ export default function Topbar({ onMenu }) {
 
   const userRole = String(user?.role || "").toUpperCase();
   const quickActionPath = userRole === "CUSTOMER" ? "/customer/tickets/create" : userRole === "AGENT" ? "/agent/live-chats" : "/admin/tickets";
-  const quickActionLabel = userRole === "CUSTOMER" ? "New ticket" : userRole === "AGENT" ? "Open queue" : "Review tickets";
+  const quickActionLabel = userRole === "CUSTOMER" ? t("common.quickNewTicket") : userRole === "AGENT" ? t("common.quickOpenQueue") : t("common.quickReviewTickets");
   const profilePath = userRole === "CUSTOMER" ? "/customer/profile" : userRole === "AGENT" ? "/agent/dashboard" : "/admin/security";
 
   return (
@@ -63,7 +63,7 @@ export default function Topbar({ onMenu }) {
           value={language}
           onChange={(event) => changeLanguage(event.target.value)}
           className="hidden h-10 rounded-md border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 focus:border-blue-400 focus:ring-4 focus:ring-blue-100 xl:block"
-          aria-label="Select language"
+          aria-label={t("common.selectLanguage")}
         >
           {languageOptions.map((option) => <option key={option.code} value={option.code}>{option.label}</option>)}
         </select>
@@ -81,8 +81,8 @@ export default function Topbar({ onMenu }) {
           >
             <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-blue-600 text-xs font-bold text-white shadow-sm">{initials(user?.name)}</span>
             <span className="hidden min-w-0 leading-tight sm:block">
-              <span className="block max-w-32 truncate text-sm font-semibold text-slate-950 xl:max-w-40">{user?.name || "User"}</span>
-              <span className="block text-xs font-medium uppercase text-slate-500">{userRole || "USER"}</span>
+              <span className="block max-w-32 truncate text-sm font-semibold text-slate-950 xl:max-w-40">{user?.name || t("common.user")}</span>
+              <span className="block text-xs font-medium uppercase text-slate-500">{userRole || t("common.user")}</span>
             </span>
             <ChevronDown className={`h-4 w-4 shrink-0 text-slate-400 transition ${profileOpen ? "rotate-180" : ""}`} />
           </button>
@@ -92,13 +92,13 @@ export default function Topbar({ onMenu }) {
                 <div className="flex min-w-0 items-center gap-3">
                   <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-blue-600 text-sm font-bold text-white shadow-sm">{initials(user?.name)}</span>
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-slate-950">{user?.name || "User"}</p>
-                    <p className="truncate text-xs text-slate-500">{user?.email || userRole || "Signed in"}</p>
-                    <p className="mt-1 inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase text-slate-600">{userRole || "USER"}</p>
+                    <p className="truncate text-sm font-semibold text-slate-950">{user?.name || t("common.user")}</p>
+                    <p className="truncate text-xs text-slate-500">{user?.email || userRole || t("common.signedIn")}</p>
+                    <p className="mt-1 inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase text-slate-600">{userRole || t("common.user")}</p>
                   </div>
                 </div>
                 <label className="mt-3 block">
-                  <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">Language</span>
+                  <span className="mb-1 block text-xs font-bold uppercase tracking-wide text-slate-500">{t("language")}</span>
                   <select
                     value={language}
                     onChange={(event) => changeLanguage(event.target.value)}
@@ -118,7 +118,7 @@ export default function Topbar({ onMenu }) {
                 role="menuitem"
               >
                 <UserCircle className="h-4 w-4 text-slate-400" />
-                Profile
+                {t("common.profile")}
               </button>
               <button
                 type="button"
@@ -127,7 +127,7 @@ export default function Topbar({ onMenu }) {
                 role="menuitem"
               >
                 <LogOut className="h-4 w-4" />
-                Logout
+                {t("logout")}
               </button>
             </div>
           ) : null}

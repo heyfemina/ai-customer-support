@@ -41,10 +41,11 @@ export default function AgentPerformance() {
     setExporting(true);
     setNotice("");
     try {
-      await downloadReport("/reports/export/agents?format=csv", "agents-report.csv");
-      setNotice("agents-report.csv downloaded.");
+      const fileName = "agents-report.csv";
+      await downloadReport("/reports/export/agents?format=csv", fileName);
+      setNotice(t("common.downloaded", { file: fileName }));
     } catch {
-      setNotice("Unable to download report. Please try again.");
+      setNotice(t("common.downloadFailed"));
     } finally {
       setExporting(false);
     }
@@ -52,7 +53,7 @@ export default function AgentPerformance() {
 
   return (
     <>
-      <PageHeader title={t("reports.charts.agentPerformance")} description={t("reports.agentPerformance.description")} actions={<Button variant="secondary" loading={exporting} onClick={exportAgents}>Export report</Button>} />
+      <PageHeader title={t("reports.charts.agentPerformance")} description={t("reports.agentPerformance.description")} actions={<Button variant="secondary" loading={exporting} onClick={exportAgents}>{t("common.exportReport")}</Button>} />
       {notice ? <p className="mb-4 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm">{notice}</p> : null}
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {summary.map((item) => <Card key={item.label} className="p-5"><p className="text-sm font-semibold text-slate-500">{item.label}</p><p className="mt-2 text-2xl font-bold text-slate-950">{item.value}</p></Card>)}

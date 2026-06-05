@@ -43,17 +43,17 @@ export default function Tickets() {
 
   return (
     <>
-      <PageHeader title="Ticket management" description="Review, assign, prioritize, reply, and resolve support tickets." actions={<Button onClick={() => downloadReport("/reports/export/tickets?format=csv", "tickets-report.csv")}>Export report</Button>} />
+      <PageHeader title={t("pages.ticketManagement.title")} description={t("pages.ticketManagement.description")} actions={<Button onClick={() => downloadReport("/reports/export/tickets?format=csv", "tickets-report.csv")}>{t("common.exportReport")}</Button>} />
       <Card className="mb-4 p-4">
         <div className="mb-3 flex items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-semibold text-slate-950">Filters</p>
-            <p className="text-xs text-slate-500">Refine ticket results without losing your current workflow.</p>
+            <p className="text-sm font-semibold text-slate-950">{t("common.filters")}</p>
+            <p className="text-xs text-slate-500">{t("ticketsUi.filterHelp", { defaultValue: "Refine ticket results without losing your current workflow." })}</p>
           </div>
-          <Button size="sm" variant="ghost" onClick={() => updateFilter({ search: "", status: "", priority: "", agentId: "", customerId: "", dateFrom: "", dateTo: "" })}>Clear</Button>
+          <Button size="sm" variant="ghost" onClick={() => updateFilter({ search: "", status: "", priority: "", agentId: "", customerId: "", dateFrom: "", dateTo: "" })}>{t("common.clear")}</Button>
         </div>
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[1fr_150px_150px_170px_170px_150px_150px]">
-          <input className="app-field" placeholder="Search ticket ID, customer email, agent, subject" value={filters.search} onChange={(event) => updateFilter({ search: event.target.value })} />
+          <input className="app-field" placeholder={t("ticketsUi.searchDetailed", { defaultValue: "Search ticket ID, customer email, agent, subject" })} value={filters.search} onChange={(event) => updateFilter({ search: event.target.value })} />
           <select className="app-field" value={filters.status} onChange={(event) => updateFilter({ status: event.target.value })}>
             <option value="">{t("ticketsUi.allStatuses")}</option><option>OPEN</option><option>IN_PROGRESS</option><option>WAITING_CUSTOMER</option><option>RESOLVED</option><option>CLOSED</option>
           </select>

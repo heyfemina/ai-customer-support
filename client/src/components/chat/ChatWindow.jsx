@@ -37,18 +37,18 @@ export default function ChatWindow({
   }, [messages, session?.id, afterMessages]);
 
   if (!session) {
-    return <div className="grid min-h-[420px] flex-1 place-items-center bg-white p-6 text-center"><div className="max-w-sm rounded-lg border border-dashed border-slate-200 bg-slate-50 p-6"><p className="font-semibold text-slate-900">{t("chat.selectSession")}</p><p className="mt-2 text-sm leading-6 text-slate-500">Choose a conversation from the queue to view history and reply.</p></div></div>;
+    return <div className="grid min-h-[420px] flex-1 place-items-center bg-white p-6 text-center"><div className="max-w-sm rounded-lg border border-dashed border-slate-200 bg-slate-50 p-6"><p className="font-semibold text-slate-900">{t("chat.selectSession")}</p><p className="mt-2 text-sm leading-6 text-slate-500">{t("chat.chooseConversation", { defaultValue: "Choose a conversation from the queue to view history and reply." })}</p></div></div>;
   }
 
   const viewingAsCustomer = currentUserId && session.customerId === currentUserId;
-  const statusLabel = session.status === "ASSIGNED" || session.status === "ACTIVE" ? "Connected" : session.status === "WAITING" ? "Waiting" : session.status === "CLOSED" ? "Closed" : session.status;
+  const statusLabel = session.status === "ASSIGNED" || session.status === "ACTIVE" ? t("chat.connected", { defaultValue: "Connected" }) : session.status === "WAITING" ? t("chat.waiting") : session.status === "CLOSED" ? t("chat.closed") : t(`status.${session.status}`, { defaultValue: session.status });
   const headerName = viewingAsCustomer
-    ? session.agent?.name || session.agentName || (session.status === "WAITING" ? "Waiting for agent" : t("chat.queueTeam"))
+    ? session.agent?.name || session.agentName || (session.status === "WAITING" ? t("chat.waitingForAgent", { defaultValue: "Waiting for agent" }) : t("chat.queueTeam"))
     : session.customer?.name || session.customerName || t("chat.customerFallback");
   const headerEmail = viewingAsCustomer ? session.agent?.email : session.customer?.email;
-  const title = viewingAsCustomer ? "Support Chat" : headerName;
+  const title = viewingAsCustomer ? t("chat.supportChat", { defaultValue: "Support Chat" }) : headerName;
   const subtitle = viewingAsCustomer
-    ? session.agent?.name ? `Connected with ${session.agent.name}` : "Waiting for available agent."
+    ? session.agent?.name ? t("chat.connectedWith", { name: session.agent.name, defaultValue: `Connected with ${session.agent.name}` }) : t("chat.waitingForAvailableAgent", { defaultValue: "Waiting for available agent." })
     : [headerEmail, session.category || session.channel].filter(Boolean).join(" / ");
   const agentDisplay = session.agent?.name || session.agentName || t("chat.queueTeam");
 
@@ -90,7 +90,7 @@ export default function ChatWindow({
         </div>
       </div>
       <div className="support-message-wall app-scrollbar flex-1 space-y-3 overflow-y-auto bg-slate-50/80 p-4 sm:p-5">
-        {session.status === "WAITING" ? <div className="mx-auto max-w-md rounded-lg border border-amber-100 bg-white p-4 text-center text-sm text-slate-600 shadow-sm"><p className="font-semibold text-slate-900">Waiting for an available agent</p><p className="mt-1 leading-6 text-slate-500">Your conversation is in the support queue. Messages are saved here while you wait.</p></div> : null}
+        {session.status === "WAITING" ? <div className="mx-auto max-w-md rounded-lg border border-amber-100 bg-white p-4 text-center text-sm text-slate-600 shadow-sm"><p className="font-semibold text-slate-900">{t("chat.waitingForAvailableAgent")}</p><p className="mt-1 leading-6 text-slate-500">{t("chat.queueSaved", { defaultValue: "Your conversation is in the support queue. Messages are saved here while you wait." })}</p></div> : null}
         {messages.length ? messages.map((message) => <ChatMessage key={message.id} message={message} currentUserId={currentUserId} />) : (
           <div className="grid min-h-[18rem] place-items-center">
             <div className="max-w-md rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-500 shadow-sm">

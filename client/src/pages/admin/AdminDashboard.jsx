@@ -109,16 +109,16 @@ export default function AdminDashboard() {
     { title: t("dashboard.stats.totalTickets"), value: report.tickets, icon: Ticket, tone: "sky", trend: "+12%" },
     { title: t("dashboard.stats.openTickets"), value: report.open, icon: AlertCircle, tone: "amber", trend: "+4%" },
     { title: t("dashboard.stats.resolvedTickets"), value: report.resolved, icon: CheckCircle2, tone: "emerald", trend: "+9%" },
-    { title: "Pending tickets", value: pendingTickets, icon: Clock, tone: "violet", trend: "-3%" },
+    { title: t("dashboard.stats.pendingTickets"), value: pendingTickets, icon: Clock, tone: "violet", trend: "-3%" },
     { title: t("dashboard.stats.activeChats"), value: report.chats, icon: MessageSquare, tone: "sky", trend: "+6%" },
-    { title: "Complaints", value: report.complaints || 0, icon: AlertCircle, tone: "amber", trend: "+0%" },
+    { title: t("table.complaints"), value: report.complaints || 0, icon: AlertCircle, tone: "amber", trend: "+0%" },
     { title: t("dashboard.stats.avgResponseTime"), value: report.avgResponseTime, icon: Clock, tone: "rose", trend: "-8%" },
     { title: t("dashboard.stats.customerSatisfaction"), value: `${report.csat}%`, icon: Star, tone: "emerald", trend: "+5%" },
-    { title: "Online agents", value: report.agentsOnline || 0, icon: Users, tone: "violet", trend: "+2%" },
+    { title: t("common.agentsOnline"), value: report.agentsOnline || 0, icon: Users, tone: "violet", trend: "+2%" },
     { title: t("dashboard.stats.aiResolvedTickets"), value: `${report.aiResolved}%`, icon: Bot, tone: "sky", trend: "+11%" },
   ];
   const monitors = [
-    { title: t("dashboard.monitoring.applicationServer"), value: t("dashboard.monitoring.healthy"), detail: "API server connected", icon: Server, tone: "emerald" },
+    { title: t("dashboard.monitoring.applicationServer"), value: t("dashboard.monitoring.healthy"), detail: t("common.apiServerConnected"), icon: Server, tone: "emerald" },
     { title: t("dashboard.monitoring.database"), value: "PostgreSQL", detail: t("dashboard.monitoring.recordsLoaded", { count: recentTickets.length }), icon: Database, tone: "sky" },
     { title: t("dashboard.monitoring.agentCoverage"), value: t("dashboard.monitoring.online", { count: report?.agentsOnline || 0 }), detail: t("dashboard.monitoring.activeChatSessions", { count: report?.chats || 0 }), icon: Users, tone: "violet" },
     { title: t("dashboard.monitoring.securityPosture"), value: t("dashboard.monitoring.protected"), detail: t("dashboard.monitoring.rbacEnabled"), icon: ShieldCheck, tone: "amber" },
@@ -136,7 +136,7 @@ export default function AdminDashboard() {
             </div>
             <div className="min-w-0">
               <p className="text-sm font-semibold text-blue-700">{t("dashboard.sections.systemMonitoring")}</p>
-              <h2 className="mt-2 text-2xl font-bold text-slate-950">Support operations command center</h2>
+              <h2 className="mt-2 text-2xl font-bold text-slate-950">{t("common.supportOperationsCommandCenter")}</h2>
               <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">{t("dashboard.admin.description")}</p>
             </div>
           </div>
@@ -162,7 +162,7 @@ export default function AdminDashboard() {
       <div className="mt-6">
         <div className="mb-3 flex items-center justify-between gap-3">
           <h2 className="font-semibold text-slate-950">{t("dashboard.sections.systemMonitoring")}</h2>
-          <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700 ring-1 ring-blue-100">Live status</span>
+          <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700 ring-1 ring-blue-100">{t("common.liveStatus")}</span>
         </div>
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {monitors.map((monitor) => (
@@ -247,22 +247,22 @@ export default function AdminDashboard() {
               <ShieldCheck className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="font-semibold text-slate-950">Complaint and risk tracking</h2>
-              <p className="text-sm text-slate-500">Open issues, agent coverage, and secure workflows are monitored from the admin panel.</p>
+              <h2 className="font-semibold text-slate-950">{t("common.complaintRiskTracking")}</h2>
+              <p className="text-sm text-slate-500">{t("common.complaintRiskDescription")}</p>
             </div>
           </div>
           <div className="mt-4 grid gap-3 text-center text-sm sm:grid-cols-3">
             <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
               <p className="text-xl font-bold text-slate-950">{report.complaints || 0}</p>
-              <p className="mt-1 text-xs font-semibold text-slate-500">Complaints</p>
+              <p className="mt-1 text-xs font-semibold text-slate-500">{t("table.complaints")}</p>
             </div>
             <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
               <p className="text-xl font-bold text-slate-950">{report.agentsOnline || 0}</p>
-              <p className="mt-1 text-xs font-semibold text-slate-500">Agents online</p>
+              <p className="mt-1 text-xs font-semibold text-slate-500">{t("common.agentsOnline")}</p>
             </div>
             <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
               <p className="text-xl font-bold text-slate-950">{report.chats}</p>
-              <p className="mt-1 text-xs font-semibold text-slate-500">Live chats</p>
+              <p className="mt-1 text-xs font-semibold text-slate-500">{t("dashboard.stats.liveChats")}</p>
             </div>
           </div>
         </Card>

@@ -1,4 +1,5 @@
 import Badge from "../common/Badge.jsx";
+import { useTranslation } from "react-i18next";
 
 const statusTone = {
   OPEN: "blue",
@@ -9,5 +10,7 @@ const statusTone = {
 };
 
 export default function TicketStatusBadge({ status }) {
-  return <Badge tone={statusTone[status] || "slate"}>{String(status || "OPEN").replaceAll("_", " ")}</Badge>;
+  const { t } = useTranslation();
+  const value = String(status || "OPEN");
+  return <Badge tone={statusTone[value] || "slate"}>{t(`status.${value}`, { defaultValue: value.replaceAll("_", " ") })}</Badge>;
 }

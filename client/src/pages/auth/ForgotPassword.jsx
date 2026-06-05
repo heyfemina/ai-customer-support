@@ -4,12 +4,14 @@ import { Mail, Send } from "lucide-react";
 import Button from "../../components/common/Button.jsx";
 import Card from "../../components/common/Card.jsx";
 import api from "../../api/axios.js";
+import { useTranslation } from "react-i18next";
 
 const inputGroupClass = "mt-1.5 flex min-h-12 items-center overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition focus-within:border-blue-400 focus-within:ring-4 focus-within:ring-blue-100";
 const iconSlotClass = "flex h-12 w-12 shrink-0 items-center justify-center border-r border-slate-200 bg-slate-50 text-slate-400";
 const fieldClass = "min-w-0 flex-1 border-0 bg-transparent px-3 py-3 text-sm text-slate-950 outline-none placeholder:text-slate-400";
 
 export default function ForgotPassword() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState("mathilde8@ethereal.email");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -25,10 +27,10 @@ export default function ForgotPassword() {
 
     try {
       const { data } = await api.post("/auth/forgot-password", { email });
-      setMessage(data.message || "Password reset link sent");
+      setMessage(data.message || t("auth.resetSent"));
       setPreviewUrl(data.data?.previewUrl || "");
     } catch (err) {
-      setError(err.friendlyMessage || "Could not send reset link");
+      setError(err.friendlyMessage || t("auth.resetFailed"));
     } finally {
       setLoading(false);
     }
@@ -42,15 +44,15 @@ export default function ForgotPassword() {
             <Send className="h-5 w-5" />
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-bold uppercase tracking-wide text-blue-700">Account recovery</p>
-            <h1 className="mt-1 text-2xl font-bold text-slate-950">Reset password</h1>
-            <p className="mt-2 text-sm leading-6 text-slate-500">Enter your email and we will send a secure recovery link.</p>
+            <p className="text-xs font-bold uppercase tracking-wide text-blue-700">{t("auth.recovery")}</p>
+            <h1 className="mt-1 text-2xl font-bold text-slate-950">{t("auth.resetPassword")}</h1>
+            <p className="mt-2 text-sm leading-6 text-slate-500">{t("auth.resetHelp")}</p>
           </div>
         </div>
       </div>
       <form className="space-y-5 bg-slate-50/60 p-6 sm:p-7" onSubmit={submit}>
         <label className="block">
-          <span className="app-label">Email</span>
+          <span className="app-label">{t("auth.email")}</span>
           <div className={inputGroupClass}>
             <span className={iconSlotClass}>
               <Mail className="h-4 w-4" />
@@ -61,13 +63,13 @@ export default function ForgotPassword() {
         {message ? <p className="rounded-md border border-green-100 bg-green-50 p-3 text-sm font-medium text-green-700">{message}</p> : null}
         {previewUrl ? (
           <a className="block rounded-md bg-blue-50 p-3 text-sm font-semibold text-blue-700" href={previewUrl} target="_blank" rel="noreferrer">
-            Open Ethereal message
+            {t("auth.openEthereal")}
           </a>
         ) : null}
         {error ? <p className="rounded-md border border-red-100 bg-red-50 p-3 text-sm font-medium text-red-700">{error}</p> : null}
-        <Button className="min-h-12 w-full rounded-lg" loading={loading}>Send reset link</Button>
+        <Button className="min-h-12 w-full rounded-lg" loading={loading}>{t("auth.sendResetLink")}</Button>
         <p className="border-t border-slate-200 pt-5 text-sm text-slate-500">
-          Remembered your password? <Link className="font-semibold text-blue-700" to="/login">Back to login</Link>
+          {t("auth.rememberedPassword")} <Link className="font-semibold text-blue-700" to="/login">{t("auth.backToLogin")}</Link>
         </p>
       </form>
     </Card>

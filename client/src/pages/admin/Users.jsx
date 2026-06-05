@@ -8,12 +8,14 @@ import Modal from "../../components/common/Modal.jsx";
 import Card from "../../components/common/Card.jsx";
 import Pagination from "../../components/common/Pagination.jsx";
 import { normalizeItems } from "../../utils/helpers.js";
+import { useTranslation } from "react-i18next";
 
 const departments = ["Technical Support", "Billing Support", "Account Support", "General Support", "Complaint Support"];
 const categories = ["Technical", "Billing", "Account", "Refund", "General", "Complaint"];
 const agentStatuses = ["ONLINE", "BUSY", "AWAY", "OFFLINE"];
 
 export default function Users() {
+  const { t } = useTranslation();
   const [items, setItems] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -100,29 +102,29 @@ export default function Users() {
   });
   const pagedItems = filteredItems.slice((page - 1) * pageSize, page * pageSize);
   const columns = [
-    { key: "name", label: "Name" },
-    { key: "email", label: "Email" },
-    { key: "role", label: "Role", align: "center", render: (row) => <Badge tone={row.role === "ADMIN" ? "violet" : row.role === "AGENT" ? "blue" : "green"}>{row.role}</Badge> },
-    { key: "isActive", label: "Status", align: "center", render: (row) => <Badge tone={row.isActive ? "green" : "red"}>{row.isActive ? "Active" : "Inactive"}</Badge> },
-    { key: "actions", label: "Actions", align: "center", render: (row) => row.role === "ADMIN" ? <span className="text-sm font-semibold text-slate-500">Seed admin</span> : <div className="flex items-center justify-center gap-2"><Button variant="secondary" onClick={() => openForm(row)}>Edit</Button><Button variant={row.isActive ? "danger" : "secondary"} onClick={() => toggleStatus(row)}>{row.isActive ? "Deactivate" : "Activate"}</Button></div> },
+    { key: "name", label: t("auth.fullName") },
+    { key: "email", labelKey: "table.email" },
+    { key: "role", labelKey: "table.role", align: "center", render: (row) => <Badge tone={row.role === "ADMIN" ? "violet" : row.role === "AGENT" ? "blue" : "green"}>{row.role}</Badge> },
+    { key: "isActive", labelKey: "table.status", align: "center", render: (row) => <Badge tone={row.isActive ? "green" : "red"}>{row.isActive ? t("common.active") : t("common.inactive")}</Badge> },
+    { key: "actions", labelKey: "table.action", align: "center", render: (row) => row.role === "ADMIN" ? <span className="text-sm font-semibold text-slate-500">{t("users.seedAdmin", { defaultValue: "Seed admin" })}</span> : <div className="flex items-center justify-center gap-2"><Button variant="secondary" onClick={() => openForm(row)}>{t("users.edit", { defaultValue: "Edit" })}</Button><Button variant={row.isActive ? "danger" : "secondary"} onClick={() => toggleStatus(row)}>{row.isActive ? t("users.deactivate", { defaultValue: "Deactivate" }) : t("users.activate", { defaultValue: "Activate" })}</Button></div> },
   ];
   const activeUsers = items.filter((item) => item.isActive).length;
   return (
     <>
-      <PageHeader title="User management" description="Create, edit, deactivate, and audit agents and customers. The main admin is managed from seed/database only." actions={<Button onClick={() => openForm()}>Add user</Button>} />
+      <PageHeader title={t("pages.users.title")} description={t("pages.users.description")} actions={<Button onClick={() => openForm()}>{t("users.addUser", { defaultValue: "Add user" })}</Button>} />
       {notice ? <p className="mb-4 rounded-md border border-green-100 bg-green-50 px-3 py-2 text-sm font-semibold text-green-700">{notice}</p> : null}
       {error && !modalOpen ? <p className="mb-4 rounded-md border border-red-100 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">{error}</p> : null}
       <div className="mb-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Card className="p-4"><p className="text-sm font-semibold text-slate-500">Total users</p><p className="mt-2 text-2xl font-bold text-slate-950">{items.length}</p></Card>
-        <Card className="p-4"><p className="text-sm font-semibold text-slate-500">Active users</p><p className="mt-2 text-2xl font-bold text-slate-950">{activeUsers}</p></Card>
-        <Card className="p-4"><p className="text-sm font-semibold text-slate-500">Agents</p><p className="mt-2 text-2xl font-bold text-slate-950">{items.filter((item) => item.role === "AGENT").length}</p></Card>
-        <Card className="p-4"><p className="text-sm font-semibold text-slate-500">Customers</p><p className="mt-2 text-2xl font-bold text-slate-950">{items.filter((item) => item.role === "CUSTOMER").length}</p></Card>
+        <Card className="p-4"><p className="text-sm font-semibold text-slate-500">{t("common.totalUsers")}</p><p className="mt-2 text-2xl font-bold text-slate-950">{items.length}</p></Card>
+        <Card className="p-4"><p className="text-sm font-semibold text-slate-500">{t("common.activeUsers")}</p><p className="mt-2 text-2xl font-bold text-slate-950">{activeUsers}</p></Card>
+        <Card className="p-4"><p className="text-sm font-semibold text-slate-500">{t("nav.agents")}</p><p className="mt-2 text-2xl font-bold text-slate-950">{items.filter((item) => item.role === "AGENT").length}</p></Card>
+        <Card className="p-4"><p className="text-sm font-semibold text-slate-500">{t("nav.customers")}</p><p className="mt-2 text-2xl font-bold text-slate-950">{items.filter((item) => item.role === "CUSTOMER").length}</p></Card>
       </div>
       <Card className="mb-4 p-4">
         <div className="grid gap-3 md:grid-cols-[1fr_180px]">
-          <input className="app-field" placeholder="Search users" value={filters.search} onChange={(event) => { setFilters({ ...filters, search: event.target.value }); setPage(1); }} />
+          <input className="app-field" placeholder={t("users.searchUsers", { defaultValue: "Search users" })} value={filters.search} onChange={(event) => { setFilters({ ...filters, search: event.target.value }); setPage(1); }} />
           <select className="app-field" value={filters.role} onChange={(event) => { setFilters({ ...filters, role: event.target.value }); setPage(1); }}>
-            <option value="">All roles</option><option>ADMIN</option><option>AGENT</option><option>CUSTOMER</option>
+            <option value="">{t("activity.allRoles", { defaultValue: "All roles" })}</option><option>ADMIN</option><option>AGENT</option><option>CUSTOMER</option>
           </select>
         </div>
       </Card>
@@ -130,25 +132,25 @@ export default function Users() {
       <Pagination page={page} pageSize={pageSize} total={filteredItems.length} itemLabel="users" onPageChange={setPage} onPageSizeChange={(value) => { setPageSize(value); setPage(1); }} />
       <Modal
         open={modalOpen}
-        title={editing ? "Edit user" : form.role === "AGENT" ? "Add agent" : "Add customer"}
+        title={editing ? t("users.editUser", { defaultValue: "Edit user" }) : form.role === "AGENT" ? t("users.addAgent", { defaultValue: "Add agent" }) : t("users.addCustomer", { defaultValue: "Add customer" })}
         onClose={closeForm}
-        footer={<><Button variant="secondary" onClick={closeForm}>Cancel</Button><Button loading={loading} onClick={saveUser}>{editing ? "Save user" : "Create user"}</Button></>}
+        footer={<><Button variant="secondary" onClick={closeForm}>{t("common.cancel")}</Button><Button loading={loading} onClick={saveUser}>{editing ? t("users.saveUser", { defaultValue: "Save user" }) : t("users.createUser", { defaultValue: "Create user" })}</Button></>}
       >
         <div className="grid gap-4">
           {error ? <p className="rounded-md border border-red-100 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">{error}</p> : null}
-          <label><span className="app-label">Name</span><input className="app-field mt-1" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
-          <label><span className="app-label">Email</span><input className="app-field mt-1" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} /></label>
-          <label><span className="app-label">{editing ? "New password" : "Password"}</span><input type="password" className="app-field mt-1" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} placeholder={editing ? "Leave blank to keep current password" : "Minimum 6 characters"} /></label>
-          <label><span className="app-label">Role</span><select className="app-field mt-1" value={form.role} onChange={(event) => setForm({ ...form, role: event.target.value })}><option>AGENT</option><option>CUSTOMER</option></select></label>
+          <label><span className="app-label">{t("auth.fullName")}</span><input className="app-field mt-1" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} /></label>
+          <label><span className="app-label">{t("auth.email")}</span><input className="app-field mt-1" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} /></label>
+          <label><span className="app-label">{editing ? t("users.newPassword", { defaultValue: "New password" }) : t("auth.password")}</span><input type="password" className="app-field mt-1" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} placeholder={editing ? t("users.keepPassword", { defaultValue: "Leave blank to keep current password" }) : t("auth.minimumPassword")} /></label>
+          <label><span className="app-label">{t("table.role")}</span><select className="app-field mt-1" value={form.role} onChange={(event) => setForm({ ...form, role: event.target.value })}><option>AGENT</option><option>CUSTOMER</option></select></label>
           {form.role === "AGENT" ? (
             <>
-              <label><span className="app-label">Department</span><select className="app-field mt-1" value={form.department || "General Support"} onChange={(event) => setForm({ ...form, department: event.target.value })}>{departments.map((item) => <option key={item}>{item}</option>)}</select></label>
-              <label><span className="app-label">Skills / Categories</span><select multiple className="app-field mt-1 min-h-28" value={form.categories || ["General"]} onChange={(event) => setForm({ ...form, categories: Array.from(event.target.selectedOptions).map((option) => option.value) })}>{categories.map((item) => <option key={item}>{item}</option>)}</select></label>
-              <label><span className="app-label">Agent Status</span><select className="app-field mt-1" value={form.agentStatus || "ONLINE"} onChange={(event) => setForm({ ...form, agentStatus: event.target.value })}>{agentStatuses.map((item) => <option key={item}>{item}</option>)}</select></label>
-              <label><span className="app-label">Max active chats</span><input type="number" min="1" max="20" className="app-field mt-1" value={form.maxActiveChats || 3} onChange={(event) => setForm({ ...form, maxActiveChats: Number(event.target.value) })} /></label>
+              <label><span className="app-label">{t("users.department", { defaultValue: "Department" })}</span><select className="app-field mt-1" value={form.department || "General Support"} onChange={(event) => setForm({ ...form, department: event.target.value })}>{departments.map((item) => <option key={item}>{item}</option>)}</select></label>
+              <label><span className="app-label">{t("users.skills", { defaultValue: "Skills / Categories" })}</span><select multiple className="app-field mt-1 min-h-28" value={form.categories || ["General"]} onChange={(event) => setForm({ ...form, categories: Array.from(event.target.selectedOptions).map((option) => option.value) })}>{categories.map((item) => <option key={item}>{item}</option>)}</select></label>
+              <label><span className="app-label">{t("users.agentStatus", { defaultValue: "Agent Status" })}</span><select className="app-field mt-1" value={form.agentStatus || "ONLINE"} onChange={(event) => setForm({ ...form, agentStatus: event.target.value })}>{agentStatuses.map((item) => <option key={item}>{item}</option>)}</select></label>
+              <label><span className="app-label">{t("users.maxActiveChats", { defaultValue: "Max active chats" })}</span><input type="number" min="1" max="20" className="app-field mt-1" value={form.maxActiveChats || 3} onChange={(event) => setForm({ ...form, maxActiveChats: Number(event.target.value) })} /></label>
             </>
           ) : null}
-          <label><span className="app-label">Language</span><select className="app-field mt-1" value={form.language || "en"} onChange={(event) => setForm({ ...form, language: event.target.value })}><option value="en">English</option><option value="it">Italian</option><option value="es">Spanish</option><option value="fr">French</option></select></label>
+          <label><span className="app-label">{t("language")}</span><select className="app-field mt-1" value={form.language || "en"} onChange={(event) => setForm({ ...form, language: event.target.value })}><option value="en">English</option><option value="it">Italian</option><option value="es">Spanish</option><option value="fr">French</option></select></label>
         </div>
       </Modal>
     </>
