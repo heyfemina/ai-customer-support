@@ -9,6 +9,9 @@ export const priorityOptions = ["LOW", "MEDIUM", "HIGH", "URGENT"];
 
 export const demoUsers = [];
 
+export const AUTH_TOKEN_KEY = "authToken";
+export const AUTH_USER_KEY = "authUser";
+
 export const normalizeRole = (role) => String(role || "").toUpperCase();
 
 export const roleHome = {

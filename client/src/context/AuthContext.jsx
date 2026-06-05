@@ -1,16 +1,23 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import api from "../api/axios.js";
-import { getDashboardPath, normalizeRole, roleHome } from "../utils/constants.js";
+import { AUTH_TOKEN_KEY, AUTH_USER_KEY, getDashboardPath, normalizeRole, roleHome } from "../utils/constants.js";
 
 const AuthContext = createContext(null);
 const demoKeys = ["demo:tickets", "demo:users", "demo:chats", "demo:activity-logs"];
+const legacyAuthKeys = ["token", "user", "role", AUTH_TOKEN_KEY, AUTH_USER_KEY];
+
+const authStorage = () => window.sessionStorage;
+
+function clearLegacyLocalAuth() {
+  legacyAuthKeys.forEach((key) => localStorage.removeItem(key));
+}
 
 function readStoredUser() {
   try {
-    const stored = localStorage.getItem("user");
+    const stored = authStorage().getItem(AUTH_USER_KEY);
     return stored ? normalizeAuthUser(JSON.parse(stored)) : null;
   } catch {
-    localStorage.removeItem("user");
+    authStorage().removeItem(AUTH_USER_KEY);
     return null;
   }
 }
@@ -22,8 +29,8 @@ function normalizeAuthUser(authUser) {
 
 function persistSession(authToken, authUser) {
   const normalizedUser = normalizeAuthUser(authUser);
-  localStorage.setItem("token", authToken);
-  localStorage.setItem("user", JSON.stringify(normalizedUser));
+  authStorage().setItem(AUTH_TOKEN_KEY, authToken);
+  authStorage().setItem(AUTH_USER_KEY, JSON.stringify(normalizedUser));
   return normalizedUser;
 }
 
@@ -42,8 +49,8 @@ function assertExpectedRole(authUser, expectedRole) {
 }
 
 function clearStoredSession() {
-  localStorage.removeItem("token");
-  localStorage.removeItem("user");
+  authStorage().removeItem(AUTH_TOKEN_KEY);
+  authStorage().removeItem(AUTH_USER_KEY);
 }
 
 function readAuthPayload(payload) {
@@ -57,11 +64,12 @@ function readAuthPayload(payload) {
 }
 
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(() => localStorage.getItem("token"));
+  const [token, setToken] = useState(() => authStorage().getItem(AUTH_TOKEN_KEY));
   const [user, setUser] = useState(readStoredUser);
   const [authReady, setAuthReady] = useState(false);
 
   useEffect(() => {
+    clearLegacyLocalAuth();
     demoKeys.forEach((key) => localStorage.removeItem(key));
   }, []);
 

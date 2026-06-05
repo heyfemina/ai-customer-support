@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import api from "../api/axios.js";
+import { AUTH_TOKEN_KEY, AUTH_USER_KEY } from "../utils/constants.js";
 import i18n from "../i18n/index.js";
 
 const LanguageContext = createContext(null);
@@ -17,8 +18,8 @@ export function LanguageProvider({ children }) {
 
   const persistUserLanguage = (safeLanguage) => {
     try {
-      const storedUser = JSON.parse(localStorage.getItem("user") || "null");
-      if (storedUser) localStorage.setItem("user", JSON.stringify({ ...storedUser, language: safeLanguage }));
+      const storedUser = JSON.parse(sessionStorage.getItem(AUTH_USER_KEY) || "null");
+      if (storedUser) sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify({ ...storedUser, language: safeLanguage }));
     } catch {
       // Local UI language should continue even if stored user data is malformed.
     }
@@ -30,7 +31,7 @@ export function LanguageProvider({ children }) {
     persistUserLanguage(safeLanguage);
     setLanguage(safeLanguage);
     i18n.changeLanguage(safeLanguage);
-    if (syncProfile && localStorage.getItem("token")) {
+    if (syncProfile && sessionStorage.getItem(AUTH_TOKEN_KEY)) {
       api.put("/auth/profile", { language: safeLanguage }).catch(() => {});
     }
   };
