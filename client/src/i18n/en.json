@@ -554,7 +554,12 @@
     "resendFailed": "Unable to resend verification code.",
     "verifyAndSignIn": "Verify and sign in",
     "sending": "Sending...",
-    "resendOtp": "Resend OTP"
+    "resendOtp": "Resend OTP",
+    "whoAreYou": "Who are you?",
+    "roleCustomer": "Customer",
+    "roleAgent": "Agent",
+    "roleAdmin": "Admin",
+    "roleMismatch": "This account is {{actual}}, not {{expected}}. Please choose the correct role."
   },
   "forms": {
     "subject": "Subject",

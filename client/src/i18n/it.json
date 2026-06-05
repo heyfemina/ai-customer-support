@@ -554,7 +554,12 @@
     "resendFailed": "Impossibile reinviare il codice.",
     "verifyAndSignIn": "Verifica e accedi",
     "sending": "Invio...",
-    "resendOtp": "Reinvia OTP"
+    "resendOtp": "Reinvia OTP",
+    "whoAreYou": "Chi sei?",
+    "roleCustomer": "Cliente",
+    "roleAgent": "Agente",
+    "roleAdmin": "Admin",
+    "roleMismatch": "Questo account e {{actual}}, non {{expected}}. Scegli il ruolo corretto."
   },
   "forms": {
     "subject": "Oggetto",

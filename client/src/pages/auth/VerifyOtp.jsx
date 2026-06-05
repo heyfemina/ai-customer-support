@@ -19,6 +19,7 @@ export default function VerifyOtp() {
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const tempLoginToken = location.state?.tempLoginToken;
+  const expectedRole = location.state?.expectedRole;
 
   if (!tempLoginToken) return <Navigate to="/login" replace />;
 
@@ -33,7 +34,7 @@ export default function VerifyOtp() {
     try {
       const { data } = await api.post("/auth/verify-2fa", { tempLoginToken, otp });
       const payload = data.data || data;
-      const user = complete2FA({ authToken: payload.token, authUser: payload.user });
+      const user = complete2FA({ authToken: payload.token, authUser: payload.user, expectedRole });
       navigate(getDashboardPath(user.role), { replace: true });
     } catch (error) {
       setError(error.friendlyMessage || t("auth.invalidOtp"));

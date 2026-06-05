@@ -554,7 +554,12 @@
     "resendFailed": "No se pudo reenviar el codigo.",
     "verifyAndSignIn": "Verificar e iniciar sesion",
     "sending": "Enviando...",
-    "resendOtp": "Reenviar OTP"
+    "resendOtp": "Reenviar OTP",
+    "whoAreYou": "Quien eres?",
+    "roleCustomer": "Cliente",
+    "roleAgent": "Agente",
+    "roleAdmin": "Admin",
+    "roleMismatch": "Esta cuenta es {{actual}}, no {{expected}}. Elige el rol correcto."
   },
   "forms": {
     "subject": "Asunto",

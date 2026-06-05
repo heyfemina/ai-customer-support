@@ -3,7 +3,7 @@ import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { AlertCircle, Bot, CheckCircle2, Eye, EyeOff, LockKeyhole, Mail } from "lucide-react";
 import Button from "../../components/common/Button.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
-import { getDashboardPath } from "../../utils/constants.js";
+import { getDashboardPath, normalizeRole, ROLES } from "../../utils/constants.js";
 import { useTranslation } from "react-i18next";
 
 const inputShellClass = "mt-2 flex h-12 items-center rounded-md border border-[#D6DEE9] bg-white shadow-sm transition focus-within:border-[#2563EB] focus-within:ring-4 focus-within:ring-blue-100";
@@ -18,6 +18,7 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
   const [form, setForm] = useState({ email: "", password: "" });
+  const [selectedRole, setSelectedRole] = useState(ROLES.CUSTOMER);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -35,14 +36,14 @@ export default function Login() {
     setLoading(true);
     setError("");
     try {
-      const result = await login({ email: form.email.trim(), password: form.password });
+      const result = await login({ email: form.email.trim(), password: form.password, expectedRole: selectedRole });
       if (result.requires2FA) {
-        navigate("/verify-otp", { state: { tempLoginToken: result.tempLoginToken, email: result.user?.email, devOtp: result.devOtp, previewUrl: result.previewUrl } });
+        navigate("/verify-otp", { state: { tempLoginToken: result.tempLoginToken, email: result.user?.email, devOtp: result.devOtp, previewUrl: result.previewUrl, expectedRole: selectedRole } });
         return;
       }
       navigate(getDashboardPath(result.role), { replace: true });
     } catch (error) {
-      setError(error.friendlyMessage || t("auth.invalidLogin"));
+      setError(error.code === "ROLE_MISMATCH" ? t("auth.roleMismatch", { actual: error.actualRole, expected: error.expectedRole }) : error.friendlyMessage || t("auth.invalidLogin"));
     } finally {
       setLoading(false);
     }
@@ -102,6 +103,28 @@ export default function Login() {
           </p>
         ) : null}
         <form className="space-y-5" onSubmit={submit}>
+          <div>
+            <p className={labelClass}>{t("auth.whoAreYou", { defaultValue: "Who are you?" })}</p>
+            <div className="mt-2 grid grid-cols-3 gap-2">
+              {[
+                { role: ROLES.CUSTOMER, label: t("auth.roleCustomer", { defaultValue: "Customer" }) },
+                { role: ROLES.AGENT, label: t("auth.roleAgent", { defaultValue: "Agent" }) },
+                { role: ROLES.ADMIN, label: t("auth.roleAdmin", { defaultValue: "Admin" }) },
+              ].map((option) => {
+                const active = normalizeRole(selectedRole) === option.role;
+                return (
+                  <button
+                    key={option.role}
+                    type="button"
+                    className={`min-h-11 rounded-md border px-3 text-sm font-bold transition ${active ? "border-blue-600 bg-blue-600 text-white shadow-sm" : "border-slate-200 bg-white text-slate-700 hover:border-blue-200 hover:bg-blue-50 hover:text-blue-800"}`}
+                    onClick={() => setSelectedRole(option.role)}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
           <label className={labelClass}>
             {t("auth.email")}
             <div className={inputShellClass}>

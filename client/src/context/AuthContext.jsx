@@ -27,6 +27,20 @@ function persistSession(authToken, authUser) {
   return normalizedUser;
 }
 
+function assertExpectedRole(authUser, expectedRole) {
+  const normalizedExpectedRole = normalizeRole(expectedRole);
+  if (!normalizedExpectedRole) return;
+  const actualRole = normalizeRole(authUser?.role);
+  if (actualRole !== normalizedExpectedRole) {
+    const error = new Error("Selected role does not match this account.");
+    error.code = "ROLE_MISMATCH";
+    error.actualRole = actualRole || "UNKNOWN";
+    error.expectedRole = normalizedExpectedRole;
+    error.friendlyMessage = `This account is ${error.actualRole}, not ${error.expectedRole}. Please choose the correct role.`;
+    throw error;
+  }
+}
+
 function clearStoredSession() {
   localStorage.removeItem("token");
   localStorage.removeItem("user");
@@ -102,11 +116,12 @@ export function AuthProvider({ children }) {
     return () => window.removeEventListener("auth:logout", handleLogout);
   }, []);
 
-  const login = async ({ email, password }) => {
+  const login = async ({ email, password, expectedRole }) => {
     const response = await api.post("/auth/login", { email, password });
     const { data, token: authToken, user: authUser, requires2FA } = readAuthPayload(response.data);
     if (requires2FA) return data;
     if (!authToken || !authUser) throw new Error("Invalid login response");
+    assertExpectedRole(authUser, expectedRole);
     const normalizedUser = persistSession(authToken, authUser);
     setToken(authToken);
     setUser(normalizedUser);
@@ -114,8 +129,9 @@ export function AuthProvider({ children }) {
     return normalizedUser;
   };
 
-  const complete2FA = ({ authToken, authUser }) => {
+  const complete2FA = ({ authToken, authUser, expectedRole }) => {
     if (!authToken || !authUser) throw new Error("Invalid 2FA response");
+    assertExpectedRole(authUser, expectedRole);
     const normalizedUser = persistSession(authToken, authUser);
     setToken(authToken);
     setUser(normalizedUser);
