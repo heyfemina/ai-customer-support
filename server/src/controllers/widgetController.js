@@ -26,6 +26,14 @@ function shapeMessage(message) {
   return { ...message, content: decryptMessageContent(message.content) };
 }
 
+function normalizeCategory(value) {
+  return String(value || "General").trim().replace(/\s+support$/i, "").toLowerCase();
+}
+
+function departmentRoom(category) {
+  return `department:${normalizeCategory(category)}`;
+}
+
 async function getVisitorUser(visitorId) {
   const email = `visitor-${visitorId}@widget.local`;
   const existing = await prisma.user.findUnique({ where: { email } });
@@ -89,8 +97,12 @@ export async function sendWidgetMessage(req, res, next) {
     const message = await prisma.message.create({ data: { content: encryptMessageContent(content), originalContent: content, senderId: chat.customerId, chatSessionId: chat.id } });
     const ai = await generateSupportReply(content, { language: chat.language, customerName: "Website Visitor", userId: chat.customerId });
     const aiMessage = await prisma.message.create({ data: { content: encryptMessageContent(ai.reply), originalContent: ai.reply, senderId: chat.customerId, chatSessionId: chat.id, isAI: true } });
-    await prisma.chatSession.update({ where: { id: chat.id }, data: { lastMessage: ai.reply, status: ai.transferToAgent ? "TRANSFERRED" : "ACTIVE" } });
-    req.app.get("io")?.emit("chat_queue_updated", chat);
+    const updatedChat = await prisma.chatSession.update({ where: { id: chat.id }, data: { lastMessage: ai.reply, status: ai.transferToAgent ? "TRANSFERRED" : "ACTIVE" } });
+    const io = req.app.get("io");
+    if (io && ai.transferToAgent) {
+      io.to("admins").to(departmentRoom(updatedChat.category)).emit("chat_queue_updated", updatedChat);
+      io.to("admins").to(departmentRoom(updatedChat.category)).emit("chat_notification", { chatSessionId: updatedChat.id, message: "New customer chat waiting", chat: updatedChat });
+    }
     success(res, { message: shapeMessage(message), aiMessage: shapeMessage(aiMessage), transferToAgent: ai.transferToAgent }, "Message sent");
   } catch (error) { next(error); }
 }

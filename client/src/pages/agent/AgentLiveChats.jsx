@@ -16,6 +16,12 @@ const appendMessage = (current, chatId, message) => {
   return { ...current, [chatId]: [...existing, message] };
 };
 
+const normalizeCategory = (value) => String(value || "General").trim().replace(/\s+support$/i, "").toLowerCase();
+const agentMatchesCategory = (agent, category) => {
+  const allowed = new Set([...(Array.isArray(agent?.categories) ? agent.categories : []), agent?.department].filter(Boolean).map(normalizeCategory));
+  return allowed.size ? allowed.has(normalizeCategory(category)) : normalizeCategory(category) === "general";
+};
+
 export default function AgentLiveChats() {
   const location = useLocation();
   const { user } = useAuth();
@@ -47,7 +53,8 @@ export default function AgentLiveChats() {
   const activeCustomerName = active?.customer?.name || active?.customerName || "No chat selected";
   const activeCustomerEmail = active?.customer?.email || active?.customerEmail || "Select a conversation";
   const activeCategory = active?.category || active?.channel || "General";
-  const visibleAgents = agents.slice(0, 10);
+  const transferAgents = agents.filter((agent) => agent.id !== user?.id && agentMatchesCategory(agent, activeCategory));
+  const visibleAgents = transferAgents.slice(0, 10);
 
   const showNotice = (message, tone = "emerald") => {
     setNotice(message);
@@ -325,7 +332,7 @@ export default function AgentLiveChats() {
             <span className="app-label">{t("chat.transferTo")}</span>
             <select className="app-field mt-1.5" value={transferAgentId} onChange={(event) => setTransferAgentId(event.target.value)}>
               <option value="">{t("ticketsUi.unassigned")}</option>
-              {agents.map((agent) => <option key={agent.id} value={agent.id}>{agent.name}</option>)}
+              {transferAgents.map((agent) => <option key={agent.id} value={agent.id}>{agent.name}</option>)}
             </select>
           </label>
           <div className="mt-3 grid gap-2">
@@ -335,11 +342,11 @@ export default function AgentLiveChats() {
           <div className="mt-4 border-t border-slate-200 pt-4">
             <div className="flex items-center justify-between gap-2">
               <h3 className="inline-flex items-center gap-2 text-sm font-semibold text-slate-900"><Users className="h-4 w-4 text-blue-700" />{t("chat.multiAgentSupport")}</h3>
-              <span className="rounded-md bg-slate-100 px-2 py-1 text-xs font-bold text-slate-600">{agents.length}</span>
+              <span className="rounded-md bg-slate-100 px-2 py-1 text-xs font-bold text-slate-600">{transferAgents.length}</span>
             </div>
             <div className="mt-3 grid gap-1.5">
               {visibleAgents.length ? visibleAgents.map((agent) => <span key={agent.id} className="support-agent-chip" title={agent.name}>{agent.name}</span>) : <span className="text-sm text-slate-500">{t("chat.noAgentsLoaded")}</span>}
-              {agents.length > visibleAgents.length ? <span className="rounded-md border border-slate-200 px-2.5 py-1.5 text-center text-xs font-bold text-slate-500">+{agents.length - visibleAgents.length} more agents</span> : null}
+              {transferAgents.length > visibleAgents.length ? <span className="rounded-md border border-slate-200 px-2.5 py-1.5 text-center text-xs font-bold text-slate-500">+{transferAgents.length - visibleAgents.length} more agents</span> : null}
             </div>
           </div>
           <div className="mt-4 border-t border-slate-200 pt-4">

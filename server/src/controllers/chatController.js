@@ -14,6 +14,67 @@ const include = {
 };
 
 const waitingNotice = "All agents are currently busy. Estimated wait time is 5-10 minutes.";
+const queueStatuses = ["WAITING", "TRANSFERRED"];
+
+function normalizeCategory(value) {
+  return String(value || "General").trim().replace(/\s+support$/i, "").toLowerCase();
+}
+
+function categoryValuesForUser(user) {
+  const values = new Map();
+  [...(Array.isArray(user?.categories) ? user.categories : []), user?.department]
+    .filter(Boolean)
+    .forEach((value) => {
+      const clean = String(value).trim().replace(/\s+support$/i, "");
+      if (clean) values.set(normalizeCategory(clean), clean);
+    });
+  if (!values.size) values.set("general", "General");
+  return [...values.values()];
+}
+
+function agentMatchesCategory(user, category) {
+  if (user?.role === "ADMIN") return true;
+  if (user?.role !== "AGENT") return false;
+  const allowed = new Set(categoryValuesForUser(user).map(normalizeCategory));
+  return allowed.has(normalizeCategory(category));
+}
+
+function departmentRoom(category) {
+  return `department:${normalizeCategory(category)}`;
+}
+
+function agentRoom(agentId) {
+  return `agent:${agentId}`;
+}
+
+function emitChatUpdate(req, chat) {
+  const io = req.app.get("io");
+  if (!io || !chat) return;
+  const shaped = shapeChat(chat);
+  io.to("admins").emit("chat_queue_updated", shaped);
+  io.to(chat.customerId).emit("chat_queue_updated", shaped);
+  if (chat.agentId) {
+    io.to(agentRoom(chat.agentId)).emit("chat_queue_updated", shaped);
+  } else if (queueStatuses.includes(chat.status)) {
+    io.to(departmentRoom(chat.category)).emit("chat_queue_updated", shaped);
+  }
+  io.to(chat.id).emit("chat_queue_updated", shaped);
+}
+
+function emitChatNotification(req, chat, message) {
+  const io = req.app.get("io");
+  if (!io || !chat) return;
+  const shaped = shapeChat(chat);
+  const payload = { chatSessionId: chat.id, message, chat: shaped };
+  io.to("admins").emit("chat_notification", payload);
+  io.to(chat.customerId).emit("chat_notification", payload);
+  if (chat.agentId) {
+    io.to(agentRoom(chat.agentId)).emit("chat_notification", payload);
+  } else if (queueStatuses.includes(chat.status)) {
+    io.to(departmentRoom(chat.category)).emit("chat_notification", payload);
+  }
+  io.to(chat.id).emit("chat_notification", payload);
+}
 
 function visitorFromRequest(req) {
   return {
@@ -29,10 +90,13 @@ function visitorFromRequest(req) {
 }
 
 function canAccessChat(user, chat) {
-  if (!chat) return false;
+  if (!user || !chat) return false;
   if (user.role === "ADMIN") return true;
   if (user.role === "CUSTOMER") return chat.customerId === user.id;
-  if (user.role === "AGENT") return !chat.agentId || chat.agentId === user.id || chat.status === "TRANSFERRED";
+  if (user.role === "AGENT") {
+    if (chat.agentId === user.id) return true;
+    return !chat.agentId && queueStatuses.includes(chat.status) && agentMatchesCategory(user, chat.category);
+  }
   return false;
 }
 
@@ -89,10 +153,12 @@ async function pickAgentForChat(category = "General") {
       role: "AGENT",
       isActive: true,
       agentStatus: { not: "OFFLINE" },
-      OR: [{ categories: { has: category } }, { categories: { has: "General" } }],
     },
     select: {
       id: true,
+      role: true,
+      department: true,
+      categories: true,
       maxActiveChats: true,
       agentChats: { select: { status: true } },
     },
@@ -101,10 +167,11 @@ async function pickAgentForChat(category = "General") {
   const ranked = agents
     .map((agent) => ({
       id: agent.id,
+      matchesCategory: agentMatchesCategory(agent, category),
       activeChats: agent.agentChats.filter((chat) => activeStatuses.has(chat.status)).length,
       maxActiveChats: agent.maxActiveChats || 3,
     }))
-    .filter((agent) => agent.activeChats < agent.maxActiveChats)
+    .filter((agent) => agent.matchesCategory && agent.activeChats < agent.maxActiveChats)
     .sort((a, b) => a.activeChats - b.activeChats);
   return ranked[0]?.id || null;
 }
@@ -113,8 +180,12 @@ async function translationData({ content, sourceLanguage, targetLanguage, userId
   if (!content || !targetLanguage || sourceLanguage === targetLanguage) {
     return { originalContent: content, sourceLanguage, targetLanguage };
   }
-  const translatedContent = await translateText(content, targetLanguage, { userId });
-  return { originalContent: content, translatedContent, sourceLanguage, targetLanguage };
+  try {
+    const translatedContent = await translateText(content, targetLanguage, { userId });
+    return { originalContent: content, translatedContent, sourceLanguage, targetLanguage };
+  } catch {
+    return { originalContent: content, sourceLanguage, targetLanguage };
+  }
 }
 
 export async function startChat(req, res, next) {
@@ -137,8 +208,8 @@ export async function startChat(req, res, next) {
       include,
     });
     const shaped = shapeChat(chat);
-    req.app.get("io")?.emit("chat_queue_updated", shaped);
-    req.app.get("io")?.emit("chat_notification", { chatSessionId: chat.id, message: agentId ? "New customer chat assigned" : "New customer chat waiting", chat: shaped });
+    emitChatUpdate(req, chat);
+    emitChatNotification(req, chat, agentId ? "New customer chat assigned" : "New customer chat waiting");
     success(res, shaped, "Chat started", 201);
   } catch (error) { next(error); }
 }
@@ -171,17 +242,26 @@ export async function startTicketChat(req, res, next) {
     });
 
     const shaped = shapeChat(chat);
-    req.app.get("io")?.emit("chat_queue_updated", shaped);
-    req.app.get("io")?.emit("chat_notification", { chatSessionId: chat.id, message: "Ticket chat opened", chat: shaped });
+    emitChatUpdate(req, chat);
+    emitChatNotification(req, chat, "Ticket chat opened");
     success(res, shaped, "Ticket chat opened", 201);
   } catch (error) { next(error); }
 }
 
 export async function getChats(req, res, next) {
   try {
-    const where = req.user.role === "CUSTOMER" ? { customerId: req.user.id } : req.user.role === "AGENT" ? { OR: [{ agentId: req.user.id }, { agentId: null }, { status: "TRANSFERRED" }, { status: "WAITING" }] } : {};
+    const where = req.user.role === "CUSTOMER"
+      ? { customerId: req.user.id }
+      : req.user.role === "AGENT"
+        ? {
+            OR: [
+              { agentId: req.user.id },
+              { agentId: null, status: { in: queueStatuses } },
+            ],
+          }
+        : {};
     const chats = await prisma.chatSession.findMany({ where, include, orderBy: { updatedAt: "desc" } });
-    success(res, chats.map(shapeChat));
+    success(res, chats.filter((chat) => canAccessChat(req.user, chat)).map(shapeChat));
   } catch (error) { next(error); }
 }
 
@@ -223,8 +303,8 @@ export async function sendChatMessage(req, res, next) {
     const shapedMessage = shapeMessage(message);
     req.app.get("io")?.to(req.params.id).emit("receive_message", shapedMessage);
     const updatedChat = await prisma.chatSession.findUnique({ where: { id: req.params.id }, include });
-    req.app.get("io")?.emit("chat_queue_updated", shapeChat(updatedChat));
-    req.app.get("io")?.emit("chat_notification", { chatSessionId: req.params.id, message: "New live chat message" });
+    emitChatUpdate(req, updatedChat);
+    emitChatNotification(req, updatedChat, "New live chat message");
 
     success(res, { message: shapedMessage }, "Message sent", 201);
   } catch (error) { next(error); }
@@ -234,11 +314,17 @@ export async function transferChat(req, res, next) {
   try {
     const current = await prisma.chatSession.findUnique({ where: { id: req.params.id }, include });
     if (!canAccessChat(req.user, current)) return res.status(403).json({ success: false, message: "Access denied" });
+    if (req.body.agentId && req.user.role !== "ADMIN") {
+      const targetAgent = await prisma.user.findUnique({ where: { id: req.body.agentId }, select: { id: true, role: true, department: true, categories: true } });
+      if (!agentMatchesCategory(targetAgent, current.category)) {
+        return res.status(403).json({ success: false, message: "You cannot transfer chats outside this department." });
+      }
+    }
     const chat = await prisma.chatSession.update({ where: { id: req.params.id }, data: { agentId: req.body.agentId || null, status: "TRANSFERRED", transferReason: req.body.reason || "Manual transfer" }, include });
     const event = await createChatEvent(req.params.id, "Chat transferred to another agent.", req.user.id);
     const shaped = shapeChat({ ...chat, messages: [...chat.messages, event] });
     req.app.get("io")?.to(req.params.id).emit("agent_transfer", shaped);
-    req.app.get("io")?.emit("chat_queue_updated", shaped);
+    emitChatUpdate(req, { ...chat, messages: [...chat.messages, event] });
     success(res, shaped, "Chat transferred");
   } catch (error) { next(error); }
 }
@@ -247,10 +333,15 @@ export async function acceptChat(req, res, next) {
   try {
     const current = await prisma.chatSession.findUnique({ where: { id: req.params.id }, include });
     if (!canAccessChat(req.user, current)) return res.status(403).json({ success: false, message: "Access denied" });
+    if (req.user.role !== "AGENT") return res.status(403).json({ success: false, message: "Only agents can accept chats" });
+    if (current.agentId && current.agentId !== req.user.id) return res.status(409).json({ success: false, message: "Chat is already assigned" });
+    if (!agentMatchesCategory(req.user, current.category)) {
+      return res.status(403).json({ success: false, message: "You cannot accept chats outside your department." });
+    }
     const chat = await prisma.chatSession.update({ where: { id: req.params.id }, data: { agentId: req.user.id, status: "ACTIVE", acceptedAt: new Date() }, include });
     const shaped = shapeChat(chat);
-    req.app.get("io")?.to(req.params.id).emit("chat_notification", { chatSessionId: req.params.id, message: "Chat accepted by agent", chat: shaped });
-    req.app.get("io")?.emit("chat_queue_updated", shaped);
+    emitChatNotification(req, chat, "Chat accepted by agent");
+    emitChatUpdate(req, chat);
     success(res, shaped, "Chat accepted");
   } catch (error) { next(error); }
 }
@@ -270,8 +361,8 @@ export async function closeChat(req, res, next) {
     if (!canAccessChat(req.user, current)) return res.status(403).json({ success: false, message: "Access denied" });
     const chat = await prisma.chatSession.update({ where: { id: req.params.id }, data: { status: "CLOSED" }, include });
     const shaped = shapeChat(chat);
-    req.app.get("io")?.to(req.params.id).emit("chat_notification", { chatSessionId: req.params.id, message: "Chat closed", chat: shaped });
-    req.app.get("io")?.emit("chat_queue_updated", shaped);
+    emitChatNotification(req, chat, "Chat closed");
+    emitChatUpdate(req, chat);
     success(res, shaped, "Chat closed");
   } catch (error) { next(error); }
 }
