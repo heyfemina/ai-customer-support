@@ -149,8 +149,23 @@ export default function Security() {
 
   const readiness = health?.readiness || {};
   const backupColumns = [
-    { key: "fileName", label: "File", nowrap: false, render: (backup) => <span className="block max-w-56 font-semibold leading-5 text-slate-800">{backup.fileName}</span> },
-    { key: "provider", label: "Provider", render: (backup) => <span className="capitalize">{backup.provider}</span> },
+    {
+      key: "fileName",
+      label: "File",
+      nowrap: false,
+      className: "min-w-[22rem]",
+      render: (backup) => (
+        <div className="min-w-0">
+          <p className="break-all font-semibold leading-5 text-slate-900">{backup.fileName}</p>
+        </div>
+      ),
+    },
+    {
+      key: "provider",
+      label: "Provider",
+      align: "center",
+      render: (backup) => <Badge tone={backup.provider === "supabase" ? "blue" : "slate"}>{backup.provider}</Badge>,
+    },
     {
       key: "status",
       label: "Status",
@@ -163,14 +178,15 @@ export default function Security() {
         </div>
       ),
     },
-    { key: "sizeBytes", label: "Size", align: "center", render: (backup) => formatBytes(backup.sizeBytes) },
-    { key: "createdAt", label: "Created", align: "center", render: (backup) => formatDate(backup.createdAt) },
+    { key: "sizeBytes", label: "Size", align: "center", className: "font-semibold text-slate-900", render: (backup) => formatBytes(backup.sizeBytes) },
+    { key: "createdAt", label: "Created", align: "center", className: "text-slate-600", render: (backup) => formatDate(backup.createdAt) },
     {
       key: "actions",
       label: "Actions",
-      align: "center",
+      align: "right",
+      className: "min-w-[11rem]",
       render: (backup) => (
-        <div className="flex flex-wrap items-center justify-center gap-2">
+        <div className="flex flex-wrap items-center justify-end gap-2">
           <Button size="sm" variant="secondary" disabled={backup.status !== "SUCCESS"} onClick={() => downloadBackup(backup)}>Download</Button>
           <Button size="sm" variant="danger" loading={deletingBackupId === backup.id} onClick={() => deleteBackup(backup)}>Delete</Button>
         </div>
@@ -182,49 +198,24 @@ export default function Security() {
     <>
       <PageHeader title="Security settings" description="Authentication, compliance, API security, audit controls, and resilience placeholders." />
       {notice ? <p className="mb-4 rounded-md bg-green-50 px-3 py-2 text-sm font-semibold text-green-700">{notice}</p> : null}
-      <div className="mb-4 grid gap-3 md:grid-cols-3">
-        <Button variant="secondary" loading={backupBusy} onClick={createBackup}>Create Backup Now</Button>
-        <Button variant="secondary" onClick={loadOperationalData}>{t("security.actions.securityCheck")}</Button>
-      </div>
-      <div className="mb-4 grid gap-4 xl:grid-cols-3">
-        <Card className="p-5">
-          <h2 className="font-semibold text-slate-950">System health</h2>
-          <div className="mt-3 space-y-2 text-sm text-slate-600">
-            <p>API: <b>{health?.api || "checking"}</b></p>
-            <p>Database: <b>{health?.database || "checking"}</b></p>
-            <p>Socket connections: <b>{health?.activeSocketConnections ?? 0}</b></p>
-            <p>Open alerts: <b>{health?.alerts?.length ?? 0}</b></p>
-            <p>Environment: <b>{readiness.nodeEnv || "development"}</b></p>
-            <p>Production ready: <b>{readiness.productionReady ? "Yes" : "No"}</b></p>
-            {readiness.missingRequired?.length ? <p className="text-red-600">Missing required: {readiness.missingRequired.join(", ")}</p> : null}
-            {readiness.missingIntegrations?.length ? <p className="text-amber-700">Integration setup needed: {readiness.missingIntegrations.join(", ")}</p> : null}
-            <p>Firewall/WAF: <b>{readiness.firewallWaf || "hosting-level setup required"}</b></p>
-            <p>Monitoring: <b>{readiness.monitoring || "not configured"}</b></p>
-          </div>
-        </Card>
-        <Card className="p-5">
-          <div className="flex items-center justify-between gap-3">
+
+      <Card className="mb-5 overflow-hidden p-0">
+        <div className="flex flex-col gap-3 border-b border-slate-200 bg-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
             <h2 className="font-semibold text-slate-950">Backup history</h2>
-            <Button variant="secondary" loading={backupBusy} onClick={createBackup}>Create</Button>
+            <p className="mt-1 text-sm text-slate-500">Download, review, or delete secure backup snapshots.</p>
           </div>
-          <Table columns={backupColumns} data={backups} empty="No backups yet." className="mt-3" />
-        </Card>
-        <Card className="p-5">
-          <h2 className="font-semibold text-slate-950">GDPR requests</h2>
-          <div className="mt-3 space-y-2 text-sm">
-            {gdprRequests.slice(0, 5).map((request) => (
-              <div key={request.id} className="rounded-md bg-slate-50 p-2">
-                <div className="flex items-center justify-between gap-2"><span>{request.type} - {request.user?.email}</span><Badge>{request.status}</Badge></div>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  <Button variant="secondary" onClick={() => exportGdpr(request.userId)}>Export</Button>
-                  {request.status === "PENDING" ? <><Button variant="secondary" onClick={() => updateGdpr(request.id, "approve")}>Approve</Button><Button variant="secondary" onClick={() => updateGdpr(request.id, "reject")}>Reject</Button></> : null}
-                </div>
-              </div>
-            ))}
+          <div className="flex flex-wrap gap-2">
+            <Button variant="secondary" onClick={loadOperationalData}>{t("security.actions.securityCheck")}</Button>
+            <Button loading={backupBusy} onClick={createBackup}>Create</Button>
           </div>
-        </Card>
-      </div>
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        </div>
+        <div className="p-4">
+          <Table columns={backupColumns} data={backups} empty="No backups yet." initialPageSize={8} itemLabel="records" />
+        </div>
+      </Card>
+
+      <div className="mb-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {controls.map(({ id, state }) => (
           <Card key={id} className="p-5">
             <div className="flex items-start justify-between gap-3">
@@ -264,6 +255,38 @@ export default function Security() {
             ) : null}
           </Card>
         ))}
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-2">
+        <Card className="p-5">
+          <h2 className="font-semibold text-slate-950">System health</h2>
+          <div className="mt-3 space-y-2 text-sm text-slate-600">
+            <p>API: <b>{health?.api || "checking"}</b></p>
+            <p>Database: <b>{health?.database || "checking"}</b></p>
+            <p>Socket connections: <b>{health?.activeSocketConnections ?? 0}</b></p>
+            <p>Open alerts: <b>{health?.alerts?.length ?? 0}</b></p>
+            <p>Environment: <b>{readiness.nodeEnv || "development"}</b></p>
+            <p>Production ready: <b>{readiness.productionReady ? "Yes" : "No"}</b></p>
+            {readiness.missingRequired?.length ? <p className="text-red-600">Missing required: {readiness.missingRequired.join(", ")}</p> : null}
+            {readiness.missingIntegrations?.length ? <p className="text-amber-700">Integration setup needed: {readiness.missingIntegrations.join(", ")}</p> : null}
+            <p>Firewall/WAF: <b>{readiness.firewallWaf || "hosting-level setup required"}</b></p>
+            <p>Monitoring: <b>{readiness.monitoring || "not configured"}</b></p>
+          </div>
+        </Card>
+        <Card className="p-5">
+          <h2 className="font-semibold text-slate-950">GDPR requests</h2>
+          <div className="mt-3 space-y-2 text-sm">
+            {gdprRequests.slice(0, 5).map((request) => (
+              <div key={request.id} className="rounded-md bg-slate-50 p-2">
+                <div className="flex items-center justify-between gap-2"><span>{request.type} - {request.user?.email}</span><Badge>{request.status}</Badge></div>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <Button variant="secondary" onClick={() => exportGdpr(request.userId)}>Export</Button>
+                  {request.status === "PENDING" ? <><Button variant="secondary" onClick={() => updateGdpr(request.id, "approve")}>Approve</Button><Button variant="secondary" onClick={() => updateGdpr(request.id, "reject")}>Reject</Button></> : null}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
       </div>
     </>
   );
