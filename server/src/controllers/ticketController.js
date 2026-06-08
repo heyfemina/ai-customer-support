@@ -21,6 +21,7 @@ const include = {
   messages: { include: { sender: { select: { id: true, name: true, email: true, role: true } }, attachments: true }, orderBy: { createdAt: "asc" } },
   attachments: true,
 };
+const autoCloseHours = 48;
 
 function attachmentCreateData(file, userId, extra = {}) {
   const item = publicUploadFile(file);
@@ -89,6 +90,21 @@ function canAccessTicket(user, ticket) {
   return false;
 }
 
+function canWorkTicket(user, ticket) {
+  if (!user || !ticket) return false;
+  if (user.role === "ADMIN") return true;
+  if (user.role === "AGENT") return ticket.agentId === user.id;
+  if (user.role === "CUSTOMER") return ticket.customerId === user.id;
+  return false;
+}
+
+async function autoCloseDueTickets() {
+  await prisma.ticket.updateMany({
+    where: { status: "RESOLUTION_PROPOSED", autoCloseAt: { lte: new Date() } },
+    data: { status: "AUTO_CLOSED", closedAt: new Date(), closeReason: "No customer reply within 48 hours" },
+  });
+}
+
 export async function createTicket(req, res, next) {
   try {
     if (req.user.role !== "CUSTOMER") return res.status(403).json({ success: false, message: "Only customers can create tickets" });
@@ -97,7 +113,7 @@ export async function createTicket(req, res, next) {
       ? req.body.attachments.filter((file) => file?.fileUrl).map((file) => attachmentInputData(file, req.user.id))
       : [];
     const attachments = [...uploadedAttachments, ...providedAttachments];
-    const agentId = req.body.agentId || await pickAgentForTicket(req.body.category);
+    const agentId = req.body.agentId || null;
     const ticket = await prisma.ticket.create({
       data: {
         subject: req.body.subject,
@@ -106,7 +122,7 @@ export async function createTicket(req, res, next) {
         priority: req.body.priority,
         agentId,
         assignedAt: agentId ? new Date() : null,
-        assignmentMode: agentId ? (req.body.agentId ? "MANUAL_ASSIGN" : "LEAST_BUSY_AGENT") : "UNASSIGNED",
+        assignmentMode: agentId ? "MANUAL_ASSIGN" : "UNASSIGNED",
         customerId: req.user.id,
         attachments: attachments.length
           ? {
@@ -129,6 +145,7 @@ export async function createTicket(req, res, next) {
 
 export async function getTickets(req, res, next) {
   try {
+    await autoCloseDueTickets();
     const { search, status, priority, agentId, customerId, dateFrom, dateTo, page, limit } = req.query;
     const where = req.user.role === "CUSTOMER"
       ? { customerId: req.user.id }
@@ -186,6 +203,7 @@ export async function getTickets(req, res, next) {
 
 export async function getTicket(req, res, next) {
   try {
+    await autoCloseDueTickets();
     const ticket = await prisma.ticket.findUnique({ where: { id: req.params.id }, include });
     if (!ticket) return res.status(404).json({ success: false, message: "Ticket not found" });
     if (!canAccessTicket(req.user, ticket)) return res.status(403).json({ success: false, message: "Access denied" });
@@ -196,8 +214,12 @@ export async function getTicket(req, res, next) {
 export async function updateTicket(req, res, next) {
   try {
     const current = await prisma.ticket.findUnique({ where: { id: req.params.id } });
+    if (!canWorkTicket(req.user, current)) return res.status(403).json({ success: false, message: "Only the assigned agent or admin can update this ticket" });
     const allowed = ["subject", "description", "status", "priority", "category", "agentId"];
     const data = Object.fromEntries(Object.entries(req.body).filter(([key]) => allowed.includes(key)));
+    if (req.user.role === "AGENT" && ["RESOLVED", "CLOSED"].includes(data.status)) {
+      return res.status(403).json({ success: false, message: "Agents must propose resolution instead of closing tickets directly" });
+    }
     if (data.agentId === "") data.agentId = null;
     if (Object.prototype.hasOwnProperty.call(data, "agentId") && data.agentId !== current?.agentId) {
       data.assignedAt = data.agentId ? new Date() : null;
@@ -216,6 +238,10 @@ export async function updateTicket(req, res, next) {
 export async function updateTicketStatus(req, res, next) {
   try {
     const current = await prisma.ticket.findUnique({ where: { id: req.params.id } });
+    if (!canWorkTicket(req.user, current)) return res.status(403).json({ success: false, message: "Only the assigned agent or admin can update this ticket" });
+    if (req.user.role === "AGENT" && ["RESOLVED", "CLOSED"].includes(req.body.status)) {
+      return res.status(403).json({ success: false, message: "Agents must propose resolution instead of closing tickets directly" });
+    }
     const data = { status: req.body.status };
     if (current && ["RESOLVED", "CLOSED"].includes(req.body.status) && !current.resolvedAt) Object.assign(data, calculateResolution(current));
     const ticket = await prisma.ticket.update({ where: { id: req.params.id }, data, include });
@@ -229,6 +255,9 @@ export async function replyTicket(req, res, next) {
     const ticket = await prisma.ticket.findUnique({ where: { id: req.params.id }, include: { customer: true, agent: true } });
     if (!ticket) return res.status(404).json({ success: false, message: "Ticket not found" });
     if (!canAccessTicket(req.user, ticket)) return res.status(403).json({ success: false, message: "Access denied" });
+    if (req.user.role === "AGENT" && ticket.agentId !== req.user.id) {
+      return res.status(403).json({ success: false, message: "Only the assigned agent can reply to this ticket" });
+    }
     const firstFile = req.file || req.files?.[0];
     const content = req.body.content || firstFile?.originalname || req.body.fileName || "Attachment";
     const sourceLanguage = req.body.sourceLanguage || req.user.language || "en";
@@ -256,8 +285,65 @@ export async function replyTicket(req, res, next) {
     if (["ADMIN", "AGENT"].includes(req.user.role) && !ticket.firstResponseAt) {
       await prisma.ticket.update({ where: { id: ticket.id }, data: calculateFirstResponse(ticket) });
     }
+    if (req.user.role === "CUSTOMER" && ticket.status === "RESOLUTION_PROPOSED") {
+      await prisma.ticket.update({
+        where: { id: ticket.id },
+        data: { status: "REOPENED", reopenedAt: new Date(), autoCloseAt: null, closeReason: "Customer replied after proposed resolution" },
+      });
+    }
     await prisma.activityLog.create({ data: { userId: req.user.id, action: `Replied to ticket ${ticket.subject}`, ipAddress: req.ip } });
     success(res, { ...message, attachments }, "Reply added", 201);
+  } catch (error) { next(error); }
+}
+
+export async function claimTicket(req, res, next) {
+  try {
+    const current = await prisma.ticket.findUnique({ where: { id: req.params.id } });
+    if (!current) return res.status(404).json({ success: false, message: "Ticket not found" });
+    if (req.user.role !== "AGENT") return res.status(403).json({ success: false, message: "Only agents can claim tickets" });
+    if (current.agentId) return res.status(409).json({ success: false, message: "Ticket is already assigned" });
+    if (!agentCategories(req.user).includes(current.category)) return res.status(403).json({ success: false, message: "You cannot claim tickets outside your department" });
+    const claimed = await prisma.ticket.updateMany({
+      where: { id: req.params.id, agentId: null },
+      data: { agentId: req.user.id, assignedAt: new Date(), assignedById: req.user.id, assignmentMode: "AGENT_CLAIM", status: "IN_PROGRESS" },
+    });
+    if (!claimed.count) return res.status(409).json({ success: false, message: "Ticket was claimed by another agent" });
+    const ticket = await prisma.ticket.findUnique({ where: { id: req.params.id }, include });
+    success(res, ticket, "Ticket claimed");
+  } catch (error) { next(error); }
+}
+
+export async function proposeResolution(req, res, next) {
+  try {
+    const current = await prisma.ticket.findUnique({ where: { id: req.params.id }, include });
+    if (!current) return res.status(404).json({ success: false, message: "Ticket not found" });
+    if (req.user.role !== "ADMIN" && current.agentId !== req.user.id) return res.status(403).json({ success: false, message: "Only the assigned agent or admin can propose resolution" });
+    const now = new Date();
+    const autoCloseAt = new Date(now.getTime() + autoCloseHours * 60 * 60 * 1000);
+    const notice = "Your ticket has been marked as resolved. If the issue is not solved, reply or reopen within 48 hours.";
+    const ticket = await prisma.ticket.update({
+      where: { id: req.params.id },
+      data: { status: "RESOLUTION_PROPOSED", resolutionProposedAt: now, autoCloseAt, closeReason: notice, ...(!current.resolvedAt ? calculateResolution(current) : {}) },
+      include,
+    });
+    await prisma.message.create({
+      data: { content: notice, originalContent: notice, senderId: req.user.id, ticketId: req.params.id, isAI: false },
+    });
+    success(res, ticket, "Resolution proposed");
+  } catch (error) { next(error); }
+}
+
+export async function reopenTicket(req, res, next) {
+  try {
+    const current = await prisma.ticket.findUnique({ where: { id: req.params.id } });
+    if (!current) return res.status(404).json({ success: false, message: "Ticket not found" });
+    if (req.user.role !== "ADMIN" && current.customerId !== req.user.id) return res.status(403).json({ success: false, message: "Only the customer or admin can reopen this ticket" });
+    const ticket = await prisma.ticket.update({
+      where: { id: req.params.id },
+      data: { status: "REOPENED", reopenedAt: new Date(), autoCloseAt: null, closedAt: null, closeReason: "Ticket reopened" },
+      include,
+    });
+    success(res, ticket, "Ticket reopened");
   } catch (error) { next(error); }
 }
 

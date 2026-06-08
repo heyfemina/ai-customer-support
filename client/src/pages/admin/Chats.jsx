@@ -16,6 +16,12 @@ const appendMessage = (current, chatId, message) => {
   if (existing.some((item) => item.id === message.id)) return current;
   return { ...current, [chatId]: [...existing, message] };
 };
+const departments = ["Billing", "Technical", "Account", "Refund", "General", "Complaint"];
+const normalizeCategory = (value) => String(value || "General").trim().replace(/\s+support$/i, "").toLowerCase();
+const agentMatchesDepartment = (agent, department) => {
+  const allowed = [agent.department, ...(Array.isArray(agent.categories) ? agent.categories : [])].filter(Boolean).map(normalizeCategory);
+  return allowed.includes(normalizeCategory(department));
+};
 
 export default function Chats() {
   const location = useLocation();
@@ -28,6 +34,7 @@ export default function Chats() {
   const [typingUsers, setTypingUsers] = useState([]);
   const [agents, setAgents] = useState([]);
   const [transferAgentId, setTransferAgentId] = useState("");
+  const [transferDepartment, setTransferDepartment] = useState("General");
   const [notice, setNotice] = useState("");
   const [noticeTone, setNoticeTone] = useState("amber");
   const [actionLoading, setActionLoading] = useState("");
@@ -40,6 +47,7 @@ export default function Chats() {
   };
   const activeClosed = active?.status === "CLOSED";
   const actionBusy = Boolean(actionLoading);
+  const departmentAgents = agents.filter((agent) => agentMatchesDepartment(agent, transferDepartment));
   const noticeClass = {
     emerald: "border-green-100 bg-green-50 text-green-700",
     amber: "border-amber-100 bg-amber-50 text-amber-800",
@@ -53,6 +61,7 @@ export default function Chats() {
 
   const selectSession = (session) => {
     setActive(session);
+    setTransferDepartment(session.category || "General");
     setTransferAgentId("");
     setNotice("");
   };
@@ -170,7 +179,7 @@ export default function Chats() {
     let chat;
     setActionLoading("transfer");
     try {
-      const { data } = await api.post(`/chats/${active.id}/transfer`, { agentId: transferAgentId });
+      const { data } = await api.post(`/chats/${active.id}/transfer`, { agentId: transferAgentId, category: transferDepartment });
       chat = data.data || data;
     } catch (error) {
       showNotice(error.friendlyMessage || "Transfer failed. Please check the backend connection.", "rose");
@@ -231,11 +240,12 @@ export default function Chats() {
       </div>
       <div className="grid items-start gap-4 2xl:grid-cols-[minmax(0,1fr)_320px]">
         <div className="flex min-h-[560px] min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-[0_14px_34px_rgba(15,23,42,0.07)] md:flex-row xl:h-[calc(100vh-17rem)] xl:min-h-[520px] xl:max-h-[720px]">
-          <ChatSidebar sessions={sessions} activeId={active?.id} onSelect={selectSession} />
+          <ChatSidebar sessions={sessions} activeId={active?.id} onSelect={selectSession} viewMode="admin" />
           <ChatWindow
             session={active}
             messages={messagesByChat[active?.id] || activeMessages}
             currentUserId={user?.id}
+            viewMode="admin"
             typingUsers={typingUsers}
             onTyping={() => socket?.emit("typing", { chatSessionId: active?.id, user })}
             onStopTyping={() => socket?.emit("stop_typing", { chatSessionId: active?.id, user })}
@@ -253,12 +263,26 @@ export default function Chats() {
             <div className="rounded-xl border border-slate-300 bg-slate-50 p-2 font-semibold text-slate-700"><p className="text-base font-bold">{queueStats.closed}</p><p className="truncate">{t("chat.closed")}</p></div>
           </div>
           <label className="mt-4 block">
+            <span className="app-label">Department</span>
+            <select className="app-field mt-1" value={transferDepartment} onChange={(event) => { setTransferDepartment(event.target.value); setTransferAgentId(""); }}>
+              {departments.map((department) => <option key={department} value={department}>{department}</option>)}
+            </select>
+          </label>
+          <label className="mt-4 block">
             <span className="app-label">{t("chat.transferTo")}</span>
             <select className="app-field mt-1" value={transferAgentId} onChange={(event) => setTransferAgentId(event.target.value)}>
               <option value="">{t("ticketsUi.unassigned")}</option>
-              {agents.map((agent) => <option key={agent.id} value={agent.id}>{agent.name}</option>)}
+              {departmentAgents.map((agent) => <option key={agent.id} value={agent.id}>{agent.name} - {agent.agentStatus || "Online"} - {agent.activeChats ? `Busy (${agent.activeChats})` : "Free"}</option>)}
             </select>
           </label>
+          <div className="mt-3 grid gap-2 text-xs">
+            {departmentAgents.slice(0, 4).map((agent) => (
+              <div key={agent.id} className="flex items-center justify-between gap-2 rounded-md border border-slate-200 bg-slate-50 px-2 py-1.5">
+                <span className="truncate font-semibold">{agent.name}</span>
+                <span className="shrink-0 text-slate-500">{agent.agentStatus || "Online"} / {agent.activeChats ? `${agent.activeChats} active` : "Free"}</span>
+              </div>
+            ))}
+          </div>
           <div className="mt-3 grid grid-cols-2 gap-2">
             <Button variant="secondary" className="w-full" icon={ArrowRightLeft} onClick={transferChat} loading={actionLoading === "transfer"} disabled={!active?.id || activeClosed || !transferAgentId || actionBusy}>{t("buttons.transfer")}</Button>
             <Button variant="danger" className="w-full" onClick={closeChat} loading={actionLoading === "close"} disabled={!active?.id || activeClosed || actionBusy}>{t("buttons.close")}</Button>

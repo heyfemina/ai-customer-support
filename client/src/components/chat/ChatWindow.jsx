@@ -26,31 +26,49 @@ export default function ChatWindow({
   transferLoading = false,
   closeLoading = false,
   afterMessages = null,
+  viewMode = "agent",
 }) {
   const { t } = useTranslation();
   const { language, changeLanguage } = useLanguage();
   const endRef = useRef(null);
+  const wallRef = useRef(null);
+  const nearBottomRef = useRef(true);
+  const previousSessionIdRef = useRef(null);
   const sessionLanguage = session?.language?.toUpperCase() || language.toUpperCase();
 
   useEffect(() => {
+    const sessionChanged = previousSessionIdRef.current !== session?.id;
+    previousSessionIdRef.current = session?.id;
+    if (viewMode === "admin" && sessionChanged) return;
+    if (viewMode === "admin" && !nearBottomRef.current) return;
     endRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, session?.id, afterMessages]);
+  }, [messages.length, session?.id, afterMessages, viewMode]);
 
   if (!session) {
     return <div className="grid min-h-[420px] flex-1 place-items-center bg-white p-6 text-center"><div className="max-w-sm rounded-lg border border-dashed border-slate-200 bg-slate-50 p-6"><p className="font-semibold text-slate-900">{t("chat.selectSession")}</p><p className="mt-2 text-sm leading-6 text-slate-500">{t("chat.chooseConversation", { defaultValue: "Choose a conversation from the queue to view history and reply." })}</p></div></div>;
   }
 
-  const viewingAsCustomer = currentUserId && session.customerId === currentUserId;
+  const viewingAsCustomer = viewMode === "customer" || (currentUserId && session.customerId === currentUserId);
+  const viewingAsAdmin = viewMode === "admin";
   const statusLabel = session.status === "ASSIGNED" || session.status === "ACTIVE" ? t("chat.connected", { defaultValue: "Connected" }) : session.status === "WAITING" ? t("chat.waiting") : session.status === "CLOSED" ? t("chat.closed") : t(`status.${session.status}`, { defaultValue: session.status });
   const headerName = viewingAsCustomer
     ? session.agent?.name || session.agentName || (session.status === "WAITING" ? t("chat.waitingForAgent", { defaultValue: "Waiting for agent" }) : t("chat.queueTeam"))
+    : viewingAsAdmin
+      ? `${session.customer?.name || session.customerName || t("chat.customerFallback")} / ${session.agent?.name || session.agentName || "Unassigned"}`
     : session.customer?.name || session.customerName || t("chat.customerFallback");
   const headerEmail = viewingAsCustomer ? session.agent?.email : session.customer?.email;
-  const title = viewingAsCustomer ? t("chat.supportChat", { defaultValue: "Support Chat" }) : headerName;
+  const title = headerName;
   const subtitle = viewingAsCustomer
     ? session.agent?.name ? t("chat.connectedWith", { name: session.agent.name, defaultValue: `Connected with ${session.agent.name}` }) : t("chat.waitingForAvailableAgent", { defaultValue: "Waiting for available agent." })
+    : viewingAsAdmin
+      ? [`Customer: ${session.customer?.email || "N/A"}`, `Agent: ${session.agent?.email || "Unassigned"}`, session.category || session.channel].filter(Boolean).join(" / ")
     : [headerEmail, session.category || session.channel].filter(Boolean).join(" / ");
   const agentDisplay = session.agent?.name || session.agentName || t("chat.queueTeam");
+  const typingName = typingUsers[0]?.role === "CUSTOMER"
+    ? t("chat.customerTyping", { defaultValue: "Customer" })
+    : typingUsers[0]?.role === "AGENT"
+      ? t("chat.agentTyping", { defaultValue: "Agent" })
+      : typingUsers[0]?.name || "Someone";
 
   return (
     <div className="support-chat-window flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white">
@@ -89,7 +107,14 @@ export default function ChatWindow({
           </div>
         </div>
       </div>
-      <div className="support-message-wall app-scrollbar flex-1 space-y-3 overflow-y-auto bg-slate-50/80 p-4 sm:p-5">
+      <div
+        ref={wallRef}
+        className="support-message-wall app-scrollbar flex-1 space-y-3 overflow-y-auto bg-slate-50/80 p-4 sm:p-5"
+        onScroll={(event) => {
+          const node = event.currentTarget;
+          nearBottomRef.current = node.scrollHeight - node.scrollTop - node.clientHeight < 80;
+        }}
+      >
         {session.status === "WAITING" ? <div className="mx-auto max-w-md rounded-lg border border-amber-100 bg-white p-4 text-center text-sm text-slate-600 shadow-sm"><p className="font-semibold text-slate-900">{t("chat.waitingForAvailableAgent")}</p><p className="mt-1 leading-6 text-slate-500">{t("chat.queueSaved", { defaultValue: "Your conversation is in the support queue. Messages are saved here while you wait." })}</p></div> : null}
         {messages.length ? messages.map((message) => <ChatMessage key={message.id} message={message} currentUserId={currentUserId} />) : (
           <div className="grid min-h-[18rem] place-items-center">
@@ -102,7 +127,7 @@ export default function ChatWindow({
             </div>
           </div>
         )}
-        {typingUsers.length ? <TypingIndicator name={typingUsers[0]?.name || "Someone"} /> : null}
+        {typingUsers.length ? <TypingIndicator name={typingName} /> : null}
         {afterMessages}
         <div ref={endRef} />
       </div>

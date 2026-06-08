@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Bell, ChevronDown, LogOut, Menu, Plus, Search, UserCircle } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Button from "../common/Button.jsx";
 import { useAuth } from "../../context/AuthContext.jsx";
@@ -14,7 +14,9 @@ export default function Topbar({ onMenu }) {
   const { t } = useTranslation();
   const { notifications, clearNotifications } = useSocket();
   const navigate = useNavigate();
+  const location = useLocation();
   const [profileOpen, setProfileOpen] = useState(false);
+  const [search, setSearch] = useState("");
   const profileRef = useRef(null);
 
   useEffect(() => {
@@ -42,20 +44,38 @@ export default function Topbar({ onMenu }) {
   const userRole = String(user?.role || "").toUpperCase();
   const quickActionPath = userRole === "CUSTOMER" ? "/customer/tickets/create" : userRole === "AGENT" ? "/agent/live-chats" : "/admin/tickets";
   const quickActionLabel = userRole === "CUSTOMER" ? t("common.quickNewTicket") : userRole === "AGENT" ? t("common.quickOpenQueue") : t("common.quickReviewTickets");
-  const profilePath = userRole === "CUSTOMER" ? "/customer/profile" : userRole === "AGENT" ? "/agent/dashboard" : "/admin/security";
+  const profilePath = userRole === "CUSTOMER" ? "/customer/settings" : userRole === "AGENT" ? "/agent/settings" : "/admin/settings";
+  const ticketSearchPath = userRole === "CUSTOMER" ? "/customer/tickets" : userRole === "AGENT" ? "/agent/tickets" : "/admin/tickets";
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    setSearch(params.get("search") || "");
+  }, [location.search]);
+
+  const submitSearch = (event) => {
+    event.preventDefault();
+    const query = search.trim();
+    navigate(query ? `${ticketSearchPath}?search=${encodeURIComponent(query)}` : ticketSearchPath);
+  };
 
   return (
-    <header className="sticky top-0 z-20 flex h-16 items-center justify-between gap-3 border-b border-slate-200 bg-white/95 px-4 shadow-sm backdrop-blur-xl lg:px-8">
+    <header className="sticky top-0 z-50 flex h-16 items-center justify-between gap-3 border-b border-slate-200 px-4 shadow-sm backdrop-blur-xl lg:px-6" style={{ background: "var(--topbar-bg)" }}>
       <div className="flex min-w-0 items-center gap-3">
         <button className="rounded-md border border-slate-200 bg-white p-2 text-slate-600 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 lg:hidden" onClick={onMenu}>
           <Menu className="h-5 w-5" />
         </button>
-        <div className="hidden h-10 w-[min(22rem,32vw)] items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 shadow-sm transition focus-within:border-blue-400 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-100 md:flex">
+        <form onSubmit={submitSearch} className="hidden h-10 w-[min(22rem,32vw)] items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 shadow-sm transition focus-within:border-blue-400 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-100 md:flex">
           <Search className="h-4 w-4 text-slate-400" />
-          <input className="w-full border-0 bg-transparent text-sm outline-none focus:shadow-none" placeholder={t("searchPlaceholder")} />
-        </div>
+          <input
+            className="w-full border-0 bg-transparent text-sm outline-none focus:shadow-none"
+            placeholder={t("searchPlaceholder")}
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            aria-label={t("searchPlaceholder")}
+          />
+        </form>
       </div>
-      <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+      <div className="flex min-w-0 shrink-0 items-center gap-2 sm:gap-3">
         <Button className="hidden h-10 md:inline-flex" icon={Plus} onClick={() => navigate(quickActionPath)}>
           <span className="hidden lg:inline">{quickActionLabel}</span>
         </Button>

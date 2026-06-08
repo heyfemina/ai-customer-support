@@ -17,6 +17,9 @@ enum TicketStatus {
   OPEN
   IN_PROGRESS
   WAITING_CUSTOMER
+  RESOLUTION_PROPOSED
+  AUTO_CLOSED
+  REOPENED
   RESOLVED
   CLOSED
 }
@@ -118,6 +121,12 @@ model Ticket {
   updatedAt   DateTime       @updatedAt
   firstResponseAt DateTime?
   resolvedAt   DateTime?
+  resolutionProposedAt DateTime?
+  autoCloseAt DateTime?
+  closedAt DateTime?
+  closedById String?
+  closeReason String?
+  reopenedAt DateTime?
   firstResponseMinutes Int?
   resolutionMinutes Int?
   slaBreached Boolean        @default(false)
@@ -161,6 +170,7 @@ model Message {
 
 model ChatSession {
   id         String     @id @default(cuid())
+  ticketId   String?
   customerId String
   agentId    String?
   status     ChatStatus @default(WAITING)

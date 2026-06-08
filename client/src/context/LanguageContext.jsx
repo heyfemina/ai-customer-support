@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import api from "../api/axios.js";
 import { AUTH_TOKEN_KEY, AUTH_USER_KEY } from "../utils/constants.js";
 import i18n from "../i18n/index.js";
+import { normalizeStaticSource, translateStaticText } from "../i18n/staticText.js";
 
 const LanguageContext = createContext(null);
 const supportedLanguages = ["en", "it", "es", "fr"];
@@ -12,6 +13,40 @@ export const languageOptions = [
   { code: "fr", label: "French" },
 ];
 const normalizeLanguage = (language) => supportedLanguages.includes(language) ? language : "en";
+const originalText = new WeakMap();
+const translatedAttributes = ["placeholder", "title", "aria-label"];
+const ignoredTags = new Set(["SCRIPT", "STYLE", "NOSCRIPT", "CODE", "PRE"]);
+
+function translateNodeTree(root, language) {
+  if (!root) return;
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      const parent = node.parentElement;
+      if (!parent || ignoredTags.has(parent.tagName)) return NodeFilter.FILTER_REJECT;
+      if (!node.nodeValue?.trim()) return NodeFilter.FILTER_REJECT;
+      return NodeFilter.FILTER_ACCEPT;
+    },
+  });
+  const textNodes = [];
+  while (walker.nextNode()) textNodes.push(walker.currentNode);
+  textNodes.forEach((node) => {
+    if (!originalText.has(node)) originalText.set(node, node.nodeValue.replace(node.nodeValue.trim(), normalizeStaticSource(node.nodeValue)));
+    const source = originalText.get(node);
+    node.nodeValue = language === "en" ? source : source.replace(source.trim(), translateStaticText(source, language));
+  });
+
+  const elements = root.querySelectorAll?.("*") || [];
+  elements.forEach((element) => {
+    if (ignoredTags.has(element.tagName)) return;
+    translatedAttributes.forEach((attribute) => {
+      if (!element.hasAttribute(attribute)) return;
+      const originalName = `data-i18n-original-${attribute}`;
+      if (!element.hasAttribute(originalName)) element.setAttribute(originalName, normalizeStaticSource(element.getAttribute(attribute)));
+      const source = element.getAttribute(originalName);
+      element.setAttribute(attribute, language === "en" ? source : translateStaticText(source, language));
+    });
+  });
+}
 
 export function LanguageProvider({ children }) {
   const [language, setLanguage] = useState(() => normalizeLanguage(localStorage.getItem("language") || "en"));
@@ -39,6 +74,22 @@ export function LanguageProvider({ children }) {
   useEffect(() => {
     if (i18n.language !== language) i18n.changeLanguage(language);
     document.documentElement.lang = language;
+    window.requestAnimationFrame(() => translateNodeTree(document.body, language));
+  }, [language]);
+
+  useEffect(() => {
+    let pending = false;
+    const observer = new MutationObserver(() => {
+      if (pending) return;
+      pending = true;
+      window.requestAnimationFrame(() => {
+        pending = false;
+        translateNodeTree(document.body, language);
+      });
+    });
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: translatedAttributes });
+    translateNodeTree(document.body, language);
+    return () => observer.disconnect();
   }, [language]);
 
   useEffect(() => {

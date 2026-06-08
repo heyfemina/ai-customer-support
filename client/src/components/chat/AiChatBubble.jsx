@@ -1,5 +1,5 @@
 import { MessageCircle, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import api from "../../api/axios.js";
@@ -19,7 +19,53 @@ export default function AiChatBubble() {
   const [loading, setLoading] = useState(false);
   const [transferLoading, setTransferLoading] = useState(false);
   const [notice, setNotice] = useState("");
+  const [position, setPosition] = useState(() => {
+    try {
+      return JSON.parse(sessionStorage.getItem("aiChatBubblePosition") || "null");
+    } catch {
+      return null;
+    }
+  });
+  const dragRef = useRef(null);
   const isCustomerLiveChat = location.pathname === "/customer/live-chat";
+  const isMobile = useMemo(() => typeof window !== "undefined" && window.matchMedia("(max-width: 640px)").matches, []);
+
+  useEffect(() => {
+    if (isMobile || position) return;
+    setPosition({ x: window.innerWidth - 370, y: isCustomerLiveChat ? window.innerHeight - 510 : window.innerHeight - 430 });
+  }, [isCustomerLiveChat, isMobile, position]);
+
+  const clampPosition = (next) => {
+    const width = open ? 350 : 64;
+    const height = open ? 500 : 64;
+    return {
+      x: Math.min(Math.max(12, next.x), Math.max(12, window.innerWidth - width - 12)),
+      y: Math.min(Math.max(12, next.y), Math.max(12, window.innerHeight - height - 12)),
+    };
+  };
+
+  const startDrag = (event) => {
+    if (isMobile) return;
+    const rect = event.currentTarget.closest("[data-ai-chat-shell]")?.getBoundingClientRect();
+    dragRef.current = {
+      dx: event.clientX - (rect?.left || position?.x || 0),
+      dy: event.clientY - (rect?.top || position?.y || 0),
+    };
+    window.addEventListener("pointermove", moveDrag);
+    window.addEventListener("pointerup", stopDrag, { once: true });
+  };
+
+  const moveDrag = (event) => {
+    if (!dragRef.current) return;
+    const next = clampPosition({ x: event.clientX - dragRef.current.dx, y: event.clientY - dragRef.current.dy });
+    setPosition(next);
+    sessionStorage.setItem("aiChatBubblePosition", JSON.stringify(next));
+  };
+
+  const stopDrag = () => {
+    dragRef.current = null;
+    window.removeEventListener("pointermove", moveDrag);
+  };
 
   const openAgentChat = async (content) => {
     const lastCustomerMessage = content || [...messages].reverse().find((message) => message.sender === "user")?.content;
@@ -76,12 +122,16 @@ export default function AiChatBubble() {
   };
 
   return (
-    <div className={`fixed right-5 z-50 ${isCustomerLiveChat ? "bottom-24" : "bottom-5"}`}>
+    <div
+      data-ai-chat-shell
+      className={`fixed z-50 ${isMobile || !position ? `right-5 ${isCustomerLiveChat ? "bottom-24" : "bottom-5"}` : ""}`}
+      style={!isMobile && position ? { left: `${position.x}px`, top: `${position.y}px` } : undefined}
+    >
       {open ? (
         <div className="mb-3 flex h-[420px] w-[330px] flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl">
-          <div className="flex items-center justify-between bg-blue-900 px-4 py-3 text-white">
+          <div className="flex cursor-move items-center justify-between bg-blue-900 px-4 py-3 text-white" onPointerDown={startDrag}>
             <div><p className="font-bold">{t("chat.aiBot")}</p><p className="text-xs text-blue-100">{t("chat.instantHelp", { defaultValue: "Instant help before agent chat" })}</p></div>
-            <button type="button" className="grid h-9 w-9 place-items-center rounded-md border border-white/20 bg-white/10 text-white transition hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/40" onClick={() => setOpen(false)} aria-label={t("chat.closeAiChat", { defaultValue: "Close AI chat" })}><X className="h-5 w-5" /></button>
+            <button type="button" className="grid h-9 w-9 place-items-center rounded-md border border-white/20 bg-white/10 text-white transition hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/40" onPointerDown={(event) => event.stopPropagation()} onClick={() => setOpen(false)} aria-label={t("chat.closeAiChat", { defaultValue: "Close AI chat" })}><X className="h-5 w-5" /></button>
           </div>
           <div className="flex-1 space-y-3 overflow-auto bg-slate-50 p-3 text-sm">
             {messages.length ? messages.map((message) => (
@@ -102,7 +152,7 @@ export default function AiChatBubble() {
           </form>
         </div>
       ) : null}
-      <button onClick={() => setOpen(!open)} className="grid h-14 w-14 place-items-center rounded-full border border-blue-800 bg-blue-900 text-white shadow-2xl shadow-blue-950/20 transition hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-200" aria-label={t("chat.openAiChat", { defaultValue: "Open AI chat" })}>
+      <button onPointerDown={!open ? startDrag : undefined} onClick={() => setOpen(!open)} className="grid h-14 w-14 place-items-center rounded-full border border-blue-800 bg-blue-900 text-white shadow-2xl shadow-blue-950/20 transition hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-200" aria-label={t("chat.openAiChat", { defaultValue: "Open AI chat" })}>
         <MessageCircle className="h-6 w-6" />
       </button>
     </div>

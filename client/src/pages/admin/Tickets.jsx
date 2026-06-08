@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import PageHeader from "../../components/common/PageHeader.jsx";
 import Button from "../../components/common/Button.jsx";
 import Card from "../../components/common/Card.jsx";
@@ -11,6 +12,7 @@ import { downloadReport } from "../../utils/downloadReport.js";
 
 export default function Tickets() {
   const { t } = useTranslation();
+  const [searchParams] = useSearchParams();
   const [items, setItems] = useState([]);
   const [filters, setFilters] = useState({ search: "", status: "", priority: "", agentId: "", customerId: "", dateFrom: "", dateTo: "" });
   const [page, setPage] = useState(1);
@@ -18,6 +20,12 @@ export default function Tickets() {
   const [pagination, setPagination] = useState({ page: 1, limit: 15, total: 0, totalPages: 1 });
   const [agents, setAgents] = useState([]);
   const [customers, setCustomers] = useState([]);
+
+  useEffect(() => {
+    const query = searchParams.get("search") || "";
+    setFilters((current) => current.search === query ? current : { ...current, search: query });
+    setPage(1);
+  }, [searchParams]);
 
   useEffect(() => {
     const params = new URLSearchParams(Object.entries({ ...filters, page, limit }).filter(([, value]) => value));

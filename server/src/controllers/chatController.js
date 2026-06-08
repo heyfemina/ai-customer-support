@@ -76,6 +76,16 @@ function emitChatNotification(req, chat, message) {
   io.to(chat.id).emit("chat_notification", payload);
 }
 
+function emitDepartmentChatNotification(req, chat, message) {
+  const io = req.app.get("io");
+  if (!io || !chat) return;
+  io.to(departmentRoom(chat.category)).emit("chat_notification", {
+    chatSessionId: chat.id,
+    message,
+    chat: shapeChat(chat),
+  });
+}
+
 function visitorFromRequest(req) {
   return {
     visitorIp: req.ip,
@@ -210,6 +220,7 @@ export async function startChat(req, res, next) {
     const shaped = shapeChat(chat);
     emitChatUpdate(req, chat);
     emitChatNotification(req, chat, agentId ? "New customer chat assigned" : "New customer chat waiting");
+    if (agentId) emitDepartmentChatNotification(req, chat, "New customer chat assigned in your department");
     success(res, shaped, "Chat started", 201);
   } catch (error) { next(error); }
 }
@@ -226,6 +237,7 @@ export async function startTicketChat(req, res, next) {
 
     const chat = await prisma.chatSession.create({
       data: {
+        ticketId: ticket.id,
         customerId: ticket.customerId,
         agentId: req.user.role === "AGENT" ? req.user.id : ticket.agentId,
         status: ticket.agentId || req.user.role === "AGENT" ? "ASSIGNED" : "WAITING",
@@ -240,10 +252,23 @@ export async function startTicketChat(req, res, next) {
       },
       include,
     });
+    const context = `Customer wants to chat about ticket #${ticket.id.slice(0, 8)}: ${ticket.subject}. Issue: ${ticket.description.slice(0, 240)}`;
+    const contextMessage = await prisma.message.create({
+      data: {
+        content: encryptMessageContent(context),
+        originalContent: context,
+        encryptionVersion: encryptionVersion(),
+        senderId: req.user.id,
+        chatSessionId: chat.id,
+      },
+      include: { sender: { select: { id: true, name: true, email: true, role: true } } },
+    });
 
-    const shaped = shapeChat(chat);
-    emitChatUpdate(req, chat);
-    emitChatNotification(req, chat, "Ticket chat opened");
+    const chatWithContext = { ...chat, messages: [...chat.messages, contextMessage], lastMessage: context };
+    const shaped = shapeChat(chatWithContext);
+    emitChatUpdate(req, chatWithContext);
+    emitChatNotification(req, chatWithContext, "Ticket chat opened with context");
+    if (chat.agentId) emitDepartmentChatNotification(req, chatWithContext, "Ticket chat opened in your department");
     success(res, shaped, "Ticket chat opened", 201);
   } catch (error) { next(error); }
 }
@@ -320,7 +345,16 @@ export async function transferChat(req, res, next) {
         return res.status(403).json({ success: false, message: "You cannot transfer chats outside this department." });
       }
     }
-    const chat = await prisma.chatSession.update({ where: { id: req.params.id }, data: { agentId: req.body.agentId || null, status: "TRANSFERRED", transferReason: req.body.reason || "Manual transfer" }, include });
+    const chat = await prisma.chatSession.update({
+      where: { id: req.params.id },
+      data: {
+        agentId: req.body.agentId || null,
+        status: "TRANSFERRED",
+        transferReason: req.body.reason || "Manual transfer",
+        ...(req.user.role === "ADMIN" && req.body.category ? { category: req.body.category } : {}),
+      },
+      include,
+    });
     const event = await createChatEvent(req.params.id, "Chat transferred to another agent.", req.user.id);
     const shaped = shapeChat({ ...chat, messages: [...chat.messages, event] });
     req.app.get("io")?.to(req.params.id).emit("agent_transfer", shaped);

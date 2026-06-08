@@ -112,7 +112,7 @@ export default function AdminTicketDetails() {
           <label className="mt-4 block">
             <span className="app-label">{t("table.status")}</span>
             <select className="app-field mt-1.5" value={ticket.status || "OPEN"} onChange={(event) => updateTicket({ status: event.target.value })}>
-              <option>OPEN</option><option>IN_PROGRESS</option><option>WAITING_CUSTOMER</option><option>RESOLVED</option><option>CLOSED</option>
+              <option>OPEN</option><option>IN_PROGRESS</option><option>WAITING_CUSTOMER</option><option>RESOLUTION_PROPOSED</option><option>REOPENED</option><option>AUTO_CLOSED</option><option>RESOLVED</option><option>CLOSED</option>
             </select>
           </label>
           <label className="mt-4 block">

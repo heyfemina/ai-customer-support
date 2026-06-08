@@ -4,7 +4,7 @@ export const ROLES = {
   CUSTOMER: "CUSTOMER",
 };
 
-export const ticketStatusOptions = ["OPEN", "IN_PROGRESS", "WAITING_CUSTOMER", "RESOLVED", "CLOSED"];
+export const ticketStatusOptions = ["OPEN", "IN_PROGRESS", "WAITING_CUSTOMER", "RESOLUTION_PROPOSED", "AUTO_CLOSED", "REOPENED", "RESOLVED", "CLOSED"];
 export const priorityOptions = ["LOW", "MEDIUM", "HIGH", "URGENT"];
 
 export const demoUsers = [];

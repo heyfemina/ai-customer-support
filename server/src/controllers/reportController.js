@@ -105,12 +105,16 @@ export async function ticketReport(req, res, next) {
 export async function agentReport(req, res, next) {
   try {
     const agents = await prisma.user.findMany({
-      where: { role: "AGENT" },
+      where: req.user.role === "AGENT" ? { id: req.user.id, role: "AGENT" } : { role: "AGENT" },
       select: {
         id: true,
         name: true,
         email: true,
         isActive: true,
+        department: true,
+        categories: true,
+        agentStatus: true,
+        maxActiveChats: true,
         assigned: { select: { id: true, status: true, firstResponseMinutes: true, resolutionMinutes: true, feedbackRating: true, complaintStatus: true, createdAt: true } },
         agentChats: { select: { id: true, status: true, rating: true } },
       },
@@ -127,6 +131,10 @@ export async function agentReport(req, res, next) {
         name: agent.name,
         email: agent.email,
         isActive: agent.isActive,
+        department: agent.department,
+        categories: agent.categories,
+        agentStatus: agent.agentStatus,
+        maxActiveChats: agent.maxActiveChats,
         assigned: agent.assigned,
         assignedTickets: agent.assigned.length,
         resolvedTickets: agent.assigned.filter((ticket) => ticket.status === "RESOLVED" || ticket.status === "CLOSED").length,
@@ -264,7 +272,7 @@ export async function exportTicketsReport(req, res, next) {
 export async function exportAgentsReport(req, res, next) {
   try {
     const agents = await prisma.user.findMany({
-      where: { role: "AGENT" },
+      where: req.user.role === "AGENT" ? { id: req.user.id, role: "AGENT" } : { role: "AGENT" },
       select: {
         name: true,
         email: true,

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import api from "../../api/axios.js";
 import PageHeader from "../../components/common/PageHeader.jsx";
 import Button from "../../components/common/Button.jsx";
@@ -11,10 +12,16 @@ import { useTranslation } from "react-i18next";
 
 export default function CustomerTickets() {
   const { t } = useTranslation();
+  const [searchParams] = useSearchParams();
   const [items, setItems] = useState([]);
   const [filters, setFilters] = useState({ search: "", status: "" });
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  useEffect(() => {
+    const query = searchParams.get("search") || "";
+    setFilters((current) => current.search === query ? current : { ...current, search: query });
+    setPage(1);
+  }, [searchParams]);
   useEffect(() => {
     const params = new URLSearchParams(Object.entries(filters).filter(([, value]) => value));
     api.get(`/tickets?${params.toString()}`).then(({ data }) => setItems(normalizeItems(data, []))).catch(() => setItems([]));

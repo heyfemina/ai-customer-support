@@ -67,7 +67,7 @@ export default function AttachmentPreview({ attachments = [] }) {
               {content}
             </button>
           ) : (
-            <a key={file.id || file.fileUrl} href={url} target="_blank" rel="noreferrer" download={name} className="group min-w-0 overflow-hidden rounded-md border border-slate-200 bg-white text-sm shadow-sm transition hover:border-blue-200 hover:bg-blue-50">
+            <a key={file.id || file.fileUrl} href={url} target="_blank" rel="noopener noreferrer" download={name} className="group min-w-0 overflow-hidden rounded-md border border-slate-200 bg-white text-sm shadow-sm transition hover:border-blue-200 hover:bg-blue-50">
               {content}
             </a>
           );
@@ -79,7 +79,7 @@ export default function AttachmentPreview({ attachments = [] }) {
             <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3">
               <p className="min-w-0 truncate text-sm font-semibold text-slate-900">{preview.name}</p>
               <div className="flex items-center gap-2">
-                <a href={preview.url} target="_blank" rel="noreferrer" className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 text-slate-600 transition hover:bg-slate-50" aria-label="Open image in new tab">
+                <a href={preview.url} target="_blank" rel="noopener noreferrer" className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 text-slate-600 transition hover:bg-slate-50" aria-label="Open image in new tab">
                   <ExternalLink className="h-4 w-4" />
                 </a>
                 <a href={preview.url} download={preview.name} className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 text-slate-600 transition hover:bg-slate-50" aria-label="Download image">

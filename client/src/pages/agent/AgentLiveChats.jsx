@@ -291,11 +291,12 @@ export default function AgentLiveChats() {
 
       <div className="support-workspace support-workspace-agent">
         <div className="support-chat-shell agent-chat-shell flex min-h-[560px] min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-[0_14px_34px_rgba(15,23,42,0.07)] md:flex-row xl:h-[calc(100vh-17rem)] xl:min-h-[520px] xl:max-h-[720px]">
-          <ChatSidebar sessions={sessions} activeId={active?.id} onSelect={selectSession} showMetrics={false} />
+          <ChatSidebar sessions={sessions} activeId={active?.id} onSelect={selectSession} showMetrics={false} viewMode="agent" />
           <ChatWindow
             session={active}
             messages={messagesByChat[active?.id] || activeMessages}
             currentUserId={user?.id}
+            viewMode="agent"
             typingUsers={typingUsers}
             onTyping={() => socket?.emit("typing", { chatSessionId: active?.id, user })}
             onStopTyping={() => socket?.emit("stop_typing", { chatSessionId: active?.id, user })}

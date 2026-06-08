@@ -6,9 +6,9 @@ import {
   Building2,
   Headphones,
   Home,
-  Lock,
   MessageSquare,
   Plug,
+  Settings,
   Shield,
   Ticket,
   Users,
@@ -33,6 +33,7 @@ const nav = {
     { to: "/admin/activity-logs", labelKey: "nav.activityLogs", icon: Activity },
     { to: "/admin/integrations", labelKey: "nav.integrations", icon: Plug },
     { to: "/admin/internal-chats", labelKey: "nav.internalChats", icon: MessagesSquare },
+    { to: "/admin/settings", label: "Settings", icon: Settings },
   ],
   AGENT: [
     { to: "/agent/dashboard", labelKey: "nav.dashboard", icon: Home },
@@ -40,12 +41,13 @@ const nav = {
     { to: "/agent/live-chats", labelKey: "nav.liveChatQueue", icon: MessageSquare },
     { to: "/agent/performance", labelKey: "nav.performance", icon: BarChart3 },
     { to: "/agent/internal-chats", labelKey: "nav.internalChats", icon: MessagesSquare },
+    { to: "/agent/settings", label: "Settings", icon: Settings },
   ],
   CUSTOMER: [
     { to: "/customer/dashboard", labelKey: "nav.dashboard", icon: Home },
     { to: "/customer/tickets", labelKey: "nav.myTickets", icon: Ticket },
     { to: "/customer/live-chat", labelKey: "nav.liveChat", icon: MessageSquare },
-    { to: "/customer/profile", labelKey: "nav.profile", icon: Lock },
+    { to: "/customer/settings", label: "Settings", icon: Settings },
   ],
 };
 
@@ -60,9 +62,10 @@ export default function Sidebar({ open, onClose }) {
       <div className={cx("fixed inset-0 z-30 bg-slate-900/30 backdrop-blur-sm lg:hidden", open ? "block" : "hidden")} onClick={onClose} />
       <aside
         className={cx(
-          "fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-slate-200 bg-white text-slate-900 shadow-xl shadow-slate-200/70 transition-transform lg:translate-x-0 lg:shadow-none",
+          "fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-slate-200 text-slate-900 shadow-xl shadow-slate-200/70 transition-transform lg:translate-x-0 lg:shadow-none",
           open ? "translate-x-0" : "-translate-x-full"
         )}
+        style={{ background: "var(--sidebar-bg)" }}
       >
         <div className="flex h-16 items-center justify-between border-b border-slate-200/80 px-5">
           <div className="flex items-center gap-3">
@@ -105,7 +108,7 @@ export default function Sidebar({ open, onClose }) {
                     <item.icon className="h-4 w-4" />
                   </span>
                   <span className={cx("truncate", isActive ? "text-white" : "text-slate-600 group-hover:text-slate-950")}>
-                    {t(item.labelKey)}
+                    {item.label || t(item.labelKey)}
                   </span>
                 </>
               )}

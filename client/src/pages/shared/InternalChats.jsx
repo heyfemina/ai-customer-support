@@ -72,11 +72,12 @@ export default function InternalChats() {
   return (
     <>
       <PageHeader title="Internal communication" description="Admin and agents coordinate customer issues, ticket escalations, and handoffs in real time." />
-      <div className="grid items-start gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">
-        <Card className="overflow-hidden">
-          <div className="border-b border-slate-200 p-4">
+      <div className="grid min-w-0 items-start gap-4 xl:grid-cols-[320px_minmax(0,1fr)]">
+        <Card className="min-w-0 overflow-hidden rounded-xl">
+          <div className="border-b border-slate-200 bg-white p-4">
             <h2 className="font-semibold text-slate-950">Conversations</h2>
-            <div className="mt-3 space-y-2">
+            <p className="mt-1 text-sm text-slate-500">Admin and agent coordination threads.</p>
+            <div className="mt-4 space-y-2">
               <input className="app-field" placeholder="Subject" value={form.subject} onChange={(event) => setForm({ ...form, subject: event.target.value })} />
               {user?.role === "ADMIN" ? (
                 <select className="app-field" value={form.participantIds[0] || ""} onChange={(event) => setForm({ ...form, participantIds: event.target.value ? [event.target.value] : [] })}>
@@ -87,28 +88,37 @@ export default function InternalChats() {
               <Button className="w-full" icon={MessageSquare} onClick={createChat}>Start conversation</Button>
             </div>
           </div>
-          <div className="app-scrollbar max-h-[640px] overflow-y-auto p-3">
+          <div className="app-scrollbar max-h-[640px] overflow-y-auto bg-slate-50 p-3">
             {chats.map((chat) => (
-              <button key={chat.id} type="button" onClick={() => setActive(chat)} className={`mb-2 w-full rounded-md border p-3 text-left shadow-sm transition hover:border-blue-200 hover:bg-blue-50 ${active?.id === chat.id ? "border-blue-300 bg-blue-50 ring-2 ring-blue-100" : "border-slate-200 bg-white"}`}>
-                <p className="font-semibold text-slate-900">{chat.subject}</p>
+              <button key={chat.id} type="button" onClick={() => setActive(chat)} className={`mb-2 w-full rounded-lg border p-3 text-left shadow-sm transition hover:border-blue-200 hover:bg-white ${active?.id === chat.id ? "border-blue-300 bg-white ring-2 ring-blue-100" : "border-slate-200 bg-white"}`}>
+                <div className="flex min-w-0 items-start justify-between gap-2">
+                  <p className="min-w-0 truncate font-semibold text-slate-900">{chat.subject}</p>
+                  <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500">{chat.messages?.length || 0}</span>
+                </div>
                 <p className="mt-1 truncate text-xs text-slate-500">{chat.messages?.at(-1)?.content || "No messages yet"}</p>
+                <p className="mt-2 truncate text-[11px] font-semibold text-slate-400">{formatDate(chat.updatedAt || chat.createdAt)}</p>
               </button>
             ))}
           </div>
         </Card>
-        <Card className="flex min-h-[640px] min-w-0 flex-col overflow-hidden">
+        <Card className="flex min-h-[640px] min-w-0 flex-col overflow-hidden rounded-xl">
           {active ? (
             <>
-              <div className="border-b border-slate-200 p-4">
-                <h2 className="font-semibold text-slate-950">{active.subject}</h2>
-                <p className="mt-1 text-xs text-slate-500">{active.participants?.map((participant) => participant.user?.name).join(", ")}</p>
+              <div className="border-b border-slate-200 bg-white p-4">
+                <div className="flex min-w-0 items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h2 className="truncate font-semibold text-slate-950">{active.subject}</h2>
+                    <p className="mt-1 truncate text-xs text-slate-500">{active.participants?.map((participant) => participant.user?.name).join(", ")}</p>
+                  </div>
+                  <span className="shrink-0 rounded-md bg-blue-50 px-2 py-1 text-xs font-bold text-blue-700 ring-1 ring-blue-100">{activeMessages.length} messages</span>
+                </div>
               </div>
               <div className="app-scrollbar flex-1 space-y-3 overflow-y-auto bg-slate-50 p-4">
                 {activeMessages.map((item) => {
                   const mine = item.senderId === user?.id;
                   return (
-                    <div key={item.id} className={`max-w-[78%] rounded-lg px-4 py-3 text-sm shadow-sm ${mine ? "ml-auto bg-blue-900 text-white" : "border border-slate-200 bg-white text-slate-700"}`}>
-                      <p className="mb-1 text-xs font-bold">{item.sender?.name || "User"}</p>
+                    <div key={item.id} className={`max-w-[78%] rounded-xl px-4 py-3 text-sm shadow-sm ${mine ? "ml-auto bg-blue-900 text-white" : "border border-slate-200 bg-white text-slate-700"}`}>
+                      <p className="mb-1 text-xs font-bold">{mine ? "You" : item.sender?.name || "User"}</p>
                       <p className="whitespace-pre-wrap break-words">{item.content}</p>
                       {item.fileUrl ? <a className="mt-2 block truncate font-semibold underline" href={resolveFileUrl(item.fileUrl)} target="_blank" rel="noreferrer">{item.fileName || "Attachment"}</a> : null}
                       <p className={`mt-1 text-[11px] ${mine ? "text-blue-100" : "text-slate-400"}`}>{formatDate(item.createdAt)}</p>

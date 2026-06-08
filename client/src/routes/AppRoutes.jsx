@@ -26,18 +26,20 @@ const AISettings = lazy(() => import("../pages/admin/AISettings.jsx"));
 const Security = lazy(() => import("../pages/admin/Security.jsx"));
 const ActivityLogs = lazy(() => import("../pages/admin/ActivityLogs.jsx"));
 const Integrations = lazy(() => import("../pages/admin/Integrations.jsx"));
+const AdminSettings = lazy(() => import("../pages/admin/AdminSettings.jsx"));
 const AgentDashboard = lazy(() => import("../pages/agent/AgentDashboard.jsx"));
 const AgentTickets = lazy(() => import("../pages/agent/AgentTickets.jsx"));
 const AgentTicketDetails = lazy(() => import("../pages/agent/AgentTicketDetails.jsx"));
 const AgentLiveChats = lazy(() => import("../pages/agent/AgentLiveChats.jsx"));
 const AgentChatDetails = lazy(() => import("../pages/agent/AgentChatDetails.jsx"));
 const AgentPerformance = lazy(() => import("../pages/agent/AgentPerformance.jsx"));
+const AgentSettings = lazy(() => import("../pages/agent/AgentSettings.jsx"));
 const CustomerDashboard = lazy(() => import("../pages/customer/CustomerDashboard.jsx"));
 const CustomerTickets = lazy(() => import("../pages/customer/CustomerTickets.jsx"));
 const CreateTicket = lazy(() => import("../pages/customer/CreateTicket.jsx"));
 const CustomerTicketDetails = lazy(() => import("../pages/customer/CustomerTicketDetails.jsx"));
 const CustomerLiveChat = lazy(() => import("../pages/customer/CustomerLiveChat.jsx"));
-const CustomerProfile = lazy(() => import("../pages/customer/CustomerProfile.jsx"));
+const CustomerSettings = lazy(() => import("../pages/customer/CustomerSettings.jsx"));
 const InternalChats = lazy(() => import("../pages/shared/InternalChats.jsx"));
 
 export default function AppRoutes() {
@@ -70,6 +72,7 @@ export default function AppRoutes() {
               <Route path="/admin/activity-logs" element={<ActivityLogs />} />
               <Route path="/admin/integrations" element={<Integrations />} />
               <Route path="/admin/internal-chats" element={<InternalChats />} />
+              <Route path="/admin/settings" element={<AdminSettings />} />
             </Route>
             <Route element={<RoleRoute roles={["AGENT"]} />}>
               <Route path="/agent" element={<Navigate to="/agent/dashboard" replace />} />
@@ -80,6 +83,7 @@ export default function AppRoutes() {
               <Route path="/agent/chat/:id" element={<AgentChatDetails />} />
               <Route path="/agent/performance" element={<AgentPerformance />} />
               <Route path="/agent/internal-chats" element={<InternalChats />} />
+              <Route path="/agent/settings" element={<AgentSettings />} />
             </Route>
             <Route element={<RoleRoute roles={["CUSTOMER"]} />}>
               <Route path="/customer" element={<Navigate to="/customer/dashboard" replace />} />
@@ -88,7 +92,8 @@ export default function AppRoutes() {
               <Route path="/customer/tickets/create" element={<CreateTicket />} />
               <Route path="/customer/tickets/:id" element={<CustomerTicketDetails />} />
               <Route path="/customer/live-chat" element={<CustomerLiveChat />} />
-              <Route path="/customer/profile" element={<CustomerProfile />} />
+              <Route path="/customer/profile" element={<Navigate to="/customer/settings" replace />} />
+              <Route path="/customer/settings" element={<CustomerSettings />} />
             </Route>
           </Route>
         </Route>

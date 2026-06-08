@@ -5,6 +5,9 @@ const statusTone = {
   OPEN: "blue",
   IN_PROGRESS: "amber",
   WAITING_CUSTOMER: "violet",
+  RESOLUTION_PROPOSED: "amber",
+  AUTO_CLOSED: "slate",
+  REOPENED: "blue",
   RESOLVED: "green",
   CLOSED: "slate",
 };

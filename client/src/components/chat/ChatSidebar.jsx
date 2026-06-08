@@ -16,7 +16,21 @@ function customerName(session, fallback) {
   return session.customer?.name || session.customerName || fallback;
 }
 
-export default function ChatSidebar({ sessions, activeId, onSelect, showMetrics = true }) {
+function agentName(session, fallback) {
+  return session.agent?.name || session.agentName || fallback;
+}
+
+function chatTitle(session, viewMode, fallback) {
+  if (viewMode === "customer") return agentName(session, "Waiting for agent");
+  if (viewMode === "admin") {
+    const customer = customerName(session, fallback);
+    const agent = agentName(session, "Unassigned");
+    return `${customer} / ${agent}`;
+  }
+  return customerName(session, fallback);
+}
+
+export default function ChatSidebar({ sessions, activeId, onSelect, showMetrics = true, viewMode = "agent" }) {
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("ALL");
@@ -26,7 +40,7 @@ export default function ChatSidebar({ sessions, activeId, onSelect, showMetrics 
     const search = query.trim().toLowerCase();
     return sessions.filter((session) => {
       const statusMatch = filter === "ALL" || (filter === "ACTIVE" ? ["ASSIGNED", "ACTIVE"].includes(session.status) : session.status === filter);
-      const haystack = `${customerName(session, "")} ${session.agent?.name || session.agentName || ""} ${session.lastMessage || ""} ${session.channel || ""} ${session.category || ""}`.toLowerCase();
+      const haystack = `${customerName(session, "")} ${agentName(session, "")} ${session.lastMessage || ""} ${session.channel || ""} ${session.category || ""}`.toLowerCase();
       return statusMatch && (!search || haystack.includes(search));
     });
   }, [sessions, query, filter]);
@@ -101,15 +115,18 @@ export default function ChatSidebar({ sessions, activeId, onSelect, showMetrics 
             {activeId === session.id ? <span className="absolute inset-y-2.5 left-0 w-1 rounded-r-full bg-blue-700" /> : null}
             <div className="flex items-start gap-2.5">
               <div className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-blue-600 text-xs font-bold text-white">
-                {customerName(session, t("chat.customerFallback")).slice(0, 1).toUpperCase()}
+                {chatTitle(session, viewMode, t("chat.customerFallback")).slice(0, 1).toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex min-w-0 items-center justify-between gap-2">
-                  <p className="min-w-0 truncate text-sm font-semibold text-slate-950">{customerName(session, t("chat.customerFallback"))}</p>
+                  <p className="min-w-0 truncate text-sm font-semibold text-slate-950">{chatTitle(session, viewMode, t("chat.customerFallback"))}</p>
                   <Badge className="shrink-0" tone={statusTone[session.status] || "slate"}>{session.status === "ASSIGNED" ? "CONNECTED" : session.status}</Badge>
                 </div>
                 <p className="mt-1 line-clamp-1 text-xs leading-5 text-slate-600">{session.lastMessage || t("chat.noMessages")}</p>
-                <p className="mt-0.5 flex min-w-0 items-center gap-1 truncate text-xs font-semibold text-slate-500"><UserRound className="h-3.5 w-3.5 shrink-0" />{session.agent?.name || session.agentName || "Unassigned"}</p>
+                <p className="mt-0.5 flex min-w-0 items-center gap-1 truncate text-xs font-semibold text-slate-500">
+                  <UserRound className="h-3.5 w-3.5 shrink-0" />
+                  {viewMode === "customer" ? `Customer: ${customerName(session, t("chat.customerFallback"))}` : `Agent: ${agentName(session, "Unassigned")}`}
+                </p>
               </div>
             </div>
             <div className="mt-2 flex min-w-0 flex-wrap items-center gap-1.5 border-t border-slate-100 pt-2 text-[11px] font-medium text-slate-500">

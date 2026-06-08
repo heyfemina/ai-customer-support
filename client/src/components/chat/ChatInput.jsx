@@ -1,5 +1,5 @@
 import { Paperclip, Send } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Button from "../common/Button.jsx";
 
@@ -7,6 +7,33 @@ export default function ChatInput({ onSend, onTyping, onStopTyping }) {
   const { t } = useTranslation();
   const [content, setContent] = useState("");
   const [file, setFile] = useState(null);
+  const typingRef = useRef(false);
+  const stopTimerRef = useRef(null);
+
+  useEffect(() => () => {
+    if (stopTimerRef.current) window.clearTimeout(stopTimerRef.current);
+  }, []);
+
+  const notifyTyping = () => {
+    if (!typingRef.current) {
+      typingRef.current = true;
+      onTyping?.();
+    }
+    if (stopTimerRef.current) window.clearTimeout(stopTimerRef.current);
+    stopTimerRef.current = window.setTimeout(() => {
+      typingRef.current = false;
+      onStopTyping?.();
+    }, 1200);
+  };
+
+  const stopTyping = () => {
+    if (stopTimerRef.current) window.clearTimeout(stopTimerRef.current);
+    stopTimerRef.current = null;
+    if (typingRef.current) {
+      typingRef.current = false;
+      onStopTyping?.();
+    }
+  };
 
   const submit = (event) => {
     event.preventDefault();
@@ -14,7 +41,7 @@ export default function ChatInput({ onSend, onTyping, onStopTyping }) {
     onSend?.({ content: content.trim(), file });
     setContent("");
     setFile(null);
-    onStopTyping?.();
+    stopTyping();
   };
 
   return (
@@ -26,10 +53,10 @@ export default function ChatInput({ onSend, onTyping, onStopTyping }) {
       <div className="min-w-0 flex-1">
         <textarea
           value={content}
-          onBlur={() => onStopTyping?.()}
+          onBlur={stopTyping}
           onChange={(event) => {
             setContent(event.target.value);
-            onTyping?.();
+            notifyTyping();
           }}
           rows={1}
           className="support-composer-input h-11 min-h-11 max-h-28 w-full resize-none overflow-y-auto rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm leading-5 text-slate-950 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-blue-400 focus:ring-4 focus:ring-blue-100"
