@@ -23,12 +23,19 @@ export default function AdminTicketDetails() {
   const [complaintStatus, setComplaintStatus] = useState("UNDER_REVIEW");
   const [complaintAction, setComplaintAction] = useState("");
   const [notice, setNotice] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
+    setLoading(true);
+    setLoadError("");
     api.get(`/tickets/${id}`).then(({ data }) => setTicket(data.data || data)).catch(() => {
       setTicket(null);
+      setLoadError("Ticket details could not be loaded. Please check the API connection.");
+    }).finally(() => setLoading(false));
+    api.get("/reports/agents").then(({ data }) => setAgents(normalizeItems(data, []))).catch((error) => {
+      setNotice(error.friendlyMessage || "Agent list could not be loaded.");
     });
-    api.get("/reports/agents").then(({ data }) => setAgents(normalizeItems(data, []))).catch(() => setAgents([]));
   }, [id]);
 
   const updateTicket = async (data) => {
@@ -83,7 +90,9 @@ export default function AdminTicketDetails() {
 
   return (
     <>
-      {!ticket ? <Card className="p-8 text-center text-sm text-slate-500">Ticket not loaded. Please check the API connection.</Card> : (
+      {loading ? <Card className="p-8 text-center text-sm font-semibold text-slate-500">No records found</Card> : null}
+      {!loading && !ticket ? <Card className="p-8 text-center text-sm text-slate-500">{loadError || "Ticket not loaded. Please check the API connection."}</Card> : null}
+      {!loading && ticket ? (
       <>
       <PageHeader title={ticket.subject} description="Assign agents, change status, review timeline, and reply to the customer." actions={<Button onClick={openTicketChat}>Open live chat with customer</Button>} />
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
@@ -112,7 +121,7 @@ export default function AdminTicketDetails() {
           <label className="mt-4 block">
             <span className="app-label">{t("table.status")}</span>
             <select className="app-field mt-1.5" value={ticket.status || "OPEN"} onChange={(event) => updateTicket({ status: event.target.value })}>
-              <option>OPEN</option><option>IN_PROGRESS</option><option>WAITING_CUSTOMER</option><option>RESOLUTION_PROPOSED</option><option>REOPENED</option><option>AUTO_CLOSED</option><option>RESOLVED</option><option>CLOSED</option>
+              <option>OPEN</option><option>ASSIGNED</option><option>IN_PROGRESS</option><option>WAITING_CUSTOMER</option><option>RESOLUTION_PROPOSED</option><option>CUSTOMER_RESPONDED_AFTER_RESOLUTION</option><option>REOPENED</option><option>AUTO_CLOSED</option><option>CLOSED</option>
             </select>
           </label>
           <label className="mt-4 block">
@@ -127,6 +136,10 @@ export default function AdminTicketDetails() {
             <div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Assigned agent</dt><dd className="font-semibold text-slate-950">{ticket.agent?.name || "Unassigned"}</dd><dd className="truncate text-xs text-slate-500">{ticket.agent?.email}</dd></div>
             <div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Ticket ID</dt><dd className="break-all font-mono font-semibold text-slate-950">{ticket.id}</dd></div>
             <div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Assignment</dt><dd className="font-semibold text-slate-950">{ticket.assignmentMode || "UNASSIGNED"}</dd><dd className="text-xs text-slate-500">{ticket.assignedAt ? formatDate(ticket.assignedAt) : "Not assigned"}</dd></div>
+            <div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Resolution proposed</dt><dd className="font-semibold text-slate-950">{ticket.resolutionProposedAt ? formatDate(ticket.resolutionProposedAt) : "Not proposed"}</dd></div>
+            <div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Auto close at</dt><dd className="font-semibold text-slate-950">{ticket.autoCloseAt ? formatDate(ticket.autoCloseAt) : "Not scheduled"}</dd></div>
+            <div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Customer replied after solution</dt><dd className="font-semibold text-slate-950">{["CUSTOMER_RESPONDED_AFTER_RESOLUTION", "REOPENED"].includes(ticket.status) && ticket.resolutionProposedAt ? "Yes" : "No"}</dd><dd className="text-xs text-slate-500">{ticket.closeReason?.includes("Customer replied") || ticket.closeReason?.includes("Customer reported") ? ticket.closeReason : "No post-solution reply recorded"}</dd></div>
+            <div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Final close reason</dt><dd className="font-semibold text-slate-950">{ticket.closeReason || "Not closed"}</dd>{ticket.closedAt ? <dd className="text-xs text-slate-500">{formatDate(ticket.closedAt)}</dd> : null}</div>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
               <div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Priority</dt><dd className="font-semibold text-slate-950">{ticket.priority}</dd></div>
               <div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Category</dt><dd className="font-semibold text-slate-950">{ticket.category}</dd></div>
@@ -164,7 +177,7 @@ export default function AdminTicketDetails() {
         </Card>
       </div>
       </>
-      )}
+      ) : null}
     </>
   );
 }

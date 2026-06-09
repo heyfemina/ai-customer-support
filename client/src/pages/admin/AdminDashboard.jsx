@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AlertCircle, BarChart3, Bot, CheckCircle2, Clock, Database, Globe2, MessageSquare, Server, ShieldCheck, Star, Ticket, Users } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Area, AreaChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -19,6 +19,13 @@ const monitorToneClasses = {
 
 function emptyReport() {
   return {
+    totalTickets: 0,
+    openTickets: 0,
+    resolvedTickets: 0,
+    pendingTickets: 0,
+    activeChats: 0,
+    customerSatisfaction: 0,
+    aiResolvedTickets: 0,
     tickets: 0,
     open: 0,
     resolved: 0,
@@ -43,7 +50,7 @@ function buildTicketFallbackReport(tickets = [], baseReport = emptyReport()) {
     const month = new Intl.DateTimeFormat("en", { month: "short" }).format(new Date(ticket.createdAt));
     const current = monthlyMap.get(month) || { month, tickets: 0, resolved: 0 };
     current.tickets += 1;
-    if (["RESOLVED", "CLOSED"].includes(ticket.status)) current.resolved += 1;
+    if (["RESOLVED", "AUTO_CLOSED", "CLOSED"].includes(ticket.status)) current.resolved += 1;
     monthlyMap.set(month, current);
   }
 
@@ -52,7 +59,7 @@ function buildTicketFallbackReport(tickets = [], baseReport = emptyReport()) {
     ...baseReport,
     tickets: tickets.length,
     open: tickets.filter((ticket) => ticket.status === "OPEN").length,
-    resolved: tickets.filter((ticket) => ["RESOLVED", "CLOSED"].includes(ticket.status)).length,
+    resolved: tickets.filter((ticket) => ["RESOLVED", "AUTO_CLOSED", "CLOSED"].includes(ticket.status)).length,
     complaints: tickets.filter((ticket) => ticket.complaintStatus && ticket.complaintStatus !== "NONE").length,
     csat: ratings.length ? Math.round((ratings.filter((rating) => rating >= 4).length / ratings.length) * 100) : baseReport.csat || 0,
     agentRating: ratings.length ? (ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length).toFixed(1) : baseReport.agentRating || "N/A",
@@ -70,57 +77,89 @@ function buildTicketFallbackReport(tickets = [], baseReport = emptyReport()) {
 export default function AdminDashboard() {
   const { t } = useTranslation();
   const [report, setReport] = useState(() => emptyReport());
+  const [loading, setLoading] = useState(true);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const [loadError, setLoadError] = useState("");
 
-  useEffect(() => {
-    let active = true;
-
-    async function loadDashboard() {
+  const loadDashboard = useCallback(async () => {
+      setLoadError("");
       try {
         const { data } = await api.get("/reports/dashboard");
         const dashboard = unwrapData(data);
-        if (dashboard && active) {
+        if (dashboard && Number(dashboard.tickets || 0) + Number(dashboard.chats || 0) + Number(dashboard.agentsOnline || 0) > 0) {
           setReport({ ...emptyReport(), ...dashboard });
+          setHasLoadedOnce(true);
+          setLoading(false);
           return;
         }
-      } catch {
+      } catch (error) {
+        setLoadError(error.friendlyMessage || "Unable to load dashboard report. Trying live fallback data.");
         // Fall back to tickets below so the deployed dashboard does not render empty.
       }
 
       try {
-        const { data } = await api.get("/tickets");
-        const tickets = normalizeItems(data, []);
-        if (active) setReport(buildTicketFallbackReport(tickets));
-      } catch {
-        if (active) setReport(emptyReport());
+        const [ticketResult, chatResult, agentResult] = await Promise.allSettled([
+          api.get("/tickets", { params: { page: 1, limit: 50 } }),
+          api.get("/chats"),
+          api.get("/reports/agents"),
+        ]);
+        const ticketPayload = ticketResult.status === "fulfilled" ? ticketResult.value.data : null;
+        const tickets = normalizeItems(ticketPayload, []);
+        const ticketTotal = unwrapData(ticketPayload, {})?.pagination?.total || tickets.length;
+        const chats = chatResult.status === "fulfilled" ? normalizeItems(chatResult.value.data, []) : [];
+        const agents = agentResult.status === "fulfilled" ? normalizeItems(agentResult.value.data, []) : [];
+        setReport({
+          ...buildTicketFallbackReport(tickets),
+          tickets: ticketTotal,
+          chats: chats.filter((chat) => ["ASSIGNED", "ACTIVE", "WAITING", "TRANSFERRED"].includes(chat.status)).length,
+          agentsOnline: agents.filter((agent) => agent.isActive && agent.agentStatus !== "OFFLINE").length,
+        });
+      } catch (error) {
+        setLoadError(error.friendlyMessage || "Unable to load live dashboard data. Check backend API connection.");
+        setReport(emptyReport());
+      } finally {
+        setHasLoadedOnce(true);
+        setLoading(false);
       }
-    }
-
-    loadDashboard();
-    return () => {
-      active = false;
-    };
   }, []);
+
+  useEffect(() => {
+    loadDashboard();
+    const intervalId = window.setInterval(loadDashboard, 15000);
+    window.addEventListener("focus", loadDashboard);
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener("focus", loadDashboard);
+    };
+  }, [loadDashboard]);
 
   const chartData = report?.monthlyTickets || [];
   const satisfactionData = report?.satisfaction || [];
   const recentTickets = report?.recentTickets || [];
-  const pendingTickets = Math.max((report.tickets || 0) - (report.open || 0) - (report.resolved || 0), 0);
+  const totalTickets = Number(report.totalTickets ?? report.tickets ?? 0);
+  const openTickets = Number(report.openTickets ?? report.open ?? 0);
+  const resolvedTickets = Number(report.resolvedTickets ?? report.resolved ?? 0);
+  const pendingTickets = Number(report.pendingTickets ?? report.pending ?? Math.max(totalTickets - openTickets - resolvedTickets, 0));
+  const activeChats = Number(report.activeChats ?? report.chats ?? 0);
+  const customerSatisfaction = Number(report.customerSatisfaction ?? report.csat ?? 0);
+  const aiResolvedTickets = Number(report.aiResolvedTickets ?? report.aiResolved ?? 0);
+  const agentsOnline = Number(report.agentsOnline ?? 0);
   const liveStats = [
-    { title: t("dashboard.stats.totalTickets"), value: report.tickets, icon: Ticket, tone: "sky", trend: "+12%" },
-    { title: t("dashboard.stats.openTickets"), value: report.open, icon: AlertCircle, tone: "amber", trend: "+4%" },
-    { title: t("dashboard.stats.resolvedTickets"), value: report.resolved, icon: CheckCircle2, tone: "emerald", trend: "+9%" },
-    { title: t("dashboard.stats.pendingTickets"), value: pendingTickets, icon: Clock, tone: "violet", trend: "-3%" },
-    { title: t("dashboard.stats.activeChats"), value: report.chats, icon: MessageSquare, tone: "sky", trend: "+6%" },
-    { title: t("table.complaints"), value: report.complaints || 0, icon: AlertCircle, tone: "amber", trend: "+0%" },
-    { title: t("dashboard.stats.avgResponseTime"), value: report.avgResponseTime, icon: Clock, tone: "rose", trend: "-8%" },
-    { title: t("dashboard.stats.customerSatisfaction"), value: `${report.csat}%`, icon: Star, tone: "emerald", trend: "+5%" },
-    { title: t("common.agentsOnline"), value: report.agentsOnline || 0, icon: Users, tone: "violet", trend: "+2%" },
-    { title: t("dashboard.stats.aiResolvedTickets"), value: `${report.aiResolved}%`, icon: Bot, tone: "sky", trend: "+11%" },
+    { title: t("dashboard.stats.totalTickets"), value: totalTickets, icon: Ticket, tone: "sky" },
+    { title: t("dashboard.stats.openTickets"), value: openTickets, icon: AlertCircle, tone: "amber" },
+    { title: t("dashboard.stats.resolvedTickets"), value: resolvedTickets, icon: CheckCircle2, tone: "emerald" },
+    { title: t("dashboard.stats.pendingTickets"), value: pendingTickets, icon: Clock, tone: "violet" },
+    { title: t("dashboard.stats.activeChats"), value: activeChats, icon: MessageSquare, tone: "sky" },
+    { title: t("table.complaints"), value: report.complaints ?? 0, icon: AlertCircle, tone: "amber" },
+    { title: t("dashboard.stats.avgResponseTime"), value: report.avgResponseTime ?? "N/A", icon: Clock, tone: "rose" },
+    { title: t("dashboard.stats.customerSatisfaction"), value: `${customerSatisfaction}%`, icon: Star, tone: "emerald" },
+    { title: t("common.agentsOnline"), value: agentsOnline, icon: Users, tone: "violet" },
+    { title: t("dashboard.stats.aiResolvedTickets"), value: `${aiResolvedTickets}%`, icon: Bot, tone: "sky" },
   ];
   const monitors = [
     { title: t("dashboard.monitoring.applicationServer"), value: t("dashboard.monitoring.healthy"), detail: t("common.apiServerConnected"), icon: Server, tone: "emerald" },
     { title: t("dashboard.monitoring.database"), value: "PostgreSQL", detail: t("dashboard.monitoring.recordsLoaded", { count: recentTickets.length }), icon: Database, tone: "sky" },
-    { title: t("dashboard.monitoring.agentCoverage"), value: t("dashboard.monitoring.online", { count: report?.agentsOnline || 0 }), detail: t("dashboard.monitoring.activeChatSessions", { count: report?.chats || 0 }), icon: Users, tone: "violet" },
+    { title: t("dashboard.monitoring.agentCoverage"), value: t("dashboard.monitoring.online", { count: agentsOnline }), detail: t("dashboard.monitoring.activeChatSessions", { count: activeChats }), icon: Users, tone: "violet" },
     { title: t("dashboard.monitoring.securityPosture"), value: t("dashboard.monitoring.protected"), detail: t("dashboard.monitoring.rbacEnabled"), icon: ShieldCheck, tone: "amber" },
   ];
   const languageSettings = report.aiSettings || {};
@@ -128,6 +167,7 @@ export default function AdminDashboard() {
   return (
     <>
       <PageHeader title={t("dashboard.admin.title")} description={t("dashboard.admin.description")} />
+      {loadError ? <p className="mb-4 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800">{loadError}</p> : null}
       <section className="mb-6 overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 text-slate-900 shadow-sm shadow-slate-200/70 sm:p-6">
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
           <div className="flex min-w-0 gap-4">
@@ -142,15 +182,15 @@ export default function AdminDashboard() {
           </div>
           <div className="grid gap-3 text-center sm:grid-cols-3 xl:w-[28rem]">
             <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 shadow-sm shadow-slate-200/60">
-              <p className="text-2xl font-bold text-slate-950">{report.tickets}</p>
+              <p className="text-2xl font-bold text-slate-950">{totalTickets}</p>
               <p className="text-xs font-semibold text-slate-500">{t("dashboard.stats.totalTickets")}</p>
             </div>
             <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 shadow-sm shadow-slate-200/60">
-              <p className="text-2xl font-bold text-slate-950">{report.csat}%</p>
+              <p className="text-2xl font-bold text-slate-950">{customerSatisfaction}%</p>
               <p className="text-xs font-semibold text-slate-500">{t("dashboard.stats.customerSatisfaction")}</p>
             </div>
             <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 shadow-sm shadow-slate-200/60">
-              <p className="text-2xl font-bold text-slate-950">{report.aiResolved}%</p>
+              <p className="text-2xl font-bold text-slate-950">{aiResolvedTickets}%</p>
               <p className="text-xs font-semibold text-slate-500">{t("dashboard.stats.aiResolvedTickets")}</p>
             </div>
           </div>
@@ -257,11 +297,11 @@ export default function AdminDashboard() {
               <p className="mt-1 text-xs font-semibold text-slate-500">{t("table.complaints")}</p>
             </div>
             <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
-              <p className="text-xl font-bold text-slate-950">{report.agentsOnline || 0}</p>
+              <p className="text-xl font-bold text-slate-950">{agentsOnline}</p>
               <p className="mt-1 text-xs font-semibold text-slate-500">{t("common.agentsOnline")}</p>
             </div>
             <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
-              <p className="text-xl font-bold text-slate-950">{report.chats}</p>
+              <p className="text-xl font-bold text-slate-950">{activeChats}</p>
               <p className="mt-1 text-xs font-semibold text-slate-500">{t("dashboard.stats.liveChats")}</p>
             </div>
           </div>

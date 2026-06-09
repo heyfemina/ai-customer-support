@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../api/axios.js";
 import PageHeader from "../../components/common/PageHeader.jsx";
@@ -18,10 +18,21 @@ export default function CustomerTicketDetails() {
   const [feedback, setFeedback] = useState({ rating: 5, feedbackText: "" });
   const [complaint, setComplaint] = useState({ complaintSubject: "", complaintText: "" });
   const [notice, setNotice] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+
+  const loadTicket = useCallback(() => {
+    return api.get(`/tickets/${id}`).then(({ data }) => setTicket(data.data || data));
+  }, [id]);
 
   useEffect(() => {
-    api.get(`/tickets/${id}`).then(({ data }) => setTicket(data.data || data)).catch(() => setTicket(null));
-  }, [id]);
+    setLoading(true);
+    setLoadError("");
+    loadTicket().catch((error) => {
+      setTicket(null);
+      setLoadError(error.friendlyMessage || "Ticket details could not be loaded. Please check the API connection.");
+    }).finally(() => setLoading(false));
+  }, [loadTicket]);
 
   const sendReply = async () => {
     if (!reply.trim() && !file) return;
@@ -29,9 +40,8 @@ export default function CustomerTicketDetails() {
       const payload = new FormData();
       payload.append("content", reply);
       if (file) payload.append("attachments", file);
-      const { data } = await api.post(`/tickets/${id}/reply`, payload, { headers: { "Content-Type": "multipart/form-data" } });
-      const message = data.data || data;
-      setTicket((current) => ({ ...current, messages: [...(current.messages || []), message] }));
+      await api.post(`/tickets/${id}/reply`, payload, { headers: { "Content-Type": "multipart/form-data" } });
+      await loadTicket();
       setNotice("Reply added to the ticket.");
     } catch (error) {
       setNotice(error.friendlyMessage || "Reply failed. Please check the API connection.");
@@ -71,17 +81,8 @@ export default function CustomerTicketDetails() {
     navigate("/customer/live-chat", { state: { chatId: chat.id } });
   };
 
-  const reopenTicket = async () => {
-    try {
-      const { data } = await api.post(`/tickets/${id}/reopen`);
-      setTicket(data.data || data);
-      setNotice("Ticket reopened. Support will continue from your latest update.");
-    } catch (error) {
-      setNotice(error.friendlyMessage || "Unable to reopen ticket.");
-    }
-  };
-
-  if (!ticket) return <Card className="p-8 text-center text-sm text-slate-500">Ticket not loaded. Please check the API connection.</Card>;
+  if (loading) return <Card className="p-8 text-center text-sm font-semibold text-slate-500">No records found</Card>;
+  if (!ticket) return <Card className="p-8 text-center text-sm text-slate-500">{loadError || "Ticket not loaded. Please check the API connection."}</Card>;
 
   return (
     <>
@@ -104,8 +105,7 @@ export default function CustomerTicketDetails() {
             <p className="mt-4 leading-7 text-slate-700">{ticket.description}</p>
             {ticket.status === "RESOLUTION_PROPOSED" ? (
               <div className="mt-4 rounded-md border border-amber-100 bg-amber-50 p-3 text-sm text-amber-800">
-                <p className="font-semibold">Your ticket has been marked as resolved. If the issue is not solved, reply or reopen within 48 hours.</p>
-                <Button className="mt-3" variant="secondary" onClick={reopenTicket}>Reopen Ticket</Button>
+                <p className="font-semibold">The support agent has provided a solution. If the issue is still not solved, please reply within 48 hours. If no reply is received, the ticket will be closed automatically.</p>
               </div>
             ) : null}
             <div className="mt-5 border-t border-slate-200 pt-5">

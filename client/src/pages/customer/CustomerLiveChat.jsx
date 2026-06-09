@@ -45,6 +45,7 @@ export default function CustomerLiveChat() {
   const [noticeTone, setNoticeTone] = useState("emerald");
   const [actionLoading, setActionLoading] = useState("");
   const [startingChat, setStartingChat] = useState(false);
+  const [loadingChats, setLoadingChats] = useState(true);
   const activeMessages = useMemo(() => active?.messages || [], [active]);
   const preferredChatId = location.state?.chatId;
   const activeClosed = active?.status === "CLOSED";
@@ -64,17 +65,20 @@ export default function CustomerLiveChat() {
     setNotice("");
   };
 
-  const loadChats = () => api.get("/chats").then(({ data }) => {
+  const loadChats = () => {
+    setLoadingChats(true);
+    return api.get("/chats").then(({ data }) => {
     const rows = sortByRecent(normalizeItems(data, []));
     const selected = rows.find((row) => row.id === preferredChatId) || rows[0] || null;
     setSessions(rows);
     setActive(selected);
     setMessagesByChat(Object.fromEntries(rows.map((row) => [row.id, row.messages || []])));
-  }).catch(() => {
-    setSessions([]);
-    setActive(null);
-    setMessagesByChat({});
+    setLoadingChats(false);
+  }).catch((error) => {
+    showNotice(error.friendlyMessage || "Live chat history could not be loaded. Please check the backend API.", "rose");
+    setLoadingChats(false);
   });
+  };
 
   useEffect(() => {
     loadChats();
@@ -286,7 +290,7 @@ export default function CustomerLiveChat() {
       {notice ? <p className={`mb-4 rounded-md border px-3 py-2 text-sm font-semibold ${noticeClass}`}>{notice}</p> : null}
       {ratingCard}
       <div className="grid items-start gap-5">
-        <div className="flex min-h-[560px] min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-[0_14px_34px_rgba(15,23,42,0.07)] md:flex-row xl:h-[calc(100vh-15rem)] xl:min-h-[520px] xl:max-h-[760px]">
+        <div className="flex min-h-[560px] min-w-0 flex-col overflow-hidden rounded-lg border border-slate-300 bg-white shadow-[0_14px_34px_rgba(15,23,42,0.07)] md:flex-row xl:h-[calc(100vh-15rem)] xl:min-h-[520px] xl:max-h-[760px]">
           <ChatSidebar sessions={sessions} activeId={active?.id} onSelect={selectSession} viewMode="customer" />
           <ChatWindow
             session={active}

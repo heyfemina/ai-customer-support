@@ -1,0 +1,27 @@
+import "dotenv/config";
+import prisma from "../src/config/prisma.js";
+
+const statements = [
+  `ALTER TYPE "TicketStatus" ADD VALUE IF NOT EXISTS 'ASSIGNED'`,
+  `ALTER TYPE "TicketStatus" ADD VALUE IF NOT EXISTS 'RESOLUTION_PROPOSED'`,
+  `ALTER TYPE "TicketStatus" ADD VALUE IF NOT EXISTS 'CUSTOMER_RESPONDED_AFTER_RESOLUTION'`,
+  `ALTER TYPE "TicketStatus" ADD VALUE IF NOT EXISTS 'AUTO_CLOSED'`,
+  `ALTER TYPE "TicketStatus" ADD VALUE IF NOT EXISTS 'REOPENED'`,
+  `ALTER TABLE "Ticket" ADD COLUMN IF NOT EXISTS "resolutionProposedAt" TIMESTAMP(3)`,
+  `ALTER TABLE "Ticket" ADD COLUMN IF NOT EXISTS "autoCloseAt" TIMESTAMP(3)`,
+  `ALTER TABLE "Ticket" ADD COLUMN IF NOT EXISTS "customerRespondedAfterResolutionAt" TIMESTAMP(3)`,
+  `ALTER TABLE "Ticket" ADD COLUMN IF NOT EXISTS "closedAt" TIMESTAMP(3)`,
+  `ALTER TABLE "Ticket" ADD COLUMN IF NOT EXISTS "closedById" TEXT`,
+  `ALTER TABLE "Ticket" ADD COLUMN IF NOT EXISTS "closeReason" TEXT`,
+  `ALTER TABLE "Ticket" ADD COLUMN IF NOT EXISTS "reopenedAt" TIMESTAMP(3)`,
+  `ALTER TABLE "ChatSession" ADD COLUMN IF NOT EXISTS "ticketId" TEXT`,
+];
+
+try {
+  for (const statement of statements) {
+    await prisma.$executeRawUnsafe(statement);
+  }
+  console.log("Ticket resolution workflow database changes applied.");
+} finally {
+  await prisma.$disconnect();
+}

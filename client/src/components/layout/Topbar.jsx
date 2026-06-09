@@ -7,6 +7,7 @@ import { useAuth } from "../../context/AuthContext.jsx";
 import { languageOptions, useLanguage } from "../../context/LanguageContext.jsx";
 import { useSocket } from "../../context/SocketContext.jsx";
 import { initials } from "../../utils/helpers.js";
+import api from "../../api/axios.js";
 
 export default function Topbar({ onMenu }) {
   const { user, logout } = useAuth();
@@ -17,14 +18,22 @@ export default function Topbar({ onMenu }) {
   const location = useLocation();
   const [profileOpen, setProfileOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
   const profileRef = useRef(null);
+  const searchRef = useRef(null);
 
   useEffect(() => {
     const closeProfile = (event) => {
       if (profileRef.current && !profileRef.current.contains(event.target)) setProfileOpen(false);
+      if (searchRef.current && !searchRef.current.contains(event.target)) setSearchOpen(false);
     };
     const closeOnEscape = (event) => {
-      if (event.key === "Escape") setProfileOpen(false);
+      if (event.key === "Escape") {
+        setProfileOpen(false);
+        setSearchOpen(false);
+      }
     };
 
     document.addEventListener("mousedown", closeProfile);
@@ -55,7 +64,39 @@ export default function Topbar({ onMenu }) {
   const submitSearch = (event) => {
     event.preventDefault();
     const query = search.trim();
+    setSearchOpen(false);
     navigate(query ? `${ticketSearchPath}?search=${encodeURIComponent(query)}` : ticketSearchPath);
+  };
+
+  useEffect(() => {
+    const query = search.trim();
+    if (query.length < 2) {
+      setSearchResults([]);
+      setSearchLoading(false);
+      return undefined;
+    }
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      setSearchLoading(true);
+      try {
+        const { data } = await api.get("/search", { params: { q: query }, signal: controller.signal });
+        setSearchResults(data.data || data || []);
+        setSearchOpen(true);
+      } catch (error) {
+        if (error.name !== "CanceledError") setSearchResults([]);
+      } finally {
+        setSearchLoading(false);
+      }
+    }, 250);
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [search]);
+
+  const openResult = (result) => {
+    setSearchOpen(false);
+    navigate(result.path, result.state ? { state: result.state } : undefined);
   };
 
   return (
@@ -64,16 +105,38 @@ export default function Topbar({ onMenu }) {
         <button className="rounded-md border border-slate-200 bg-white p-2 text-slate-600 shadow-sm transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 lg:hidden" onClick={onMenu}>
           <Menu className="h-5 w-5" />
         </button>
-        <form onSubmit={submitSearch} className="hidden h-10 w-[min(22rem,32vw)] items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 shadow-sm transition focus-within:border-blue-400 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-100 md:flex">
-          <Search className="h-4 w-4 text-slate-400" />
-          <input
-            className="w-full border-0 bg-transparent text-sm outline-none focus:shadow-none"
-            placeholder={t("searchPlaceholder")}
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            aria-label={t("searchPlaceholder")}
-          />
-        </form>
+        <div className="relative hidden md:block" ref={searchRef}>
+          <form onSubmit={submitSearch} className="flex h-10 w-[min(24rem,34vw)] items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 shadow-sm transition focus-within:border-blue-400 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-100">
+            <Search className="h-4 w-4 text-slate-400" />
+            <input
+              className="w-full border-0 bg-transparent text-sm outline-none focus:shadow-none"
+              placeholder={t("searchPlaceholder")}
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setSearchOpen(event.target.value.trim().length >= 2);
+              }}
+              onFocus={() => setSearchOpen(search.trim().length >= 2)}
+              aria-label={t("searchPlaceholder")}
+            />
+          </form>
+          {searchOpen ? (
+            <div className="absolute left-0 top-12 z-50 w-[min(28rem,calc(100vw-2rem))] overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl ring-1 ring-slate-900/[0.03]">
+              <div className="border-b border-slate-100 px-3 py-2 text-xs font-bold uppercase tracking-wide text-slate-500">Search results</div>
+              <div className="max-h-80 overflow-y-auto py-1">
+                {searchResults.length ? searchResults.map((result) => (
+                  <button key={`${result.type}-${result.id}`} type="button" className="flex w-full items-start gap-3 px-3 py-2.5 text-left transition hover:bg-slate-50" onClick={() => openResult(result)}>
+                    <span className="mt-0.5 rounded-md bg-blue-50 px-2 py-1 text-[10px] font-bold uppercase text-blue-700 ring-1 ring-blue-100">{result.type}</span>
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-semibold text-slate-950">{result.title}</span>
+                      <span className="mt-0.5 block truncate text-xs text-slate-500">{result.subtitle}</span>
+                    </span>
+                  </button>
+                )) : <p className="px-3 py-4 text-sm text-slate-500">No results found</p>}
+              </div>
+            </div>
+          ) : null}
+        </div>
       </div>
       <div className="flex min-w-0 shrink-0 items-center gap-2 sm:gap-3">
         <Button className="hidden h-10 md:inline-flex" icon={Plus} onClick={() => navigate(quickActionPath)}>

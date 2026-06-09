@@ -12,6 +12,15 @@ const include = {
     include: { sender: { select: { id: true, name: true, email: true, role: true } } },
   },
 };
+const listInclude = {
+  customer: { select: { id: true, name: true, email: true, role: true } },
+  agent: { select: { id: true, name: true, email: true, role: true, department: true, categories: true, agentStatus: true } },
+  messages: {
+    take: 80,
+    orderBy: { createdAt: "desc" },
+    include: { sender: { select: { id: true, name: true, email: true, role: true } } },
+  },
+};
 
 const waitingNotice = "All agents are currently busy. Estimated wait time is 5-10 minutes.";
 const queueStatuses = ["WAITING", "TRANSFERRED"];
@@ -122,7 +131,7 @@ function shapeMessage(message) {
 
 function shapeChat(chat, index = 0) {
   if (!chat) return chat;
-  const shapedMessages = (chat.messages || []).map(shapeMessage);
+  const shapedMessages = (chat.messages || []).map(shapeMessage).sort((a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0));
   const systemMessages = !chat.agentId && ["WAITING", "TRANSFERRED"].includes(chat.status)
     ? [{ id: `system-${chat.id}`, senderId: "system", content: waitingNotice, createdAt: chat.createdAt }]
     : [];
@@ -285,7 +294,7 @@ export async function getChats(req, res, next) {
             ],
           }
         : {};
-    const chats = await prisma.chatSession.findMany({ where, include, orderBy: { updatedAt: "desc" } });
+    const chats = await prisma.chatSession.findMany({ where, include: listInclude, orderBy: { updatedAt: "desc" } });
     success(res, chats.filter((chat) => canAccessChat(req.user, chat)).map(shapeChat));
   } catch (error) { next(error); }
 }

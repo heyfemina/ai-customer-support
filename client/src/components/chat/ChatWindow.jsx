@@ -109,7 +109,7 @@ export default function ChatWindow({
       </div>
       <div
         ref={wallRef}
-        className="support-message-wall app-scrollbar flex-1 space-y-3 overflow-y-auto bg-slate-50/80 p-4 sm:p-5"
+        className="support-message-wall app-scrollbar flex-1 space-y-3 overflow-y-auto bg-slate-50/80 p-3.5 sm:p-5"
         onScroll={(event) => {
           const node = event.currentTarget;
           nearBottomRef.current = node.scrollHeight - node.scrollTop - node.clientHeight < 80;

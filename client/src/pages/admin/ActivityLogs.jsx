@@ -14,14 +14,22 @@ export default function ActivityLogs() {
   const [filters, setFilters] = useState({ search: "", role: "", userId: "", action: "", dateFrom: "", dateTo: "" });
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(15);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    api.get("/users").then(({ data }) => setUsers(normalizeItems(data, []))).catch(() => setUsers([]));
+    api.get("/users").then(({ data }) => setUsers(normalizeItems(data, []))).catch((error) => {
+      setError(error.friendlyMessage || "Unable to load users for activity filters.");
+    });
   }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(Object.entries(filters).filter(([, value]) => value));
-    api.get(`/activity-logs?${params.toString()}`).then(({ data }) => setItems(normalizeItems(data, []))).catch(() => setItems([]));
+    setLoading(true);
+    setError("");
+    api.get(`/activity-logs?${params.toString()}`).then(({ data }) => setItems(normalizeItems(data, []))).catch((error) => {
+      setError(error.friendlyMessage || "Unable to load activity logs.");
+    }).finally(() => setLoading(false));
   }, [filters]);
 
   const columns = [
@@ -41,6 +49,7 @@ export default function ActivityLogs() {
   return (
     <>
       <PageHeader title={t("pages.activityLogs.title")} description={t("pages.activityLogs.description")} />
+      {error ? <p className="mb-4 rounded-md border border-amber-100 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800">{error}</p> : null}
       <Card className="mb-4 p-4">
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-[1fr_160px_210px_180px_150px_150px]">
           <input className="app-field" placeholder={t("activity.searchNameEmail", { defaultValue: "Search name or email" })} value={filters.search} onChange={(event) => updateFilters({ search: event.target.value, userId: "" })} />

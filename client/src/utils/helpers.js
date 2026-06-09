@@ -19,7 +19,23 @@ export function initials(name = "User") {
 export function normalizeItems(payload, fallback = []) {
   if (Array.isArray(payload)) return payload;
   if (Array.isArray(payload?.data)) return payload.data;
+  if (Array.isArray(payload?.data?.items)) return payload.data.items;
+  if (Array.isArray(payload?.data?.tickets)) return payload.data.tickets;
+  if (Array.isArray(payload?.data?.results)) return payload.data.results;
+  if (Array.isArray(payload?.data?.data)) return payload.data.data;
   if (Array.isArray(payload?.items)) return payload.items;
+  if (Array.isArray(payload?.tickets)) return payload.tickets;
+  if (Array.isArray(payload?.results)) return payload.results;
+  return fallback;
+}
+
+export function extractArray(responseOrPayload, key, fallback = []) {
+  const payload = responseOrPayload?.data?.data ?? responseOrPayload?.data ?? responseOrPayload ?? {};
+  if (Array.isArray(payload)) return payload;
+  if (Array.isArray(payload?.[key])) return payload[key];
+  if (Array.isArray(payload?.items)) return payload.items;
+  if (Array.isArray(payload?.results)) return payload.results;
+  if (Array.isArray(payload?.data)) return payload.data;
   return fallback;
 }
 

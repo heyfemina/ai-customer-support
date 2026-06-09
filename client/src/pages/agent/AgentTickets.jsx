@@ -4,7 +4,7 @@ import api from "../../api/axios.js";
 import PageHeader from "../../components/common/PageHeader.jsx";
 import Card from "../../components/common/Card.jsx";
 import TicketTable from "../../components/tickets/TicketTable.jsx";
-import { normalizeItems } from "../../utils/helpers.js";
+import { extractArray } from "../../utils/helpers.js";
 import { useTranslation } from "react-i18next";
 
 export default function AgentTickets() {
@@ -12,22 +12,30 @@ export default function AgentTickets() {
   const [searchParams] = useSearchParams();
   const [items, setItems] = useState([]);
   const [filters, setFilters] = useState({ search: "", status: "" });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   useEffect(() => {
     const query = searchParams.get("search") || "";
     setFilters((current) => current.search === query ? current : { ...current, search: query });
   }, [searchParams]);
   useEffect(() => {
-    const params = new URLSearchParams(Object.entries(filters).filter(([, value]) => value));
-    api.get(`/tickets?${params.toString()}`).then(({ data }) => setItems(normalizeItems(data, []))).catch(() => setItems([]));
+    const params = Object.fromEntries(Object.entries(filters).filter(([, value]) => value));
+    setLoading(true);
+    setError("");
+    api.get("/tickets", { params }).then((response) => setItems(extractArray(response, "tickets"))).catch((error) => {
+      setError(error.friendlyMessage || "Unable to load live ticket data.");
+      setItems([]);
+    }).finally(() => setLoading(false));
   }, [filters]);
   return (
     <>
       <PageHeader title={t("pages.assignedTickets.title")} description={t("pages.assignedTickets.description")} />
+      {error ? <p className="mb-4 rounded-md border border-amber-100 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800">{error}</p> : null}
       <Card className="mb-4 p-4">
         <div className="grid gap-3 md:grid-cols-[1fr_180px]">
           <input className="app-field" placeholder={t("ticketsUi.searchTickets")} value={filters.search} onChange={(event) => setFilters({ ...filters, search: event.target.value })} />
           <select className="app-field" value={filters.status} onChange={(event) => setFilters({ ...filters, status: event.target.value })}>
-            <option value="">{t("ticketsUi.allStatuses")}</option><option>OPEN</option><option>IN_PROGRESS</option><option>WAITING_CUSTOMER</option><option>RESOLUTION_PROPOSED</option><option>REOPENED</option><option>AUTO_CLOSED</option><option>CLOSED</option>
+            <option value="">{t("ticketsUi.allStatuses")}</option><option>OPEN</option><option>ASSIGNED</option><option>IN_PROGRESS</option><option>WAITING_CUSTOMER</option><option>RESOLUTION_PROPOSED</option><option>CUSTOMER_RESPONDED_AFTER_RESOLUTION</option><option>REOPENED</option><option>AUTO_CLOSED</option><option>CLOSED</option>
           </select>
         </div>
       </Card>

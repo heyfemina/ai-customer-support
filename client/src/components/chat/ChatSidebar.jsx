@@ -54,12 +54,12 @@ export default function ChatSidebar({ sessions, activeId, onSelect, showMetrics 
   };
 
   return (
-    <aside className="support-queue-panel flex min-h-0 w-full flex-col border-b border-slate-300 bg-white md:h-full md:w-[19rem] md:shrink-0 md:border-b-0 md:border-r xl:w-[20rem]">
-      <div className="support-queue-header shrink-0 border-b border-slate-200 bg-white p-3.5">
+    <aside className="support-queue-panel flex min-h-0 w-full flex-col border-b border-slate-200 bg-white md:h-full md:w-[20rem] md:shrink-0 md:border-b-0 md:border-r lg:w-[21rem]">
+      <div className="support-queue-header shrink-0 border-b border-slate-200 bg-white p-3">
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-[11px] font-bold uppercase tracking-wide text-blue-700">Live inbox</p>
-            <h2 className="mt-0.5 font-semibold text-slate-950">Support queue</h2>
+            <h2 className="mt-0.5 text-sm font-semibold text-slate-950">Support queue</h2>
           </div>
           <div className="grid h-9 w-9 place-items-center rounded-md bg-blue-50 text-blue-700 ring-1 ring-blue-100">
             <MessageCircle className="h-4 w-4" />
@@ -81,7 +81,7 @@ export default function ChatSidebar({ sessions, activeId, onSelect, showMetrics 
             </div>
           </div>
         ) : null}
-        <div className="mt-3 flex h-9 items-center gap-2 rounded-lg border border-slate-300 bg-slate-50 px-3 shadow-sm">
+        <div className="mt-3 flex h-9 items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 shadow-sm">
           <Search className="h-4 w-4 text-slate-400" />
           <input className="min-w-0 flex-1 border-0 bg-transparent text-sm outline-none focus:shadow-none" placeholder="Search chats" value={query} onChange={(event) => setQuery(event.target.value)} />
         </div>
@@ -102,13 +102,13 @@ export default function ChatSidebar({ sessions, activeId, onSelect, showMetrics 
           ))}
         </div>
       </div>
-      <div className="support-queue-list app-scrollbar min-h-0 flex-1 space-y-2 overflow-y-auto bg-slate-50 p-2.5">
+      <div className="support-queue-list app-scrollbar min-h-0 flex-1 space-y-2 overflow-y-auto bg-slate-50 p-2">
         {filteredSessions.length ? filteredSessions.map((session) => (
           <button
             key={session.id}
             onClick={() => onSelect?.(session)}
             className={cx(
-              "support-queue-item relative w-full overflow-hidden rounded-xl border bg-white p-2.5 text-left transition hover:border-blue-200 hover:shadow-sm",
+              "support-queue-item relative w-full overflow-hidden rounded-lg border bg-white p-2.5 text-left transition hover:border-blue-200 hover:shadow-sm",
               activeId === session.id ? "border-blue-300 shadow-sm ring-2 ring-blue-100" : "border-slate-300"
             )}
           >
@@ -125,7 +125,7 @@ export default function ChatSidebar({ sessions, activeId, onSelect, showMetrics 
                 <p className="mt-1 line-clamp-1 text-xs leading-5 text-slate-600">{session.lastMessage || t("chat.noMessages")}</p>
                 <p className="mt-0.5 flex min-w-0 items-center gap-1 truncate text-xs font-semibold text-slate-500">
                   <UserRound className="h-3.5 w-3.5 shrink-0" />
-                  {viewMode === "customer" ? `Customer: ${customerName(session, t("chat.customerFallback"))}` : `Agent: ${agentName(session, "Unassigned")}`}
+                  {viewMode === "customer" ? agentName(session, "Waiting for agent") : `Agent: ${agentName(session, "Unassigned")}`}
                 </p>
               </div>
             </div>

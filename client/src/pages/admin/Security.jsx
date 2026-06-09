@@ -41,11 +41,23 @@ export default function Security() {
   const [twoFactorOn, setTwoFactorOn] = useState(Boolean(user?.twoFactorOn));
   const [twoFactorTest, setTwoFactorTest] = useState(null);
   const [twoFactorBusy, setTwoFactorBusy] = useState(false);
+  const [operationalLoading, setOperationalLoading] = useState(true);
+  const [operationalError, setOperationalError] = useState("");
 
-  const loadOperationalData = () => {
-    api.get("/backups").then(({ data }) => setBackups(data.data || [])).catch(() => {});
-    api.get("/gdpr/requests").then(({ data }) => setGdprRequests(data.data || [])).catch(() => {});
-    api.get("/admin/system-health").then(({ data }) => setHealth(data.data)).catch(() => {});
+  const loadOperationalData = async () => {
+    setOperationalLoading(true);
+    setOperationalError("");
+    const [backupResult, gdprResult, healthResult] = await Promise.allSettled([
+      api.get("/backups"),
+      api.get("/gdpr/requests"),
+      api.get("/admin/system-health"),
+    ]);
+    if (backupResult.status === "fulfilled") setBackups(backupResult.value.data.data || []);
+    if (gdprResult.status === "fulfilled") setGdprRequests(gdprResult.value.data.data || []);
+    if (healthResult.status === "fulfilled") setHealth(healthResult.value.data.data);
+    const failed = [backupResult, gdprResult, healthResult].find((result) => result.status === "rejected");
+    if (failed) setOperationalError(failed.reason?.friendlyMessage || "Some security data could not be loaded. Please check the backend API.");
+    setOperationalLoading(false);
   };
 
   useEffect(() => {
@@ -198,6 +210,7 @@ export default function Security() {
     <>
       <PageHeader title="Security settings" description="Authentication, compliance, API security, audit controls, and resilience placeholders." />
       {notice ? <p className="mb-4 rounded-md bg-green-50 px-3 py-2 text-sm font-semibold text-green-700">{notice}</p> : null}
+      {operationalError ? <p className="mb-4 rounded-md border border-amber-100 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800">{operationalError}</p> : null}
 
       <Card className="mb-5 overflow-hidden p-0">
         <div className="flex flex-col gap-3 border-b border-slate-200 bg-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
@@ -206,7 +219,7 @@ export default function Security() {
             <p className="mt-1 text-sm text-slate-500">Download, review, or delete secure backup snapshots.</p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="secondary" onClick={loadOperationalData}>{t("security.actions.securityCheck")}</Button>
+            <Button variant="secondary" loading={operationalLoading} onClick={loadOperationalData}>{t("security.actions.securityCheck")}</Button>
             <Button loading={backupBusy} onClick={createBackup}>Create</Button>
           </div>
         </div>
@@ -261,8 +274,8 @@ export default function Security() {
         <Card className="p-5">
           <h2 className="font-semibold text-slate-950">System health</h2>
           <div className="mt-3 space-y-2 text-sm text-slate-600">
-            <p>API: <b>{health?.api || "checking"}</b></p>
-            <p>Database: <b>{health?.database || "checking"}</b></p>
+            <p>API: <b>{health?.api || "unavailable"}</b></p>
+            <p>Database: <b>{health?.database || "unavailable"}</b></p>
             <p>Socket connections: <b>{health?.activeSocketConnections ?? 0}</b></p>
             <p>Open alerts: <b>{health?.alerts?.length ?? 0}</b></p>
             <p>Environment: <b>{readiness.nodeEnv || "development"}</b></p>
@@ -276,7 +289,8 @@ export default function Security() {
         <Card className="p-5">
           <h2 className="font-semibold text-slate-950">GDPR requests</h2>
           <div className="mt-3 space-y-2 text-sm">
-            {gdprRequests.slice(0, 5).map((request) => (
+            {!operationalLoading && !gdprRequests.length ? <p className="text-sm font-semibold text-slate-500">No GDPR requests yet.</p> : null}
+            {!operationalLoading ? gdprRequests.slice(0, 5).map((request) => (
               <div key={request.id} className="rounded-md bg-slate-50 p-2">
                 <div className="flex items-center justify-between gap-2"><span>{request.type} - {request.user?.email}</span><Badge>{request.status}</Badge></div>
                 <div className="mt-2 flex flex-wrap gap-2">
@@ -284,7 +298,7 @@ export default function Security() {
                   {request.status === "PENDING" ? <><Button variant="secondary" onClick={() => updateGdpr(request.id, "approve")}>Approve</Button><Button variant="secondary" onClick={() => updateGdpr(request.id, "reject")}>Reject</Button></> : null}
                 </div>
               </div>
-            ))}
+            )) : null}
           </div>
         </Card>
       </div>

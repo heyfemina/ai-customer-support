@@ -159,19 +159,24 @@ async function downloadFromSupabase(filePath) {
 
 export async function createBackup(createdById, ipAddress) {
   const fileName = `backup-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
-  const provider = String(process.env.BACKUP_PROVIDER || "local").toLowerCase();
+  const requestedProvider = String(process.env.BACKUP_PROVIDER || "local").toLowerCase();
+  const hasSupabaseConfig = Boolean(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY);
+  const provider = requestedProvider === "supabase" ? "supabase" : "local";
   const log = await prisma.backupLog.create({ data: { fileName, status: "IN_PROGRESS", provider, createdById } });
   try {
     const data = await collectBackupData();
     const content = JSON.stringify(data, null, 2);
     let storedPath;
     if (provider === "supabase") {
+      if (!hasSupabaseConfig) throw new Error("Supabase configuration missing. Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY before using BACKUP_PROVIDER=supabase.");
       storedPath = await uploadToSupabase(fileName, content);
     } else {
+      const fallbackReason = requestedProvider === "supabase" && !hasSupabaseConfig ? "Supabase configuration missing, using local fallback." : null;
       const backupDir = resolveLocalBackupDir();
       await fs.mkdir(backupDir, { recursive: true });
       storedPath = path.join(backupDir, fileName);
       await fs.writeFile(storedPath, content);
+      if (fallbackReason) await prisma.systemAlert.create({ data: { type: "BACKUP_PROVIDER_FALLBACK", severity: "WARNING", title: "Backup saved locally", message: fallbackReason } }).catch(() => {});
     }
     await prisma.activityLog.create({ data: { userId: createdById, action: `Created backup ${fileName}`, ipAddress } }).catch(() => {});
     return prisma.backupLog.update({ where: { id: log.id }, data: { filePath: storedPath, status: "SUCCESS", provider, sizeBytes: Buffer.byteLength(content) } });

@@ -13,8 +13,18 @@ export default function Agents() {
   const [agents, setAgents] = useState([]);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [loading, setLoading] = useState(true);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const [error, setError] = useState("");
   useEffect(() => {
-    api.get("/reports/agents").then(({ data }) => setAgents(normalizeItems(data, []))).catch(() => setAgents([]));
+    setLoading(true);
+    setError("");
+    api.get("/reports/agents").then(({ data }) => setAgents(normalizeItems(data, []))).catch((error) => {
+      setError(error.friendlyMessage || "Unable to load live agent data.");
+    }).finally(() => {
+      setHasLoadedOnce(true);
+      setLoading(false);
+    });
   }, []);
   const pagedAgents = agents.slice((page - 1) * pageSize, page * pageSize);
   const columns = [
@@ -33,10 +43,11 @@ export default function Agents() {
   return (
     <>
       <PageHeader title={t("pages.agents.title")} description={t("pages.agents.description")} />
+      {error ? <p className="mb-4 rounded-md border border-amber-100 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800">{error}</p> : null}
       <div className="mb-4 grid gap-4 sm:grid-cols-3">
         <Card className="p-4"><p className="text-sm font-semibold text-slate-500">{t("common.totalAgents")}</p><p className="mt-2 text-2xl font-bold text-slate-950">{agents.length}</p></Card>
         <Card className="p-4"><p className="text-sm font-semibold text-slate-500">{t("common.available")}</p><p className="mt-2 text-2xl font-bold text-slate-950">{available}</p></Card>
-        <Card className="p-4"><p className="text-sm font-semibold text-slate-500">{t("table.activeChats")}</p><p className="mt-2 text-2xl font-bold text-slate-950">{agents.reduce((total, agent) => total + Number(agent.activeChats || 0), 0)}</p></Card>
+        <Card className="p-4"><p className="text-sm font-semibold text-slate-500">{t("table.activeChats")}</p><p className="mt-2 text-2xl font-bold text-slate-950">{agents.reduce((total, agent) => total + Number(agent.activeChats ?? 0), 0)}</p></Card>
       </div>
       <Table columns={columns} data={pagedAgents} paginated={false} />
       <Pagination page={page} pageSize={pageSize} total={agents.length} itemLabel="agents" onPageChange={setPage} onPageSizeChange={(value) => { setPageSize(value); setPage(1); }} />

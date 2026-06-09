@@ -1,5 +1,5 @@
 import { MessageCircle, X } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import api from "../../api/axios.js";
@@ -27,26 +27,43 @@ export default function AiChatBubble() {
     }
   });
   const dragRef = useRef(null);
+  const shellRef = useRef(null);
   const isCustomerLiveChat = location.pathname === "/customer/live-chat";
   const isMobile = useMemo(() => typeof window !== "undefined" && window.matchMedia("(max-width: 640px)").matches, []);
 
-  useEffect(() => {
-    if (isMobile || position) return;
-    setPosition({ x: window.innerWidth - 370, y: isCustomerLiveChat ? window.innerHeight - 510 : window.innerHeight - 430 });
-  }, [isCustomerLiveChat, isMobile, position]);
-
-  const clampPosition = (next) => {
+  const clampPosition = useCallback((next) => {
     const width = open ? 350 : 64;
     const height = open ? 500 : 64;
+    const topSafe = 76;
     return {
       x: Math.min(Math.max(12, next.x), Math.max(12, window.innerWidth - width - 12)),
-      y: Math.min(Math.max(12, next.y), Math.max(12, window.innerHeight - height - 12)),
+      y: Math.min(Math.max(topSafe, next.y), Math.max(topSafe, window.innerHeight - height - 12)),
     };
-  };
+  }, [open]);
+
+  useEffect(() => {
+    if (isMobile) return;
+    if (position) {
+      const next = clampPosition(position);
+      if (next.x !== position.x || next.y !== position.y) setPosition(next);
+      return;
+    }
+    setPosition(clampPosition({ x: window.innerWidth - 370, y: isCustomerLiveChat ? window.innerHeight - 510 : window.innerHeight - 430 }));
+  }, [clampPosition, isCustomerLiveChat, isMobile, position]);
+
+  useEffect(() => {
+    if (isMobile) return undefined;
+    const onResize = () => setPosition((current) => current ? clampPosition(current) : current);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [clampPosition, isMobile]);
 
   const startDrag = (event) => {
     if (isMobile) return;
-    const rect = event.currentTarget.closest("[data-ai-chat-shell]")?.getBoundingClientRect();
+    if (event.button !== undefined && event.button !== 0) return;
+    const rect = shellRef.current?.getBoundingClientRect();
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    event.preventDefault();
     dragRef.current = {
       dx: event.clientX - (rect?.left || position?.x || 0),
       dy: event.clientY - (rect?.top || position?.y || 0),
@@ -123,8 +140,9 @@ export default function AiChatBubble() {
 
   return (
     <div
+      ref={shellRef}
       data-ai-chat-shell
-      className={`fixed z-50 ${isMobile || !position ? `right-5 ${isCustomerLiveChat ? "bottom-24" : "bottom-5"}` : ""}`}
+      className={`fixed z-50 select-none ${isMobile || !position ? `right-5 ${isCustomerLiveChat ? "bottom-24" : "bottom-5"}` : ""}`}
       style={!isMobile && position ? { left: `${position.x}px`, top: `${position.y}px` } : undefined}
     >
       {open ? (
@@ -140,7 +158,6 @@ export default function AiChatBubble() {
                 <p>{message.content}</p>
               </div>
             )) : <p className="rounded-md bg-white p-3 text-slate-500">{t("chat.askAnything", { defaultValue: "Hi, ask anything about your support request." })}</p>}
-            {loading ? <p className="text-xs font-semibold text-slate-500">{t("chat.aiTyping", { defaultValue: "AI is typing..." })}</p> : null}
           </div>
           {notice ? <p className="border-t border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-700">{notice}</p> : null}
           <div className="border-t border-slate-200 bg-white px-3 py-2">

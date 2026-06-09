@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { MessageSquare, Send } from "lucide-react";
+import { MessageSquare, Paperclip, Send } from "lucide-react";
 import api, { uploadFile } from "../../api/axios.js";
 import Button from "../../components/common/Button.jsx";
 import Card from "../../components/common/Card.jsx";
@@ -17,15 +17,21 @@ export default function InternalChats() {
   const [message, setMessage] = useState("");
   const [file, setFile] = useState(null);
   const [form, setForm] = useState({ subject: "", participantIds: [] });
+  const [loading, setLoading] = useState(true);
+  const [notice, setNotice] = useState("");
   const activeMessages = useMemo(() => active?.messages || [], [active]);
 
   const load = () => {
+    setLoading(true);
+    setNotice("");
     api.get("/internal-chats").then(({ data }) => {
       const rows = normalizeItems(data, []);
       setChats(rows);
       setActive((current) => rows.find((row) => row.id === current?.id) || rows[0] || null);
-    });
-    api.get("/reports/agents").then(({ data }) => setAgents(normalizeItems(data, []))).catch(() => setAgents([]));
+    }).catch((error) => {
+      setNotice(error.friendlyMessage || "Internal chats could not be loaded. Please check the backend API.");
+    }).finally(() => setLoading(false));
+    api.get("/reports/agents").then(({ data }) => setAgents(normalizeItems(data, []))).catch((error) => setNotice(error.friendlyMessage || "Agent list could not be loaded."));
   };
 
   useEffect(() => {
@@ -72,10 +78,11 @@ export default function InternalChats() {
   return (
     <>
       <PageHeader title="Internal communication" description="Admin and agents coordinate customer issues, ticket escalations, and handoffs in real time." />
+      {notice ? <p className="mb-4 rounded-md border border-amber-100 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800">{notice}</p> : null}
       <div className="grid min-w-0 items-start gap-4 xl:grid-cols-[320px_minmax(0,1fr)]">
-        <Card className="min-w-0 overflow-hidden rounded-xl">
+        <Card className="min-w-0 overflow-hidden rounded-lg">
           <div className="border-b border-slate-200 bg-white p-4">
-            <h2 className="font-semibold text-slate-950">Conversations</h2>
+            <h2 className="text-sm font-semibold text-slate-950">Conversations</h2>
             <p className="mt-1 text-sm text-slate-500">Admin and agent coordination threads.</p>
             <div className="mt-4 space-y-2">
               <input className="app-field" placeholder="Subject" value={form.subject} onChange={(event) => setForm({ ...form, subject: event.target.value })} />
@@ -90,7 +97,7 @@ export default function InternalChats() {
           </div>
           <div className="app-scrollbar max-h-[640px] overflow-y-auto bg-slate-50 p-3">
             {chats.map((chat) => (
-              <button key={chat.id} type="button" onClick={() => setActive(chat)} className={`mb-2 w-full rounded-lg border p-3 text-left shadow-sm transition hover:border-blue-200 hover:bg-white ${active?.id === chat.id ? "border-blue-300 bg-white ring-2 ring-blue-100" : "border-slate-200 bg-white"}`}>
+              <button key={chat.id} type="button" onClick={() => setActive(chat)} className={`mb-2 w-full rounded-lg border p-2.5 text-left shadow-sm transition hover:border-blue-200 hover:bg-white ${active?.id === chat.id ? "border-blue-300 bg-white ring-2 ring-blue-100" : "border-slate-200 bg-white"}`}>
                 <div className="flex min-w-0 items-start justify-between gap-2">
                   <p className="min-w-0 truncate font-semibold text-slate-900">{chat.subject}</p>
                   <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500">{chat.messages?.length || 0}</span>
@@ -101,7 +108,7 @@ export default function InternalChats() {
             ))}
           </div>
         </Card>
-        <Card className="flex min-h-[640px] min-w-0 flex-col overflow-hidden rounded-xl">
+        <Card className="flex min-h-[640px] min-w-0 flex-col overflow-hidden rounded-lg">
           {active ? (
             <>
               <div className="border-b border-slate-200 bg-white p-4">
@@ -117,20 +124,23 @@ export default function InternalChats() {
                 {activeMessages.map((item) => {
                   const mine = item.senderId === user?.id;
                   return (
-                    <div key={item.id} className={`max-w-[78%] rounded-xl px-4 py-3 text-sm shadow-sm ${mine ? "ml-auto bg-blue-900 text-white" : "border border-slate-200 bg-white text-slate-700"}`}>
+                    <div key={item.id} className={`max-w-[82%] rounded-xl px-4 py-3 text-sm shadow-sm ${mine ? "ml-auto rounded-br-md border border-blue-200 bg-blue-50 text-slate-900" : "rounded-bl-md border border-slate-200 bg-white text-slate-700"}`}>
                       <p className="mb-1 text-xs font-bold">{mine ? "You" : item.sender?.name || "User"}</p>
                       <p className="whitespace-pre-wrap break-words">{item.content}</p>
                       {item.fileUrl ? <a className="mt-2 block truncate font-semibold underline" href={resolveFileUrl(item.fileUrl)} target="_blank" rel="noreferrer">{item.fileName || "Attachment"}</a> : null}
-                      <p className={`mt-1 text-[11px] ${mine ? "text-blue-100" : "text-slate-400"}`}>{formatDate(item.createdAt)}</p>
+                      <p className={`mt-1 text-[11px] ${mine ? "text-blue-700" : "text-slate-400"}`}>{formatDate(item.createdAt)}</p>
                     </div>
                   );
                 })}
               </div>
               <div className="border-t border-slate-200 p-3 sm:p-4">
-                <textarea className="app-field min-h-20" placeholder="Message admin or agent" value={message} onChange={(event) => setMessage(event.target.value)} />
-                <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
-                  <input type="file" className="app-upload min-w-0 flex-1 py-2" onChange={(event) => setFile(event.target.files?.[0] || null)} />
-                  <Button className="h-11 w-full sm:w-auto" icon={Send} onClick={send}>Send</Button>
+                <div className="flex items-end gap-2">
+                  <label className="grid h-10 w-10 shrink-0 cursor-pointer place-items-center rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700" title={file?.name || "Attach file"}>
+                    <Paperclip className="h-4 w-4" />
+                    <input type="file" className="hidden" onChange={(event) => setFile(event.target.files?.[0] || null)} />
+                  </label>
+                  <textarea className="app-field min-h-10 flex-1 resize-none rounded-lg py-2.5" placeholder={file?.name ? `Attached: ${file.name}` : "Message admin or agent"} value={message} onChange={(event) => setMessage(event.target.value)} />
+                  <Button className="h-10 w-11 shrink-0 rounded-lg p-0" icon={Send} onClick={send} />
                 </div>
               </div>
             </>

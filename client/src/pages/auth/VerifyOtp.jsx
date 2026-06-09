@@ -88,7 +88,7 @@ export default function VerifyOtp() {
         {error ? <p className="rounded-md border border-red-100 bg-red-50 p-3 text-sm font-medium text-red-700">{error}</p> : null}
         <Button className="min-h-12 w-full rounded-lg" loading={loading}>{t("auth.verifyAndSignIn")}</Button>
         <div className="flex flex-col gap-3 border-t border-slate-200 pt-5 text-sm sm:flex-row sm:items-center sm:justify-between">
-          <Button size="sm" variant="secondary" type="button" onClick={resend} loading={resending}>{resending ? t("auth.sending") : t("auth.resendOtp")}</Button>
+          <Button size="sm" variant="secondary" type="button" onClick={resend} loading={resending}>{t("auth.resendOtp")}</Button>
           <Link className="font-semibold text-slate-500" to="/login">{t("auth.backToLogin")}</Link>
         </div>
       </form>

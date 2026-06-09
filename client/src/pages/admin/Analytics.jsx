@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import api from "../../api/axios.js";
 import Card from "../../components/common/Card.jsx";
 import Badge from "../../components/common/Badge.jsx";
+import TicketStatusBadge from "../../components/tickets/TicketStatusBadge.jsx";
 import Button from "../../components/common/Button.jsx";
 import PageHeader from "../../components/common/PageHeader.jsx";
 import Table from "../../components/common/Table.jsx";
@@ -20,16 +21,39 @@ export default function Analytics() {
   const [chats, setChats] = useState([]);
   const [exporting, setExporting] = useState("");
   const [notice, setNotice] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
-    api.get("/reports/tickets").then(({ data }) => setTicketReport(unwrapData(data))).catch(() => {
-      setTicketReport(null);
-    });
-    api.get("/reports/response-time").then(({ data }) => setResponseTimes(unwrapData(data, []))).catch(() => setResponseTimes([]));
-    api.get("/reports/sla").then(({ data }) => setSla(unwrapData(data))).catch(() => setSla(null));
-    api.get("/reports/customers").then(({ data }) => setCustomers(normalizeItems(data, []))).catch(() => setCustomers([]));
-    api.get("/reports/agents").then(({ data }) => setAgents(normalizeItems(data, []))).catch(() => setAgents([]));
-    api.get("/chats").then(({ data }) => setChats(normalizeItems(data, []))).catch(() => setChats([]));
+    let mounted = true;
+    const load = async () => {
+      setLoading(true);
+      setLoadError("");
+      const [ticketsResult, responseResult, slaResult, customersResult, agentsResult, chatsResult] = await Promise.allSettled([
+        api.get("/reports/tickets"),
+        api.get("/reports/response-time"),
+        api.get("/reports/sla"),
+        api.get("/reports/customers"),
+        api.get("/reports/agents"),
+        api.get("/chats"),
+      ]);
+      if (!mounted) return;
+      if (ticketsResult.status === "fulfilled") setTicketReport(unwrapData(ticketsResult.value.data));
+      if (responseResult.status === "fulfilled") setResponseTimes(unwrapData(responseResult.value.data, []));
+      if (slaResult.status === "fulfilled") setSla(unwrapData(slaResult.value.data));
+      if (customersResult.status === "fulfilled") setCustomers(normalizeItems(customersResult.value.data, []));
+      if (agentsResult.status === "fulfilled") setAgents(normalizeItems(agentsResult.value.data, []));
+      if (chatsResult.status === "fulfilled") setChats(normalizeItems(chatsResult.value.data, []));
+      const failed = [ticketsResult, responseResult, slaResult, customersResult, agentsResult, chatsResult].find((result) => result.status === "rejected");
+      if (failed) setLoadError(failed.reason?.friendlyMessage || "Some analytics data could not be loaded. Please check the backend API.");
+      setHasLoadedOnce(true);
+      setLoading(false);
+    };
+    load();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const chartData = ticketReport?.monthlyTickets || [];
@@ -57,9 +81,9 @@ export default function Analytics() {
   ];
   const summary = [
     { label: t("reports.summary.openComplaints"), value: complaints },
-    { label: t("reports.summary.avgResponse"), value: `${responseData.at(-1)?.minutes || 0}m` },
-    { label: t("reports.summary.resolvedThisMonth"), value: chartData.at(-1)?.resolved || 0 },
-    { label: t("reports.summary.newTicketsThisMonth"), value: chartData.at(-1)?.tickets || 0 },
+    { label: t("reports.summary.avgResponse"), value: `${responseData.at(-1)?.minutes ?? 0}m` },
+    { label: t("reports.summary.resolvedThisMonth"), value: chartData.at(-1)?.resolved ?? 0 },
+    { label: t("reports.summary.newTicketsThisMonth"), value: chartData.at(-1)?.tickets ?? 0 },
     { label: "SLA breached", value: sla?.breached ?? 0 },
     { label: "Avg first response", value: `${sla?.averageFirstResponseMinutes ?? 0}m` },
     { label: "Avg resolution", value: `${sla?.averageResolutionMinutes ?? 0}m` },
@@ -70,7 +94,7 @@ export default function Analytics() {
     { key: "agent", label: "Agent", render: (ticket) => <span className="block max-w-40 truncate font-semibold text-slate-800">{ticket.agent?.name || "Unassigned"}</span> },
     { key: "category", label: "Category", align: "center", render: (ticket) => ticket.category || "General" },
     { key: "priority", label: "Priority", align: "center", render: (ticket) => <Badge tone={["HIGH", "URGENT"].includes(ticket.priority) ? "red" : "slate"}>{ticket.priority}</Badge> },
-    { key: "status", label: "Status", align: "center", render: (ticket) => <Badge tone={ticket.status === "RESOLVED" || ticket.status === "CLOSED" ? "green" : "blue"}>{ticket.status}</Badge> },
+    { key: "status", label: "Status", align: "center", render: (ticket) => <TicketStatusBadge status={ticket.status} /> },
     { key: "firstResponseMinutes", label: "First Response", align: "center", render: (ticket) => ticket.firstResponseMinutes !== null ? `${ticket.firstResponseMinutes}m` : "Pending" },
     { key: "resolutionMinutes", label: "Resolution", align: "center", render: (ticket) => ticket.resolutionMinutes !== null ? `${ticket.resolutionMinutes}m` : "Pending" },
     { key: "slaTarget", label: "SLA Target", align: "center", render: () => "24h" },
@@ -98,6 +122,7 @@ export default function Analytics() {
         actions={<div className="flex flex-wrap gap-2"><Button variant="secondary" loading={exporting === "tickets"} onClick={() => runExport("tickets", "/reports/export/tickets?format=csv", "tickets-report.csv")}>Tickets CSV</Button><Button variant="secondary" loading={exporting === "agents"} onClick={() => runExport("agents", "/reports/export/agents?format=csv", "agents-report.csv")}>Agents CSV</Button><Button variant="secondary" loading={exporting === "customers"} onClick={() => runExport("customers", "/reports/export/customers?format=csv", "customers-report.csv")}>Customers CSV</Button></div>}
       />
       {notice ? <p className="mb-4 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm">{notice}</p> : null}
+      {loadError ? <p className="mb-4 rounded-md border border-amber-100 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800">{loadError}</p> : null}
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {summary.map((item) => (
           <Card key={item.label} className="p-5">

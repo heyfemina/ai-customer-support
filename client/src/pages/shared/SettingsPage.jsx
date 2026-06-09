@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ShieldCheck, UserRound } from "lucide-react";
+import { Download, ShieldCheck, UserRound } from "lucide-react";
 import api from "../../api/axios.js";
 import Badge from "../../components/common/Badge.jsx";
 import Button from "../../components/common/Button.jsx";
@@ -28,6 +28,7 @@ export default function SettingsPage({ role }) {
   const [passwords, setPasswords] = useState({ current: "", next: "", confirm: "" });
   const [notice, setNotice] = useState("");
   const [privacyRequests, setPrivacyRequests] = useState([]);
+  const [privacyLoading, setPrivacyLoading] = useState(false);
   const [busy, setBusy] = useState("");
 
   useEffect(() => {
@@ -42,7 +43,10 @@ export default function SettingsPage({ role }) {
 
   useEffect(() => {
     if (normalizedRole !== "CUSTOMER") return;
-    api.get("/gdpr/requests/me").then(({ data }) => setPrivacyRequests(data.data || [])).catch(() => setPrivacyRequests([]));
+    setPrivacyLoading(true);
+    api.get("/gdpr/requests/me").then(({ data }) => setPrivacyRequests(data.data || [])).catch((error) => {
+      setNotice(error.friendlyMessage || "Unable to load privacy requests.");
+    }).finally(() => setPrivacyLoading(false));
   }, [normalizedRole]);
 
   const saveProfile = async () => {
@@ -81,11 +85,40 @@ export default function SettingsPage({ role }) {
 
   const passwordReady = passwords.current && passwords.next && passwords.confirm && passwords.next === passwords.confirm;
   const requestPrivacy = async (type) => {
-    const endpoint = type === "EXPORT" ? "/gdpr/export-request" : "/gdpr/delete-request";
-    await api.post(endpoint, { reason: `Customer requested ${type.toLowerCase()}` });
-    const { data } = await api.get("/gdpr/requests/me");
-    setPrivacyRequests(data.data || []);
-    setNotice(type === "EXPORT" ? "Data export request submitted." : "Account deletion request submitted.");
+    setBusy(`gdpr-${type}`);
+    setNotice("");
+    try {
+      const endpoint = type === "EXPORT" ? "/gdpr/export-request" : "/gdpr/delete-request";
+      await api.post(endpoint, { reason: `Customer requested ${type.toLowerCase()}` });
+      const { data } = await api.get("/gdpr/requests/me");
+      setPrivacyRequests(data.data || []);
+      setNotice(type === "EXPORT" ? "Data export request submitted." : "Account deletion request submitted.");
+    } catch (error) {
+      setNotice(error.friendlyMessage || "Privacy request failed. Please check the backend API.");
+    } finally {
+      setBusy("");
+    }
+  };
+
+  const downloadExport = async () => {
+    setBusy("gdpr-download");
+    setNotice("");
+    try {
+      const { data } = await api.get(`/gdpr/export/${user.id}`);
+      const payload = data.data || data;
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `gdpr-export-${user.id}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+      setNotice("GDPR export downloaded.");
+    } catch (error) {
+      setNotice(error.friendlyMessage || "Unable to download GDPR export.");
+    } finally {
+      setBusy("");
+    }
   };
 
   return (
@@ -130,16 +163,23 @@ export default function SettingsPage({ role }) {
               <h2 className="font-semibold text-slate-950">Privacy requests</h2>
               <p className="mt-1 text-sm text-slate-500">Request data export or account deletion review using the existing GDPR workflow.</p>
               <div className="mt-4 flex flex-wrap gap-2">
-                <Button variant="secondary" onClick={() => requestPrivacy("EXPORT")}>Request data export</Button>
-                <Button variant="secondary" onClick={() => requestPrivacy("DELETE")}>Request account deletion</Button>
+                <Button variant="secondary" loading={busy === "gdpr-EXPORT"} onClick={() => requestPrivacy("EXPORT")}>Request data export</Button>
+                <Button variant="secondary" loading={busy === "gdpr-DELETE"} onClick={() => requestPrivacy("DELETE")}>Request account deletion</Button>
               </div>
               <div className="mt-4 space-y-2">
-                {privacyRequests.length ? privacyRequests.slice(0, 4).map((request) => (
-                  <div key={request.id} className="flex items-center justify-between gap-2 rounded-md border border-slate-200 bg-slate-50 p-2 text-sm">
-                    <span>{request.type}</span>
-                    <Badge>{request.status}</Badge>
+                {!privacyLoading && privacyRequests.length ? privacyRequests.slice(0, 4).map((request) => (
+                  <div key={request.id} className="flex flex-col gap-2 rounded-md border border-slate-200 bg-slate-50 p-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0">
+                      <p className="font-semibold text-slate-900">{request.type}</p>
+                      <p className="mt-0.5 text-xs text-slate-500">{request.status === "PENDING" ? "Pending approval" : request.status === "REJECTED" ? "Rejected" : request.status === "APPROVED" || request.status === "COMPLETED" ? "Approved for download" : request.status}</p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <Badge>{request.status}</Badge>
+                      {request.type === "EXPORT" && ["APPROVED", "COMPLETED"].includes(request.status) ? <Button size="sm" variant="secondary" icon={Download} loading={busy === "gdpr-download"} onClick={downloadExport}>Download JSON</Button> : null}
+                    </div>
                   </div>
-                )) : <p className="text-sm text-slate-500">No privacy requests yet.</p>}
+                )) : null}
+                {!privacyLoading && !privacyRequests.length ? <p className="text-sm text-slate-500">No privacy requests yet.</p> : null}
               </div>
             </Card>
           ) : null}

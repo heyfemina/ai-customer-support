@@ -15,9 +15,11 @@ enum Role {
 
 enum TicketStatus {
   OPEN
+  ASSIGNED
   IN_PROGRESS
   WAITING_CUSTOMER
   RESOLUTION_PROPOSED
+  CUSTOMER_RESPONDED_AFTER_RESOLUTION
   AUTO_CLOSED
   REOPENED
   RESOLVED
@@ -123,6 +125,7 @@ model Ticket {
   resolvedAt   DateTime?
   resolutionProposedAt DateTime?
   autoCloseAt DateTime?
+  customerRespondedAfterResolutionAt DateTime?
   closedAt DateTime?
   closedById String?
   closeReason String?

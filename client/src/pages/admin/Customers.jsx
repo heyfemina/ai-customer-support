@@ -13,8 +13,18 @@ export default function Customers() {
   const [customers, setCustomers] = useState([]);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [loading, setLoading] = useState(true);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const [error, setError] = useState("");
   useEffect(() => {
-    api.get("/reports/customers").then(({ data }) => setCustomers(normalizeItems(data, []))).catch(() => setCustomers([]));
+    setLoading(true);
+    setError("");
+    api.get("/reports/customers").then(({ data }) => setCustomers(normalizeItems(data, []))).catch((error) => {
+      setError(error.friendlyMessage || "Unable to load live customer data.");
+    }).finally(() => {
+      setHasLoadedOnce(true);
+      setLoading(false);
+    });
   }, []);
   const pagedCustomers = customers.slice((page - 1) * pageSize, page * pageSize);
   const columns = [
@@ -29,10 +39,11 @@ export default function Customers() {
   return (
     <>
       <PageHeader title={t("pages.customers.title")} description={t("pages.customers.description")} />
+      {error ? <p className="mb-4 rounded-md border border-amber-100 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800">{error}</p> : null}
       <div className="mb-4 grid gap-4 sm:grid-cols-3">
         <Card className="p-4"><p className="text-sm font-semibold text-slate-500">{t("common.totalCustomers")}</p><p className="mt-2 text-2xl font-bold text-slate-950">{customers.length}</p></Card>
-        <Card className="p-4"><p className="text-sm font-semibold text-slate-500">{t("common.supportTickets")}</p><p className="mt-2 text-2xl font-bold text-slate-950">{customers.reduce((total, customer) => total + Number(customer.ticketCount || customer.tickets?.length || 0), 0)}</p></Card>
-        <Card className="p-4"><p className="text-sm font-semibold text-slate-500">{t("table.activeChats")}</p><p className="mt-2 text-2xl font-bold text-slate-950">{customers.reduce((total, customer) => total + Number(customer.activeChats || 0), 0)}</p></Card>
+        <Card className="p-4"><p className="text-sm font-semibold text-slate-500">{t("common.supportTickets")}</p><p className="mt-2 text-2xl font-bold text-slate-950">{customers.reduce((total, customer) => total + Number(customer.ticketCount ?? customer.tickets?.length ?? 0), 0)}</p></Card>
+        <Card className="p-4"><p className="text-sm font-semibold text-slate-500">{t("table.activeChats")}</p><p className="mt-2 text-2xl font-bold text-slate-950">{customers.reduce((total, customer) => total + Number(customer.activeChats ?? 0), 0)}</p></Card>
       </div>
       <Table columns={columns} data={pagedCustomers} paginated={false} />
       <Pagination page={page} pageSize={pageSize} total={customers.length} itemLabel="customers" onPageChange={setPage} onPageSizeChange={(value) => { setPageSize(value); setPage(1); }} />

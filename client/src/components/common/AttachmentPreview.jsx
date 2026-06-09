@@ -3,7 +3,9 @@ import { Download, ExternalLink, FileText, Image as ImageIcon, X } from "lucide-
 import { resolveFileUrl } from "../../utils/helpers.js";
 
 function isImage(file) {
-  return file?.mimeType?.startsWith("image/") || ["jpg", "jpeg", "png", "webp"].includes(String(file?.fileType || "").toLowerCase());
+  const mimeType = String(file?.mimeType || file?.fileType || "").toLowerCase();
+  const name = String(file?.originalName || file?.fileName || file?.fileUrl || "").toLowerCase();
+  return mimeType.startsWith("image/") || /\.(jpe?g|png|webp)$/i.test(name) || ["jpg", "jpeg", "png", "webp"].includes(mimeType.replace(".", ""));
 }
 
 function formatBytes(value) {

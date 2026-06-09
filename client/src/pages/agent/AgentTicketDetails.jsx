@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../api/axios.js";
 import PageHeader from "../../components/common/PageHeader.jsx";
@@ -10,6 +10,16 @@ import AttachmentPreview from "../../components/common/AttachmentPreview.jsx";
 import { formatDate } from "../../utils/helpers.js";
 import { useAuth } from "../../context/AuthContext.jsx";
 
+const agentStatusOptions = [
+  ["OPEN", "Open"],
+  ["IN_PROGRESS", "In progress"],
+  ["WAITING_CUSTOMER", "Waiting for customer"],
+  ["RESOLUTION_PROPOSED", "Solution provided"],
+  ["CUSTOMER_RESPONDED_AFTER_RESOLUTION", "Under review"],
+  ["REOPENED", "Reopened"],
+  ["CLOSED", "Closed"],
+];
+
 export default function AgentTicketDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -18,12 +28,21 @@ export default function AgentTicketDetails() {
   const [reply, setReply] = useState("");
   const [file, setFile] = useState(null);
   const [notice, setNotice] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+
+  const loadTicket = useCallback(() => {
+    return api.get(`/tickets/${id}`).then(({ data }) => setTicket(data.data || data));
+  }, [id]);
 
   useEffect(() => {
-    api.get(`/tickets/${id}`).then(({ data }) => setTicket(data.data || data)).catch(() => {
+    setLoading(true);
+    setLoadError("");
+    loadTicket().catch((error) => {
       setTicket(null);
-    });
-  }, [id]);
+      setLoadError(error.friendlyMessage || "Ticket details could not be loaded. Please check the API connection.");
+    }).finally(() => setLoading(false));
+  }, [loadTicket]);
 
   const sendReply = async () => {
     if (!reply.trim() && !file) return;
@@ -31,25 +50,24 @@ export default function AgentTicketDetails() {
       const payload = new FormData();
       payload.append("content", reply);
       if (file) payload.append("attachments", file);
-      const { data } = await api.post(`/tickets/${id}/reply`, payload, { headers: { "Content-Type": "multipart/form-data" } });
-      const message = data.data || data;
-      setTicket((current) => ({ ...current, messages: [...(current.messages || []), message] }));
+      await api.post(`/tickets/${id}/reply`, payload, { headers: { "Content-Type": "multipart/form-data" } });
+      await loadTicket();
+      setNotice("Reply sent to the customer.");
     } catch {
       setNotice("Reply failed. Please check the API connection.");
     }
     setReply("");
     setFile(null);
-    setNotice("Reply sent to the customer.");
   };
 
   const changeStatus = async (status) => {
     try {
       const { data } = await api.put(`/tickets/${id}/status`, { status });
       setTicket(data.data || data);
+      setNotice(`Ticket status changed to ${status.replaceAll("_", " ")}.`);
     } catch {
       setNotice("Status update failed. Please check the API connection.");
     }
-    setNotice(`Ticket status changed to ${status}.`);
   };
 
   const claimTicket = async () => {
@@ -78,15 +96,78 @@ export default function AgentTicketDetails() {
     navigate("/agent/live-chats", { state: { chatId: chat.id } });
   };
 
+  if (loading) return <Card className="p-8 text-center text-sm font-semibold text-slate-500">No records found</Card>;
+  if (!ticket) return <Card className="p-8 text-center text-sm text-slate-500">{loadError || "Ticket not loaded. Please check the API connection."}</Card>;
+
+  const canWork = ticket.agentId === user?.id;
+  const customerRepliedAfterResolution = ticket.status === "CUSTOMER_RESPONDED_AFTER_RESOLUTION";
+
   return (
     <>
-      {!ticket ? <Card className="p-8 text-center text-sm text-slate-500">Ticket not loaded. Please check the API connection.</Card> : (
-      <>
-      <PageHeader title={ticket.subject} description="Ticket details, customer profile, reply timeline, attachments, and status controls." actions={<><Button variant="secondary" onClick={openTicketChat}>Chat with customer</Button>{!ticket.agentId ? <Button onClick={claimTicket}>Accept / Claim</Button> : null}<Button variant="secondary" disabled={ticket.agentId !== user?.id} onClick={() => changeStatus("IN_PROGRESS")}>In progress</Button><Button disabled={ticket.agentId !== user?.id} onClick={proposeResolution}>Propose Resolution</Button></>} />
+      <PageHeader
+        title={ticket.subject}
+        description="Ticket details, customer profile, reply timeline, attachments, and status controls."
+        actions={(
+          <>
+            <Button variant="secondary" onClick={openTicketChat}>Chat with customer</Button>
+            {!ticket.agentId ? <Button onClick={claimTicket}>Accept / Claim</Button> : null}
+            <Button variant="secondary" disabled={!canWork} onClick={() => changeStatus("IN_PROGRESS")}>In progress</Button>
+            <Button disabled={!canWork} onClick={proposeResolution}>Propose Resolution</Button>
+          </>
+        )}
+      />
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <div className="space-y-6"><Card className="p-5 sm:p-6">{notice ? <p className="mb-4 rounded-md border border-green-100 bg-green-50 px-3 py-2 text-sm font-semibold text-green-700">{notice}</p> : null}<div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 pb-4"><div><p className="text-xs font-bold uppercase tracking-wide text-slate-500">Assigned ticket</p><h2 className="mt-1 font-semibold text-slate-950">{ticket.subject}</h2></div><div className="flex flex-wrap items-center gap-2"><TicketStatusBadge status={ticket.status} /><select className="app-field max-w-48 text-sm font-semibold" value={ticket.status || "OPEN"} onChange={(event) => changeStatus(event.target.value)} disabled={ticket.agentId !== user?.id}><option>OPEN</option><option>IN_PROGRESS</option><option>WAITING_CUSTOMER</option><option>RESOLUTION_PROPOSED</option><option>REOPENED</option></select></div></div><p className="mt-4 leading-7 text-slate-700">{ticket.description}</p><div className="mt-5 border-t border-slate-200 pt-5"><h2 className="mb-3 font-semibold text-slate-950">Uploaded attachments</h2><AttachmentPreview attachments={ticket.attachments || []} /></div>{ticket.agentId !== user?.id ? <p className="mt-5 rounded-md border border-amber-100 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800">Claim this ticket before replying or changing status.</p> : null}<textarea className="app-field mt-6 min-h-36" placeholder="Write a customer reply" value={reply} onChange={(event) => setReply(event.target.value)} disabled={ticket.agentId !== user?.id} /><input type="file" accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx" className="app-upload mt-3" onChange={(event) => setFile(event.target.files?.[0] || null)} disabled={ticket.agentId !== user?.id} />{file ? <p className="mt-2 text-sm font-semibold text-slate-500">Selected: {file.name}</p> : null}<Button className="mt-3" onClick={sendReply} disabled={ticket.agentId !== user?.id}>Send reply</Button></Card><TicketTimeline ticket={ticket} /></div>
         <div className="space-y-6">
-          <Card className="p-5 sm:p-6"><h2 className="border-b border-slate-100 pb-4 font-semibold text-slate-950">Customer details</h2><dl className="mt-4 space-y-3 text-sm"><div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Name</dt><dd className="font-semibold text-slate-950">{ticket.customer?.name || ticket.customerName}</dd><dd className="truncate text-xs text-slate-500">{ticket.customer?.email}</dd></div><div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Ticket ID</dt><dd className="break-all font-mono font-semibold text-slate-950">{ticket.id}</dd></div><div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Priority</dt><dd className="font-semibold text-slate-950">{ticket.priority}</dd></div><div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Category</dt><dd className="font-semibold text-slate-950">{ticket.category}</dd></div><div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Assigned agent</dt><dd className="font-semibold text-slate-950">{ticket.agent?.name || ticket.agentName || "Unassigned"}</dd></div><div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Created</dt><dd className="font-semibold text-slate-950">{formatDate(ticket.createdAt)}</dd></div><div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Response time</dt><dd className="font-semibold text-slate-950">{ticket.firstResponseMinutes ? `${ticket.firstResponseMinutes} minutes` : "Pending"}</dd></div><div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Resolution time</dt><dd className="font-semibold text-slate-950">{ticket.resolutionMinutes ? `${ticket.resolutionMinutes} minutes` : "Pending"}</dd></div></dl></Card>
+          <Card className="p-5 sm:p-6">
+            {notice ? <p className="mb-4 rounded-md border border-green-100 bg-green-50 px-3 py-2 text-sm font-semibold text-green-700">{notice}</p> : null}
+            {customerRepliedAfterResolution ? (
+              <div className="mb-4 rounded-md border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+                <p className="font-semibold">Customer replied after solution. Please review and decide whether to reopen or close.</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button variant="secondary" disabled={!canWork} onClick={() => changeStatus("REOPENED")}>Continue Support / Reopen</Button>
+                  <Button disabled={!canWork} onClick={() => changeStatus("CLOSED")}>Close Ticket</Button>
+                </div>
+              </div>
+            ) : null}
+            <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 pb-4">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Assigned ticket</p>
+                <h2 className="mt-1 font-semibold text-slate-950">{ticket.subject}</h2>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <TicketStatusBadge status={ticket.status} />
+                <select className="app-field max-w-56 text-sm font-semibold" value={ticket.status || "OPEN"} onChange={(event) => changeStatus(event.target.value)} disabled={!canWork}>
+                  {agentStatusOptions.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                </select>
+              </div>
+            </div>
+            <p className="mt-4 leading-7 text-slate-700">{ticket.description}</p>
+            <div className="mt-5 border-t border-slate-200 pt-5">
+              <h2 className="mb-3 font-semibold text-slate-950">Uploaded attachments</h2>
+              <AttachmentPreview attachments={ticket.attachments || []} />
+            </div>
+            {!canWork ? <p className="mt-5 rounded-md border border-amber-100 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800">Claim this ticket before replying or changing status.</p> : null}
+            <textarea className="app-field mt-6 min-h-36" placeholder="Write a customer reply" value={reply} onChange={(event) => setReply(event.target.value)} disabled={!canWork} />
+            <input type="file" accept=".jpg,.jpeg,.png,.webp,.pdf,.doc,.docx" className="app-upload mt-3" onChange={(event) => setFile(event.target.files?.[0] || null)} disabled={!canWork} />
+            {file ? <p className="mt-2 text-sm font-semibold text-slate-500">Selected: {file.name}</p> : null}
+            <Button className="mt-3" onClick={sendReply} disabled={!canWork}>Send reply</Button>
+          </Card>
+          <TicketTimeline ticket={ticket} />
+        </div>
+        <div className="space-y-6">
+          <Card className="p-5 sm:p-6">
+            <h2 className="border-b border-slate-100 pb-4 font-semibold text-slate-950">Customer details</h2>
+            <dl className="mt-4 space-y-3 text-sm">
+              <div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Name</dt><dd className="font-semibold text-slate-950">{ticket.customer?.name || ticket.customerName}</dd><dd className="truncate text-xs text-slate-500">{ticket.customer?.email}</dd></div>
+              <div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Ticket ID</dt><dd className="break-all font-mono font-semibold text-slate-950">{ticket.id}</dd></div>
+              <div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Priority</dt><dd className="font-semibold text-slate-950">{ticket.priority}</dd></div>
+              <div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Category</dt><dd className="font-semibold text-slate-950">{ticket.category}</dd></div>
+              <div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Assigned agent</dt><dd className="font-semibold text-slate-950">{ticket.agent?.name || ticket.agentName || "Unassigned"}</dd></div>
+              <div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Created</dt><dd className="font-semibold text-slate-950">{formatDate(ticket.createdAt)}</dd></div>
+              <div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Response time</dt><dd className="font-semibold text-slate-950">{ticket.firstResponseMinutes ? `${ticket.firstResponseMinutes} minutes` : "Pending"}</dd></div>
+              <div className="rounded-md border border-slate-200 bg-slate-50 p-3"><dt className="text-slate-500">Resolution time</dt><dd className="font-semibold text-slate-950">{ticket.resolutionMinutes ? `${ticket.resolutionMinutes} minutes` : "Pending"}</dd></div>
+            </dl>
+          </Card>
           <Card className="p-5">
             <h2 className="font-semibold text-slate-950">Customer feedback</h2>
             {ticket.feedbackRating ? <p className="mt-3 text-sm font-semibold text-slate-700">Rating: {ticket.feedbackRating}/5</p> : <p className="mt-3 text-sm text-slate-500">No feedback submitted yet.</p>}
@@ -95,8 +176,6 @@ export default function AgentTicketDetails() {
           </Card>
         </div>
       </div>
-      </>
-      )}
     </>
   );
 }

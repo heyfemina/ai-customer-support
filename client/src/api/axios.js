@@ -1,21 +1,27 @@
 import axios from "axios";
 import { AUTH_TOKEN_KEY, AUTH_USER_KEY } from "../utils/constants.js";
 
-const fallbackApiUrl = "http://localhost:5000/api";
-const apiUrl = import.meta.env.VITE_API_URL || fallbackApiUrl;
-const missingProductionApiUrl = import.meta.env.PROD && !import.meta.env.VITE_API_URL;
+const browserOrigin = typeof window !== "undefined" ? window.location.origin : "";
+const fallbackApiUrl = import.meta.env.DEV ? "http://localhost:5000/api" : `${browserOrigin}/api`;
+const apiUrl = import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || fallbackApiUrl;
+const missingProductionApiUrl = import.meta.env.PROD && !import.meta.env.VITE_API_URL && !import.meta.env.VITE_API_BASE_URL;
 
 const api = axios.create({
   baseURL: apiUrl,
-  timeout: 45000,
+  timeout: Number(import.meta.env.VITE_API_TIMEOUT_MS || 25000),
   headers: {
     "Content-Type": "application/json",
   },
 });
 
 api.interceptors.request.use((config) => {
-  const token = sessionStorage.getItem(AUTH_TOKEN_KEY);
+  const token = sessionStorage.getItem(AUTH_TOKEN_KEY) || sessionStorage.getItem("token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
+  if ((config.method || "get").toLowerCase() === "get") {
+    config.headers["Cache-Control"] = "no-store";
+    config.headers.Pragma = "no-cache";
+    config.params = { ...(config.params || {}), _t: Date.now() };
+  }
   return config;
 });
 

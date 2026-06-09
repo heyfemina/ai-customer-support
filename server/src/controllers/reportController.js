@@ -5,6 +5,9 @@ function monthKey(date) {
   return new Intl.DateTimeFormat("en", { month: "short" }).format(new Date(date));
 }
 
+const closedTicketStatuses = ["RESOLVED", "AUTO_CLOSED", "CLOSED"];
+const openTicketStatuses = ["OPEN", "ASSIGNED", "IN_PROGRESS", "WAITING_CUSTOMER", "RESOLUTION_PROPOSED", "CUSTOMER_RESPONDED_AFTER_RESOLUTION", "REOPENED"];
+
 function csvEscape(value) {
   if (value === null || value === undefined) return "";
   const text = String(value);
@@ -20,17 +23,23 @@ function sendCsv(res, fileName, headers, rows) {
 
 export async function dashboardReport(req, res, next) {
   try {
-    const [tickets, open, resolved, complaints, chats, agents, customers, allTickets, ratedChats, recentTickets] = await Promise.all([
-      prisma.ticket.count(),
-      prisma.ticket.count({ where: { status: "OPEN" } }),
-      prisma.ticket.count({ where: { status: "RESOLVED" } }),
-      prisma.ticket.count({ where: { complaintStatus: { not: "NONE" } } }),
-      prisma.chatSession.count({ where: { status: { in: ["ASSIGNED", "ACTIVE", "WAITING", "TRANSFERRED"] } } }),
+    const ticketScope = req.user.role === "AGENT" ? { agentId: req.user.id } : {};
+    const chatScope = req.user.role === "AGENT" ? { agentId: req.user.id } : {};
+    const [tickets, open, resolved, complaints, chats, agents, agentsOnline, customers, allTickets, ratedChats, ticketFeedback, aiResolved, recentTickets] = await Promise.all([
+      prisma.ticket.count({ where: ticketScope }),
+      prisma.ticket.count({ where: { ...ticketScope, status: { in: openTicketStatuses } } }),
+      prisma.ticket.count({ where: { ...ticketScope, status: { in: closedTicketStatuses } } }),
+      prisma.ticket.count({ where: { ...ticketScope, complaintStatus: { not: "NONE" } } }),
+      prisma.chatSession.count({ where: { ...chatScope, status: { in: ["ASSIGNED", "ACTIVE", "WAITING", "TRANSFERRED"] } } }),
       prisma.user.count({ where: { role: "AGENT" } }),
+      prisma.user.count({ where: { role: "AGENT", isActive: true, agentStatus: { not: "OFFLINE" } } }),
       prisma.user.count({ where: { role: "CUSTOMER" } }),
-      prisma.ticket.findMany({ select: { status: true, createdAt: true } }),
-      prisma.chatSession.findMany({ where: { rating: { not: null } }, select: { rating: true } }),
+      prisma.ticket.findMany({ where: ticketScope, select: { status: true, createdAt: true, firstResponseMinutes: true, resolutionMinutes: true } }),
+      prisma.chatSession.findMany({ where: { ...chatScope, rating: { not: null } }, select: { rating: true } }),
+      prisma.ticket.findMany({ where: { ...ticketScope, feedbackRating: { not: null } }, select: { feedbackRating: true } }),
+      prisma.ticket.count({ where: { ...ticketScope, status: { in: closedTicketStatuses }, messages: { some: { isAI: true } } } }),
       prisma.ticket.findMany({
+        where: ticketScope,
         take: 6,
         include: {
           customer: { select: { id: true, name: true, email: true } },
@@ -45,33 +54,56 @@ export async function dashboardReport(req, res, next) {
       const month = monthKey(ticket.createdAt);
       const current = monthlyMap.get(month) || { month, tickets: 0, resolved: 0 };
       current.tickets += 1;
-      if (ticket.status === "RESOLVED" || ticket.status === "CLOSED") current.resolved += 1;
+      if (closedTicketStatuses.includes(ticket.status)) current.resolved += 1;
       monthlyMap.set(month, current);
     }
 
-    const ratingAverage = ratedChats.length
-      ? ratedChats.reduce((total, chat) => total + Number(chat.rating || 0), 0) / ratedChats.length
+    const allRatings = [
+      ...ratedChats.map((chat) => Number(chat.rating || 0)),
+      ...ticketFeedback.map((ticket) => Number(ticket.feedbackRating || 0)),
+    ].filter(Boolean);
+    const ratingAverage = allRatings.length
+      ? allRatings.reduce((total, rating) => total + rating, 0) / allRatings.length
       : 0;
+    const respondedTickets = allTickets.filter((ticket) => ticket.firstResponseMinutes !== null);
+    const avgFirstResponseMinutes = respondedTickets.length
+      ? respondedTickets.reduce((total, ticket) => total + Number(ticket.firstResponseMinutes || 0), 0) / respondedTickets.length
+      : 0;
+    const aiResolvedPercent = resolved ? Math.round((aiResolved / resolved) * 100) : 0;
+    const pendingTickets = Math.max(tickets - open - resolved, 0);
+    const avgResponseTime = avgFirstResponseMinutes ? `${Number(avgFirstResponseMinutes.toFixed(1))}m` : "N/A";
+    const customerSatisfaction = allRatings.length ? Math.round((allRatings.filter((rating) => rating >= 4).length / allRatings.length) * 100) : 0;
 
     const satisfaction = [
-      { name: "Very happy", value: ratedChats.filter((chat) => chat.rating === 5).length },
-      { name: "Happy", value: ratedChats.filter((chat) => chat.rating === 4).length },
-      { name: "Neutral", value: ratedChats.filter((chat) => chat.rating === 3).length },
-      { name: "Unhappy", value: ratedChats.filter((chat) => Number(chat.rating || 0) <= 2).length },
+      { name: "Very happy", value: allRatings.filter((rating) => rating === 5).length },
+      { name: "Happy", value: allRatings.filter((rating) => rating === 4).length },
+      { name: "Neutral", value: allRatings.filter((rating) => rating === 3).length },
+      { name: "Unhappy", value: allRatings.filter((rating) => rating <= 2).length },
     ];
 
     success(res, {
+      totalTickets: tickets,
+      openTickets: open,
+      resolvedTickets: resolved,
+      pendingTickets,
+      activeChats: chats,
+      avgResponseTime,
+      customerSatisfaction,
+      agentsOnline,
+      aiResolvedTickets: aiResolvedPercent,
       tickets,
       open,
       resolved,
+      pending: pendingTickets,
       complaints,
       chats,
       agents,
+      agentsOnline,
       customers,
-      avgResponseTime: "2m 18s",
+      avgResponseTime,
       agentRating: ratingAverage ? ratingAverage.toFixed(1) : "N/A",
-      csat: ratedChats.length ? Math.round((ratedChats.filter((chat) => Number(chat.rating) >= 4).length / ratedChats.length) * 100) : 0,
-      aiResolved: 61,
+      csat: customerSatisfaction,
+      aiResolved: aiResolvedPercent,
       monthlyTickets: Array.from(monthlyMap.values()),
       satisfaction,
       recentTickets,
@@ -91,7 +123,7 @@ export async function ticketReport(req, res, next) {
       const month = monthKey(ticket.createdAt);
       const current = monthlyMap.get(month) || { month, tickets: 0, resolved: 0 };
       current.tickets += 1;
-      if (ticket.status === "RESOLVED" || ticket.status === "CLOSED") current.resolved += 1;
+      if (closedTicketStatuses.includes(ticket.status)) current.resolved += 1;
       monthlyMap.set(month, current);
     }
     success(res, {
@@ -137,7 +169,7 @@ export async function agentReport(req, res, next) {
         maxActiveChats: agent.maxActiveChats,
         assigned: agent.assigned,
         assignedTickets: agent.assigned.length,
-        resolvedTickets: agent.assigned.filter((ticket) => ticket.status === "RESOLVED" || ticket.status === "CLOSED").length,
+        resolvedTickets: agent.assigned.filter((ticket) => closedTicketStatuses.includes(ticket.status)).length,
         activeChats: agent.agentChats.filter((chat) => ["ASSIGNED", "ACTIVE", "WAITING", "TRANSFERRED"].includes(chat.status)).length,
         rating: allRatings.length ? (allRatings.reduce((sum, value) => sum + Number(value || 0), 0) / allRatings.length).toFixed(1) : rating ? rating.toFixed(1) : "N/A",
         avgFirstResponseMinutes: responded.length ? Number((responded.reduce((sum, ticket) => sum + Number(ticket.firstResponseMinutes || 0), 0) / responded.length).toFixed(1)) : 0,
@@ -301,7 +333,7 @@ export async function exportAgentsReport(req, res, next) {
         agent.email,
         agent.department,
         agent.assigned.length,
-        agent.assigned.filter((ticket) => ["RESOLVED", "CLOSED"].includes(ticket.status)).length,
+        agent.assigned.filter((ticket) => closedTicketStatuses.includes(ticket.status)).length,
         agent.agentChats.filter((chat) => ["ASSIGNED", "ACTIVE", "WAITING", "TRANSFERRED"].includes(chat.status)).length,
         responded.length ? (responded.reduce((sum, ticket) => sum + Number(ticket.firstResponseMinutes || 0), 0) / responded.length).toFixed(1) : "",
         ratings.length ? (ratings.reduce((sum, value) => sum + Number(value || 0), 0) / ratings.length).toFixed(1) : "",

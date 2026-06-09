@@ -27,9 +27,16 @@ export default function Users() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(false);
+  const [dataLoading, setDataLoading] = useState(true);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   useEffect(() => {
+    setDataLoading(true);
+    setError("");
     api.get("/users").then(({ data }) => setItems(normalizeItems(data, []))).catch((error) => {
       setError(error.friendlyMessage || "Unable to load users.");
+    }).finally(() => {
+      setHasLoadedOnce(true);
+      setDataLoading(false);
     });
   }, []);
   const openForm = (user = null) => {

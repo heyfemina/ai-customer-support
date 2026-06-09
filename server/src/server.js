@@ -19,6 +19,7 @@ import activityRoutes from "./routes/activityRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
 import backupRoutes from "./routes/backupRoutes.js";
 import gdprRoutes from "./routes/gdprRoutes.js";
+import searchRoutes from "./routes/searchRoutes.js";
 import widgetRoutes from "./routes/widgetRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import internalChatRoutes from "./routes/internalChatRoutes.js";
@@ -66,6 +67,12 @@ app.use(express.json({ limit: "2mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 300 }));
+app.use("/api", (req, res, next) => {
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
+  next();
+});
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 app.get("/", (req, res) => res.json({ success: true, message: "AI Customer Support API running" }));
@@ -82,6 +89,7 @@ app.use("/api/activity-logs", activityRoutes);
 app.use("/api/uploads", uploadRoutes);
 app.use("/api/backups", backupRoutes);
 app.use("/api/gdpr", gdprRoutes);
+app.use("/api/search", searchRoutes);
 app.use("/api/widget", widgetRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/internal-chats", internalChatRoutes);

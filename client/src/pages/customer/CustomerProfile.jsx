@@ -179,7 +179,6 @@ export default function CustomerProfile() {
             <p className="mt-1 text-sm text-slate-500">Request export or deletion review under GDPR workflow.</p>
             <div className="mt-3 flex flex-wrap gap-2"><Button variant="secondary" onClick={requestExport}>Request data export</Button><Button variant="secondary" onClick={requestDeletion}>Request account deletion</Button></div>
             <div className="mt-4 space-y-2">
-              {gdprLoading ? <p className="text-sm font-semibold text-slate-500">Loading privacy request status...</p> : null}
               {!gdprLoading && !gdprRequests.length ? <p className="text-sm font-semibold text-slate-500">No privacy requests yet.</p> : null}
               {gdprRequests.map((request) => (
                 <div key={request.id} className="rounded-md border border-slate-200 bg-white p-3">

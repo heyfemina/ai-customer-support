@@ -38,6 +38,7 @@ export default function Chats() {
   const [notice, setNotice] = useState("");
   const [noticeTone, setNoticeTone] = useState("amber");
   const [actionLoading, setActionLoading] = useState("");
+  const [loadingChats, setLoadingChats] = useState(true);
   const activeMessages = useMemo(() => active?.messages || [], [active]);
   const preferredChatId = location.state?.chatId;
   const queueStats = {
@@ -45,6 +46,7 @@ export default function Chats() {
     active: sessions.filter((session) => ["ASSIGNED", "ACTIVE"].includes(session.status)).length,
     closed: sessions.filter((session) => session.status === "CLOSED").length,
   };
+  const showChatPlaceholder = loadingChats && !sessions.length;
   const activeClosed = active?.status === "CLOSED";
   const actionBusy = Boolean(actionLoading);
   const departmentAgents = agents.filter((agent) => agentMatchesDepartment(agent, transferDepartment));
@@ -66,21 +68,26 @@ export default function Chats() {
     setNotice("");
   };
 
-  const loadChats = () =>
+  const loadChats = () => {
+    setLoadingChats(true);
+    setNotice((current) => current);
+    return (
     api.get("/chats").then(({ data }) => {
       const rows = sortByRecent(normalizeItems(data, []));
       setSessions(rows);
       setActive((current) => rows.find((row) => row.id === (preferredChatId || current?.id)) || rows[0] || null);
       setMessagesByChat(Object.fromEntries(rows.map((row) => [row.id, row.messages || []])));
-    }).catch(() => {
-      setSessions([]);
-      setActive(null);
-      setMessagesByChat({});
-    });
+      setLoadingChats(false);
+    }).catch((error) => {
+      showNotice(error.friendlyMessage || "Live chats could not be loaded. Please check the backend API.", "rose");
+      setLoadingChats(false);
+    })
+    );
+  };
 
   useEffect(() => {
     loadChats();
-    api.get("/reports/agents").then(({ data }) => setAgents(normalizeItems(data, []))).catch(() => setAgents([]));
+    api.get("/reports/agents").then(({ data }) => setAgents(normalizeItems(data, []))).catch((error) => showNotice(error.friendlyMessage || "Agent list could not be loaded.", "amber"));
   }, [preferredChatId]);
 
   useEffect(() => {

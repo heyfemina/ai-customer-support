@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { Prisma } from "@prisma/client";
 import prisma from "../config/prisma.js";
 import { success } from "../utils/responseHandler.js";
 import { calculateFirstResponse, calculateResolution } from "../services/slaService.js";
@@ -21,7 +22,20 @@ const include = {
   messages: { include: { sender: { select: { id: true, name: true, email: true, role: true } }, attachments: true }, orderBy: { createdAt: "asc" } },
   attachments: true,
 };
+const listInclude = {
+  customer: { select: { id: true, name: true, email: true, role: true, language: true } },
+  agent: { select: { id: true, name: true, email: true, role: true, language: true, department: true, categories: true } },
+  attachments: { select: { id: true } },
+};
 const autoCloseHours = 48;
+const resolutionNotice = "The support agent has provided a solution. If the issue is still not solved, please reply within 48 hours. If no reply is received, the ticket will be closed automatically.";
+const negativeResolutionPatterns = [
+  /\bnot\s+(solved|resolved|fixed|working)\b/i,
+  /\bstill\s+(not\s+)?(working|broken|failing|failed|getting\s+error|error|an?\s+issue|a\s+problem)\b/i,
+  /\bsame\s+(issue|problem|error)\b/i,
+  /\berror\s+again\b/i,
+  /\bissue\s+(is\s+)?(still\s+)?(there|not fixed|not solved|not resolved)\b/i,
+];
 
 function attachmentCreateData(file, userId, extra = {}) {
   const item = publicUploadFile(file);
@@ -65,7 +79,7 @@ async function pickAgentForTicket(category = "General") {
     },
   });
   if (!agents.length) return null;
-  const openStatuses = new Set(["OPEN", "IN_PROGRESS", "WAITING_CUSTOMER"]);
+  const openStatuses = new Set(["OPEN", "ASSIGNED", "IN_PROGRESS", "WAITING_CUSTOMER", "CUSTOMER_RESPONDED_AFTER_RESOLUTION", "REOPENED"]);
   const ranked = agents
     .map((agent) => ({
       id: agent.id,
@@ -101,8 +115,62 @@ function canWorkTicket(user, ticket) {
 async function autoCloseDueTickets() {
   await prisma.ticket.updateMany({
     where: { status: "RESOLUTION_PROPOSED", autoCloseAt: { lte: new Date() } },
-    data: { status: "AUTO_CLOSED", closedAt: new Date(), closeReason: "No customer reply within 48 hours" },
+    data: { status: "AUTO_CLOSED", closedAt: new Date(), closeReason: "No customer reply within 48 hours after solution was provided" },
   });
+}
+
+function customerSaysResolutionFailed(content) {
+  return negativeResolutionPatterns.some((pattern) => pattern.test(String(content || "")));
+}
+
+function proposedResolutionData(current, now = new Date()) {
+  return {
+    status: "RESOLUTION_PROPOSED",
+    resolutionProposedAt: now,
+    autoCloseAt: new Date(now.getTime() + autoCloseHours * 60 * 60 * 1000),
+    closedAt: null,
+    closeReason: null,
+    ...(!current?.resolvedAt ? calculateResolution(current) : {}),
+  };
+}
+
+function emitTicketNotification(req, ticket, message) {
+  const io = req.app.get("io");
+  if (!io || !ticket?.agentId) return;
+  io.to(`agent:${ticket.agentId}`).emit("chat_notification", { ticketId: ticket.id, message, ticket });
+}
+
+async function resolutionMetadataByTicketId(ids) {
+  const uniqueIds = [...new Set(ids.filter(Boolean))];
+  if (!uniqueIds.length) return new Map();
+  try {
+    const rows = await prisma.$queryRaw`
+      SELECT id, "customerRespondedAfterResolutionAt"
+      FROM "Ticket"
+      WHERE id IN (${Prisma.join(uniqueIds)})
+    `;
+    return new Map(rows.map((row) => [row.id, row]));
+  } catch {
+    return new Map();
+  }
+}
+
+async function attachResolutionMetadata(tickets) {
+  if (Array.isArray(tickets)) {
+    const metadata = await resolutionMetadataByTicketId(tickets.map((ticket) => ticket.id));
+    return tickets.map((ticket) => ({ ...ticket, ...(metadata.get(ticket.id) || {}) }));
+  }
+  if (!tickets?.id) return tickets;
+  const metadata = await resolutionMetadataByTicketId([tickets.id]);
+  return { ...tickets, ...(metadata.get(tickets.id) || {}) };
+}
+
+async function markCustomerRespondedAfterResolution(ticketId, value = new Date()) {
+  await prisma.$executeRaw`
+    UPDATE "Ticket"
+    SET "customerRespondedAfterResolutionAt" = ${value}
+    WHERE id = ${ticketId}
+  `;
 }
 
 export async function createTicket(req, res, next) {
@@ -124,6 +192,7 @@ export async function createTicket(req, res, next) {
         assignedAt: agentId ? new Date() : null,
         assignmentMode: agentId ? "MANUAL_ASSIGN" : "UNASSIGNED",
         customerId: req.user.id,
+        status: agentId ? "ASSIGNED" : "OPEN",
         attachments: attachments.length
           ? {
               create: attachments,
@@ -183,11 +252,11 @@ export async function getTickets(req, res, next) {
       const currentPage = Math.max(Number.parseInt(page, 10) || 1, 1);
       const perPage = Math.min(Math.max(Number.parseInt(limit, 10) || 15, 5), 100);
       const [tickets, total] = await Promise.all([
-        prisma.ticket.findMany({ where, include, orderBy: { createdAt: "desc" }, skip: (currentPage - 1) * perPage, take: perPage }),
+        prisma.ticket.findMany({ where, include: listInclude, orderBy: { createdAt: "desc" }, skip: (currentPage - 1) * perPage, take: perPage }),
         prisma.ticket.count({ where }),
       ]);
       success(res, {
-        items: tickets,
+        items: await attachResolutionMetadata(tickets),
         pagination: {
           page: currentPage,
           limit: perPage,
@@ -197,7 +266,7 @@ export async function getTickets(req, res, next) {
       });
       return;
     }
-    success(res, await prisma.ticket.findMany({ where, include, orderBy: { createdAt: "desc" } }));
+    success(res, await attachResolutionMetadata(await prisma.ticket.findMany({ where, include: listInclude, orderBy: { createdAt: "desc" } })));
   } catch (error) { next(error); }
 }
 
@@ -207,7 +276,7 @@ export async function getTicket(req, res, next) {
     const ticket = await prisma.ticket.findUnique({ where: { id: req.params.id }, include });
     if (!ticket) return res.status(404).json({ success: false, message: "Ticket not found" });
     if (!canAccessTicket(req.user, ticket)) return res.status(403).json({ success: false, message: "Access denied" });
-    success(res, ticket);
+    success(res, await attachResolutionMetadata(ticket));
   } catch (error) { next(error); }
 }
 
@@ -217,7 +286,8 @@ export async function updateTicket(req, res, next) {
     if (!canWorkTicket(req.user, current)) return res.status(403).json({ success: false, message: "Only the assigned agent or admin can update this ticket" });
     const allowed = ["subject", "description", "status", "priority", "category", "agentId"];
     const data = Object.fromEntries(Object.entries(req.body).filter(([key]) => allowed.includes(key)));
-    if (req.user.role === "AGENT" && ["RESOLVED", "CLOSED"].includes(data.status)) {
+    const agentCanCloseAfterReview = req.user.role === "AGENT" && data.status === "CLOSED" && current?.status === "CUSTOMER_RESPONDED_AFTER_RESOLUTION";
+    if (req.user.role === "AGENT" && ["RESOLVED", "CLOSED"].includes(data.status) && !agentCanCloseAfterReview) {
       return res.status(403).json({ success: false, message: "Agents must propose resolution instead of closing tickets directly" });
     }
     if (data.agentId === "") data.agentId = null;
@@ -225,11 +295,24 @@ export async function updateTicket(req, res, next) {
       data.assignedAt = data.agentId ? new Date() : null;
       data.assignedById = req.user.id;
       data.assignmentMode = data.agentId ? "MANUAL_ASSIGN" : "UNASSIGNED";
+      if (data.agentId && current?.status === "OPEN" && !Object.prototype.hasOwnProperty.call(data, "status")) data.status = "ASSIGNED";
     }
     if (["RESOLVED", "CLOSED"].includes(data.status)) {
       if (current && !current.resolvedAt) Object.assign(data, calculateResolution(current));
+      data.closedAt = new Date();
+      data.closedById = req.user.id;
+      data.autoCloseAt = null;
+      data.closeReason = req.body.closeReason || (agentCanCloseAfterReview ? "Closed by agent after reviewing customer reply" : "Ticket closed manually");
     }
+    const shouldCreateResolutionNotice = data.status === "RESOLUTION_PROPOSED" && current?.status !== "RESOLUTION_PROPOSED";
+    if (shouldCreateResolutionNotice) Object.assign(data, proposedResolutionData(current));
     const ticket = await prisma.ticket.update({ where: { id: req.params.id }, data, include });
+    if (shouldCreateResolutionNotice) {
+      await markCustomerRespondedAfterResolution(ticket.id, null);
+      await prisma.message.create({
+        data: { content: resolutionNotice, originalContent: resolutionNotice, senderId: req.user.id, ticketId: req.params.id, isAI: true },
+      });
+    }
     await prisma.activityLog.create({ data: { userId: req.user.id, action: `Updated ticket ${ticket.subject}`, ipAddress: req.ip } });
     success(res, ticket, "Ticket updated");
   } catch (error) { next(error); }
@@ -239,12 +322,32 @@ export async function updateTicketStatus(req, res, next) {
   try {
     const current = await prisma.ticket.findUnique({ where: { id: req.params.id } });
     if (!canWorkTicket(req.user, current)) return res.status(403).json({ success: false, message: "Only the assigned agent or admin can update this ticket" });
-    if (req.user.role === "AGENT" && ["RESOLVED", "CLOSED"].includes(req.body.status)) {
+    const agentCanCloseAfterReview = req.user.role === "AGENT" && req.body.status === "CLOSED" && current?.status === "CUSTOMER_RESPONDED_AFTER_RESOLUTION";
+    if (req.user.role === "AGENT" && ["RESOLVED", "CLOSED"].includes(req.body.status) && !agentCanCloseAfterReview) {
       return res.status(403).json({ success: false, message: "Agents must propose resolution instead of closing tickets directly" });
     }
     const data = { status: req.body.status };
-    if (current && ["RESOLVED", "CLOSED"].includes(req.body.status) && !current.resolvedAt) Object.assign(data, calculateResolution(current));
+    if (current && ["RESOLVED", "CLOSED"].includes(req.body.status)) {
+      if (!current.resolvedAt) Object.assign(data, calculateResolution(current));
+      Object.assign(data, {
+        closedAt: new Date(),
+        closedById: req.user.id,
+        autoCloseAt: null,
+        closeReason: req.body.closeReason || (agentCanCloseAfterReview ? "Closed by agent after reviewing customer reply" : "Ticket closed manually"),
+      });
+    }
+    if (["IN_PROGRESS", "REOPENED"].includes(req.body.status)) {
+      Object.assign(data, { autoCloseAt: null, closedAt: null, closeReason: req.body.status === "REOPENED" ? "Support continued after customer reply" : null });
+    }
+    const shouldCreateResolutionNotice = req.body.status === "RESOLUTION_PROPOSED" && current?.status !== "RESOLUTION_PROPOSED";
+    if (shouldCreateResolutionNotice) Object.assign(data, proposedResolutionData(current));
     const ticket = await prisma.ticket.update({ where: { id: req.params.id }, data, include });
+    if (shouldCreateResolutionNotice) {
+      await markCustomerRespondedAfterResolution(ticket.id, null);
+      await prisma.message.create({
+        data: { content: resolutionNotice, originalContent: resolutionNotice, senderId: req.user.id, ticketId: req.params.id, isAI: true },
+      });
+    }
     await prisma.activityLog.create({ data: { userId: req.user.id, action: `Changed ticket status to ${req.body.status}`, ipAddress: req.ip } });
     success(res, ticket, "Ticket status updated");
   } catch (error) { next(error); }
@@ -286,10 +389,29 @@ export async function replyTicket(req, res, next) {
       await prisma.ticket.update({ where: { id: ticket.id }, data: calculateFirstResponse(ticket) });
     }
     if (req.user.role === "CUSTOMER" && ticket.status === "RESOLUTION_PROPOSED") {
+      const failedResolution = customerSaysResolutionFailed(content);
+      const nextStatus = failedResolution ? "REOPENED" : "CUSTOMER_RESPONDED_AFTER_RESOLUTION";
+      const closeReason = failedResolution ? "Customer reported the proposed solution did not resolve the issue" : "Customer replied after proposed resolution; awaiting agent review";
       await prisma.ticket.update({
         where: { id: ticket.id },
-        data: { status: "REOPENED", reopenedAt: new Date(), autoCloseAt: null, closeReason: "Customer replied after proposed resolution" },
+        data: {
+          status: nextStatus,
+          reopenedAt: failedResolution ? new Date() : null,
+          autoCloseAt: null,
+          closeReason,
+        },
       });
+      await markCustomerRespondedAfterResolution(ticket.id);
+      if (ticket.agentId) {
+        await prisma.notification.create({
+          data: {
+            userId: ticket.agentId,
+            title: "Customer replied after solution",
+            message: `Customer replied after the proposed solution for ticket "${ticket.subject}". Please review and decide whether to reopen or close.`,
+          },
+        });
+        emitTicketNotification(req, { ...ticket, status: nextStatus }, "Customer replied after solution. Please review and decide whether to reopen or close.");
+      }
     }
     await prisma.activityLog.create({ data: { userId: req.user.id, action: `Replied to ticket ${ticket.subject}`, ipAddress: req.ip } });
     success(res, { ...message, attachments }, "Reply added", 201);
@@ -318,16 +440,14 @@ export async function proposeResolution(req, res, next) {
     const current = await prisma.ticket.findUnique({ where: { id: req.params.id }, include });
     if (!current) return res.status(404).json({ success: false, message: "Ticket not found" });
     if (req.user.role !== "ADMIN" && current.agentId !== req.user.id) return res.status(403).json({ success: false, message: "Only the assigned agent or admin can propose resolution" });
-    const now = new Date();
-    const autoCloseAt = new Date(now.getTime() + autoCloseHours * 60 * 60 * 1000);
-    const notice = "Your ticket has been marked as resolved. If the issue is not solved, reply or reopen within 48 hours.";
     const ticket = await prisma.ticket.update({
       where: { id: req.params.id },
-      data: { status: "RESOLUTION_PROPOSED", resolutionProposedAt: now, autoCloseAt, closeReason: notice, ...(!current.resolvedAt ? calculateResolution(current) : {}) },
+      data: proposedResolutionData(current),
       include,
     });
+    await markCustomerRespondedAfterResolution(ticket.id, null);
     await prisma.message.create({
-      data: { content: notice, originalContent: notice, senderId: req.user.id, ticketId: req.params.id, isAI: false },
+      data: { content: resolutionNotice, originalContent: resolutionNotice, senderId: req.user.id, ticketId: req.params.id, isAI: true },
     });
     success(res, ticket, "Resolution proposed");
   } catch (error) { next(error); }

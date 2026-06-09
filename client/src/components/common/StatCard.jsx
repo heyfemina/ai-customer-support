@@ -2,8 +2,9 @@ import { ArrowUpRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import Card from "./Card.jsx";
 
-export default function StatCard({ title, value, icon: Icon, trend = "+8%", tone = "sky" }) {
+export default function StatCard({ title, value, icon: Icon, trend = null, tone = "sky", fallback = 0, loading = false }) {
   const { t } = useTranslation();
+  const displayValue = value !== undefined && value !== null && value !== "" ? value : fallback;
   const colors = {
     sky: "bg-blue-50 text-blue-700 ring-blue-100",
     emerald: "bg-green-50 text-green-700 ring-green-100",
@@ -17,16 +18,18 @@ export default function StatCard({ title, value, icon: Icon, trend = "+8%", tone
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="truncate text-[11px] font-bold uppercase tracking-[0.08em] text-slate-500">{title}</p>
-          <p className="mt-2 break-words text-2xl font-bold text-slate-950">{value}</p>
+          <p className="mt-2 break-words text-2xl font-bold text-slate-950">{displayValue}</p>
         </div>
         <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-md ring-1 ${colors[tone]}`}>
           <Icon className="h-5 w-5" />
         </div>
       </div>
-      <div className="mt-5 inline-flex max-w-full items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-bold text-slate-600">
-        <ArrowUpRight className="h-3.5 w-3.5" />
-        {t("common.trendThisMonth", { trend })}
-      </div>
+      {trend ? (
+        <div className="mt-5 inline-flex max-w-full items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-xs font-bold text-slate-600">
+          <ArrowUpRight className="h-3.5 w-3.5" />
+          {t("common.trendThisMonth", { trend })}
+        </div>
+      ) : null}
     </Card>
   );
 }
