@@ -21,22 +21,57 @@ export function normalizeItems(payload, fallback = []) {
   if (Array.isArray(payload?.data)) return payload.data;
   if (Array.isArray(payload?.data?.items)) return payload.data.items;
   if (Array.isArray(payload?.data?.tickets)) return payload.data.tickets;
+  if (Array.isArray(payload?.data?.users)) return payload.data.users;
+  if (Array.isArray(payload?.data?.customers)) return payload.data.customers;
+  if (Array.isArray(payload?.data?.chats)) return payload.data.chats;
+  if (Array.isArray(payload?.data?.agents)) return payload.data.agents;
   if (Array.isArray(payload?.data?.results)) return payload.data.results;
   if (Array.isArray(payload?.data?.data)) return payload.data.data;
   if (Array.isArray(payload?.items)) return payload.items;
   if (Array.isArray(payload?.tickets)) return payload.tickets;
+  if (Array.isArray(payload?.users)) return payload.users;
+  if (Array.isArray(payload?.customers)) return payload.customers;
+  if (Array.isArray(payload?.chats)) return payload.chats;
+  if (Array.isArray(payload?.agents)) return payload.agents;
   if (Array.isArray(payload?.results)) return payload.results;
   return fallback;
 }
 
-export function extractArray(responseOrPayload, key, fallback = []) {
-  const payload = responseOrPayload?.data?.data ?? responseOrPayload?.data ?? responseOrPayload ?? {};
+export function normalizeTotal(payload, items = []) {
+  const total =
+    payload?.data?.pagination?.total ??
+    payload?.pagination?.total ??
+    payload?.data?.total ??
+    payload?.total ??
+    payload?.data?.count ??
+    payload?.count;
+  const number = Number(total);
+  return Number.isFinite(number) ? number : items.length;
+}
+
+export function unwrapApiData(responseOrPayload, fallback = {}) {
+  return responseOrPayload?.data?.data ?? responseOrPayload?.data ?? responseOrPayload ?? fallback;
+}
+
+export function extractItems(responseOrPayload, key, fallback = []) {
+  const payload = unwrapApiData(responseOrPayload, {});
   if (Array.isArray(payload)) return payload;
-  if (Array.isArray(payload?.[key])) return payload[key];
   if (Array.isArray(payload?.items)) return payload.items;
+  if (key && Array.isArray(payload?.[key])) return payload[key];
   if (Array.isArray(payload?.results)) return payload.results;
   if (Array.isArray(payload?.data)) return payload.data;
   return fallback;
+}
+
+export function extractTotal(responseOrPayload, key, fallback = 0) {
+  const payload = unwrapApiData(responseOrPayload, {});
+  const total = payload?.pagination?.total ?? payload?.total ?? payload?.count;
+  const number = Number(total);
+  return Number.isFinite(number) ? number : extractItems(responseOrPayload, key, []).length || fallback;
+}
+
+export function extractArray(responseOrPayload, key, fallback = []) {
+  return extractItems(responseOrPayload, key, fallback);
 }
 
 export function unwrapData(payload, fallback = null) {

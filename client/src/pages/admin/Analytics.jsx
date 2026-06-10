@@ -8,8 +8,14 @@ import TicketStatusBadge from "../../components/tickets/TicketStatusBadge.jsx";
 import Button from "../../components/common/Button.jsx";
 import PageHeader from "../../components/common/PageHeader.jsx";
 import Table from "../../components/common/Table.jsx";
-import { formatDate, normalizeItems, unwrapData } from "../../utils/helpers.js";
+import { extractArray, formatDate, normalizeItems, unwrapData } from "../../utils/helpers.js";
 import { downloadReport } from "../../utils/downloadReport.js";
+
+const activeChatStatuses = ["ASSIGNED", "ACTIVE", "WAITING", "TRANSFERRED"];
+
+function normalizeStatus(status) {
+  return String(status || "").trim().replace(/\s+/g, "_").toUpperCase();
+}
 
 export default function Analytics() {
   const { t } = useTranslation();
@@ -44,7 +50,7 @@ export default function Analytics() {
       if (slaResult.status === "fulfilled") setSla(unwrapData(slaResult.value.data));
       if (customersResult.status === "fulfilled") setCustomers(normalizeItems(customersResult.value.data, []));
       if (agentsResult.status === "fulfilled") setAgents(normalizeItems(agentsResult.value.data, []));
-      if (chatsResult.status === "fulfilled") setChats(normalizeItems(chatsResult.value.data, []));
+      if (chatsResult.status === "fulfilled") setChats(extractArray(chatsResult.value, "chats"));
       const failed = [ticketsResult, responseResult, slaResult, customersResult, agentsResult, chatsResult].find((result) => result.status === "rejected");
       if (failed) setLoadError(failed.reason?.friendlyMessage || "Some analytics data could not be loaded. Please check the backend API.");
       setHasLoadedOnce(true);
@@ -75,9 +81,9 @@ export default function Analytics() {
     rating: Number(agent.rating) || 0,
   }));
   const liveChatStats = [
-    { labelKey: "reports.summary.activeChats", value: chats.filter((chat) => ["ASSIGNED", "ACTIVE", "WAITING", "TRANSFERRED"].includes(chat.status)).length },
+    { labelKey: "reports.summary.activeChats", value: chats.filter((chat) => activeChatStatuses.includes(normalizeStatus(chat.status))).length },
     { labelKey: "reports.summary.ratedChats", value: chats.filter((chat) => chat.rating).length },
-    { labelKey: "reports.summary.aiTransfers", value: chats.filter((chat) => chat.status === "TRANSFERRED").length },
+    { labelKey: "reports.summary.aiTransfers", value: chats.filter((chat) => normalizeStatus(chat.status) === "TRANSFERRED").length },
   ];
   const summary = [
     { label: t("reports.summary.openComplaints"), value: complaints },

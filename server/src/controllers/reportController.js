@@ -8,6 +8,13 @@ function monthKey(date) {
 const closedTicketStatuses = ["RESOLVED", "AUTO_CLOSED", "CLOSED"];
 const openTicketStatuses = ["OPEN", "ASSIGNED", "IN_PROGRESS", "WAITING_CUSTOMER", "RESOLUTION_PROPOSED", "CUSTOMER_RESPONDED_AFTER_RESOLUTION", "REOPENED"];
 
+function isToday(dateValue) {
+  if (!dateValue) return false;
+  const date = new Date(dateValue);
+  const today = new Date();
+  return date.getFullYear() === today.getFullYear() && date.getMonth() === today.getMonth() && date.getDate() === today.getDate();
+}
+
 function csvEscape(value) {
   if (value === null || value === undefined) return "";
   const text = String(value);
@@ -147,7 +154,7 @@ export async function agentReport(req, res, next) {
         categories: true,
         agentStatus: true,
         maxActiveChats: true,
-        assigned: { select: { id: true, status: true, firstResponseMinutes: true, resolutionMinutes: true, feedbackRating: true, complaintStatus: true, createdAt: true } },
+        assigned: { select: { id: true, status: true, firstResponseMinutes: true, resolutionMinutes: true, feedbackRating: true, complaintStatus: true, createdAt: true, updatedAt: true, resolvedAt: true, closedAt: true } },
         agentChats: { select: { id: true, status: true, rating: true } },
       },
     });
@@ -170,6 +177,7 @@ export async function agentReport(req, res, next) {
         assigned: agent.assigned,
         assignedTickets: agent.assigned.length,
         resolvedTickets: agent.assigned.filter((ticket) => closedTicketStatuses.includes(ticket.status)).length,
+        resolvedToday: agent.assigned.filter((ticket) => closedTicketStatuses.includes(ticket.status) && isToday(ticket.resolvedAt || ticket.closedAt || ticket.updatedAt)).length,
         activeChats: agent.agentChats.filter((chat) => ["ASSIGNED", "ACTIVE", "WAITING", "TRANSFERRED"].includes(chat.status)).length,
         rating: allRatings.length ? (allRatings.reduce((sum, value) => sum + Number(value || 0), 0) / allRatings.length).toFixed(1) : rating ? rating.toFixed(1) : "N/A",
         avgFirstResponseMinutes: responded.length ? Number((responded.reduce((sum, ticket) => sum + Number(ticket.firstResponseMinutes || 0), 0) / responded.length).toFixed(1)) : 0,

@@ -17,13 +17,20 @@ const originalText = new WeakMap();
 const translatedAttributes = ["placeholder", "title", "aria-label"];
 const ignoredTags = new Set(["SCRIPT", "STYLE", "NOSCRIPT", "CODE", "PRE"]);
 
+function isDynamicValueText(value = "") {
+  const text = value.trim();
+  return text === "N/A" || /^[\d\s.,:%/+/-]+[a-zA-Z]*$/.test(text);
+}
+
 function translateNodeTree(root, language) {
   if (!root) return;
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
     acceptNode(node) {
       const parent = node.parentElement;
       if (!parent || ignoredTags.has(parent.tagName)) return NodeFilter.FILTER_REJECT;
+      if (parent.closest("[data-dynamic-text], [data-no-translate]")) return NodeFilter.FILTER_REJECT;
       if (!node.nodeValue?.trim()) return NodeFilter.FILTER_REJECT;
+      if (isDynamicValueText(node.nodeValue)) return NodeFilter.FILTER_REJECT;
       return NodeFilter.FILTER_ACCEPT;
     },
   });

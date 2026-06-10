@@ -7,7 +7,7 @@ import Button from "../../components/common/Button.jsx";
 import Modal from "../../components/common/Modal.jsx";
 import Card from "../../components/common/Card.jsx";
 import Pagination from "../../components/common/Pagination.jsx";
-import { normalizeItems } from "../../utils/helpers.js";
+import { normalizeItems, normalizeTotal } from "../../utils/helpers.js";
 import { useTranslation } from "react-i18next";
 
 const departments = ["Technical Support", "Billing Support", "Account Support", "General Support", "Complaint Support"];
@@ -17,6 +17,7 @@ const agentStatuses = ["ONLINE", "BUSY", "AWAY", "OFFLINE"];
 export default function Users() {
   const { t } = useTranslation();
   const [items, setItems] = useState([]);
+  const [totalUsers, setTotalUsers] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const emptyForm = { name: "", email: "", password: "", role: "CUSTOMER", language: "en", isActive: true, department: "General Support", categories: ["General"], agentStatus: "ONLINE", maxActiveChats: 3 };
@@ -32,7 +33,11 @@ export default function Users() {
   useEffect(() => {
     setDataLoading(true);
     setError("");
-    api.get("/users").then(({ data }) => setItems(normalizeItems(data, []))).catch((error) => {
+    api.get("/users").then(({ data }) => {
+      const rows = normalizeItems(data, []);
+      setItems(rows);
+      setTotalUsers(normalizeTotal(data, rows));
+    }).catch((error) => {
       setError(error.friendlyMessage || "Unable to load users.");
     }).finally(() => {
       setHasLoadedOnce(true);
@@ -79,6 +84,7 @@ export default function Users() {
       const { data } = editing ? await api.put(`/users/${editing.id}`, payload) : await api.post("/users", payload);
       const saved = data.data || data;
       setItems((current) => editing ? current.map((item) => item.id === editing.id ? saved : item) : [saved, ...current]);
+      if (!editing) setTotalUsers((current) => current + 1);
       setNotice(editing ? "User updated" : "User created");
       setEditing(null);
       setModalOpen(false);
@@ -116,13 +122,14 @@ export default function Users() {
     { key: "actions", labelKey: "table.action", align: "center", render: (row) => row.role === "ADMIN" ? <span className="text-sm font-semibold text-slate-500">{t("users.seedAdmin", { defaultValue: "Seed admin" })}</span> : <div className="flex items-center justify-center gap-2"><Button variant="secondary" onClick={() => openForm(row)}>{t("users.edit", { defaultValue: "Edit" })}</Button><Button variant={row.isActive ? "danger" : "secondary"} onClick={() => toggleStatus(row)}>{row.isActive ? t("users.deactivate", { defaultValue: "Deactivate" }) : t("users.activate", { defaultValue: "Activate" })}</Button></div> },
   ];
   const activeUsers = items.filter((item) => item.isActive).length;
+  const userCount = totalUsers || items.length;
   return (
     <>
       <PageHeader title={t("pages.users.title")} description={t("pages.users.description")} actions={<Button onClick={() => openForm()}>{t("users.addUser", { defaultValue: "Add user" })}</Button>} />
       {notice ? <p className="mb-4 rounded-md border border-green-100 bg-green-50 px-3 py-2 text-sm font-semibold text-green-700">{notice}</p> : null}
       {error && !modalOpen ? <p className="mb-4 rounded-md border border-red-100 bg-red-50 px-3 py-2 text-sm font-semibold text-red-700">{error}</p> : null}
       <div className="mb-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Card className="p-4"><p className="text-sm font-semibold text-slate-500">{t("common.totalUsers")}</p><p className="mt-2 text-2xl font-bold text-slate-950">{items.length}</p></Card>
+        <Card className="p-4"><p className="text-sm font-semibold text-slate-500">{t("common.totalUsers")}</p><p className="mt-2 text-2xl font-bold text-slate-950">{userCount}</p></Card>
         <Card className="p-4"><p className="text-sm font-semibold text-slate-500">{t("common.activeUsers")}</p><p className="mt-2 text-2xl font-bold text-slate-950">{activeUsers}</p></Card>
         <Card className="p-4"><p className="text-sm font-semibold text-slate-500">{t("nav.agents")}</p><p className="mt-2 text-2xl font-bold text-slate-950">{items.filter((item) => item.role === "AGENT").length}</p></Card>
         <Card className="p-4"><p className="text-sm font-semibold text-slate-500">{t("nav.customers")}</p><p className="mt-2 text-2xl font-bold text-slate-950">{items.filter((item) => item.role === "CUSTOMER").length}</p></Card>

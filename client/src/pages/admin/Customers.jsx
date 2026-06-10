@@ -5,12 +5,13 @@ import Table from "../../components/common/Table.jsx";
 import Badge from "../../components/common/Badge.jsx";
 import Card from "../../components/common/Card.jsx";
 import Pagination from "../../components/common/Pagination.jsx";
-import { normalizeItems } from "../../utils/helpers.js";
+import { normalizeItems, normalizeTotal } from "../../utils/helpers.js";
 import { useTranslation } from "react-i18next";
 
 export default function Customers() {
   const { t } = useTranslation();
   const [customers, setCustomers] = useState([]);
+  const [totalCustomers, setTotalCustomers] = useState(0);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [loading, setLoading] = useState(true);
@@ -19,7 +20,11 @@ export default function Customers() {
   useEffect(() => {
     setLoading(true);
     setError("");
-    api.get("/reports/customers").then(({ data }) => setCustomers(normalizeItems(data, []))).catch((error) => {
+    api.get("/reports/customers").then(({ data }) => {
+      const rows = normalizeItems(data, []);
+      setCustomers(rows);
+      setTotalCustomers(normalizeTotal(data, rows));
+    }).catch((error) => {
       setError(error.friendlyMessage || "Unable to load live customer data.");
     }).finally(() => {
       setHasLoadedOnce(true);
@@ -27,6 +32,7 @@ export default function Customers() {
     });
   }, []);
   const pagedCustomers = customers.slice((page - 1) * pageSize, page * pageSize);
+  const customerCount = totalCustomers || customers.length;
   const columns = [
     { key: "name", labelKey: "table.customer" },
     { key: "email", labelKey: "table.email" },
@@ -41,7 +47,7 @@ export default function Customers() {
       <PageHeader title={t("pages.customers.title")} description={t("pages.customers.description")} />
       {error ? <p className="mb-4 rounded-md border border-amber-100 bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800">{error}</p> : null}
       <div className="mb-4 grid gap-4 sm:grid-cols-3">
-        <Card className="p-4"><p className="text-sm font-semibold text-slate-500">{t("common.totalCustomers")}</p><p className="mt-2 text-2xl font-bold text-slate-950">{customers.length}</p></Card>
+        <Card className="p-4"><p className="text-sm font-semibold text-slate-500">{t("common.totalCustomers")}</p><p className="mt-2 text-2xl font-bold text-slate-950">{customerCount}</p></Card>
         <Card className="p-4"><p className="text-sm font-semibold text-slate-500">{t("common.supportTickets")}</p><p className="mt-2 text-2xl font-bold text-slate-950">{customers.reduce((total, customer) => total + Number(customer.ticketCount ?? customer.tickets?.length ?? 0), 0)}</p></Card>
         <Card className="p-4"><p className="text-sm font-semibold text-slate-500">{t("table.activeChats")}</p><p className="mt-2 text-2xl font-bold text-slate-950">{customers.reduce((total, customer) => total + Number(customer.activeChats ?? 0), 0)}</p></Card>
       </div>

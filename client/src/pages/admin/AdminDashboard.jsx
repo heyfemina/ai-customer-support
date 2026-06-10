@@ -7,15 +7,21 @@ import Card from "../../components/common/Card.jsx";
 import PageHeader from "../../components/common/PageHeader.jsx";
 import StatCard from "../../components/common/StatCard.jsx";
 import TicketTable from "../../components/tickets/TicketTable.jsx";
-import { normalizeItems, unwrapData } from "../../utils/helpers.js";
+import { extractArray, normalizeItems, normalizeTotal, unwrapData } from "../../utils/helpers.js";
 
 const pieColors = ["#1E3A8A", "#16A34A", "#F59E0B", "#DC2626"];
+const closedTicketStatuses = ["RESOLVED", "AUTO_CLOSED", "CLOSED"];
+const activeChatStatuses = ["ASSIGNED", "ACTIVE", "WAITING", "TRANSFERRED"];
 const monitorToneClasses = {
   amber: "bg-amber-50 text-amber-700 ring-amber-100",
   emerald: "bg-green-50 text-green-700 ring-green-100",
   sky: "bg-blue-50 text-blue-700 ring-blue-100",
   violet: "bg-indigo-50 text-indigo-700 ring-indigo-100",
 };
+
+function normalizeStatus(status) {
+  return String(status || "").trim().replace(/\s+/g, "_").toUpperCase();
+}
 
 function emptyReport() {
   return {
@@ -50,7 +56,7 @@ function buildTicketFallbackReport(tickets = [], baseReport = emptyReport()) {
     const month = new Intl.DateTimeFormat("en", { month: "short" }).format(new Date(ticket.createdAt));
     const current = monthlyMap.get(month) || { month, tickets: 0, resolved: 0 };
     current.tickets += 1;
-    if (["RESOLVED", "AUTO_CLOSED", "CLOSED"].includes(ticket.status)) current.resolved += 1;
+    if (closedTicketStatuses.includes(normalizeStatus(ticket.status))) current.resolved += 1;
     monthlyMap.set(month, current);
   }
 
@@ -58,8 +64,8 @@ function buildTicketFallbackReport(tickets = [], baseReport = emptyReport()) {
     ...emptyReport(),
     ...baseReport,
     tickets: tickets.length,
-    open: tickets.filter((ticket) => ticket.status === "OPEN").length,
-    resolved: tickets.filter((ticket) => ["RESOLVED", "AUTO_CLOSED", "CLOSED"].includes(ticket.status)).length,
+    open: tickets.filter((ticket) => normalizeStatus(ticket.status) === "OPEN").length,
+    resolved: tickets.filter((ticket) => closedTicketStatuses.includes(normalizeStatus(ticket.status))).length,
     complaints: tickets.filter((ticket) => ticket.complaintStatus && ticket.complaintStatus !== "NONE").length,
     csat: ratings.length ? Math.round((ratings.filter((rating) => rating >= 4).length / ratings.length) * 100) : baseReport.csat || 0,
     agentRating: ratings.length ? (ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length).toFixed(1) : baseReport.agentRating || "N/A",
@@ -74,6 +80,28 @@ function buildTicketFallbackReport(tickets = [], baseReport = emptyReport()) {
   };
 }
 
+function hasDashboardCounts(dashboard) {
+  if (!dashboard || typeof dashboard !== "object") return false;
+  return [
+    dashboard.totalTickets,
+    dashboard.openTickets,
+    dashboard.resolvedTickets,
+    dashboard.pendingTickets,
+    dashboard.activeChats,
+    dashboard.complaints,
+    dashboard.agentsOnline,
+    dashboard.tickets,
+    dashboard.chats,
+    dashboard.customers,
+    dashboard.agents,
+  ].some((value) => Number(value) > 0);
+}
+
+function resolveStatNumber(...values) {
+  const numbers = values.map((value) => Number(value)).filter((value) => Number.isFinite(value));
+  return numbers.find((value) => value !== 0) ?? numbers[0] ?? 0;
+}
+
 export default function AdminDashboard() {
   const { t } = useTranslation();
   const [report, setReport] = useState(() => emptyReport());
@@ -86,7 +114,7 @@ export default function AdminDashboard() {
       try {
         const { data } = await api.get("/reports/dashboard");
         const dashboard = unwrapData(data);
-        if (dashboard && Number(dashboard.tickets || 0) + Number(dashboard.chats || 0) + Number(dashboard.agentsOnline || 0) > 0) {
+        if (hasDashboardCounts(dashboard)) {
           setReport({ ...emptyReport(), ...dashboard });
           setHasLoadedOnce(true);
           setLoading(false);
@@ -104,14 +132,16 @@ export default function AdminDashboard() {
           api.get("/reports/agents"),
         ]);
         const ticketPayload = ticketResult.status === "fulfilled" ? ticketResult.value.data : null;
-        const tickets = normalizeItems(ticketPayload, []);
-        const ticketTotal = unwrapData(ticketPayload, {})?.pagination?.total || tickets.length;
-        const chats = chatResult.status === "fulfilled" ? normalizeItems(chatResult.value.data, []) : [];
+        const tickets = ticketResult.status === "fulfilled" ? extractArray(ticketResult.value, "tickets") : [];
+        const ticketTotal = normalizeTotal(ticketPayload, tickets);
+        const chats = chatResult.status === "fulfilled" ? extractArray(chatResult.value, "chats") : [];
         const agents = agentResult.status === "fulfilled" ? normalizeItems(agentResult.value.data, []) : [];
         setReport({
           ...buildTicketFallbackReport(tickets),
           tickets: ticketTotal,
-          chats: chats.filter((chat) => ["ASSIGNED", "ACTIVE", "WAITING", "TRANSFERRED"].includes(chat.status)).length,
+          totalTickets: ticketTotal,
+          activeChats: chats.filter((chat) => activeChatStatuses.includes(normalizeStatus(chat.status))).length,
+          chats: chats.filter((chat) => activeChatStatuses.includes(normalizeStatus(chat.status))).length,
           agentsOnline: agents.filter((agent) => agent.isActive && agent.agentStatus !== "OFFLINE").length,
         });
       } catch (error) {
@@ -136,14 +166,14 @@ export default function AdminDashboard() {
   const chartData = report?.monthlyTickets || [];
   const satisfactionData = report?.satisfaction || [];
   const recentTickets = report?.recentTickets || [];
-  const totalTickets = Number(report.totalTickets ?? report.tickets ?? 0);
-  const openTickets = Number(report.openTickets ?? report.open ?? 0);
-  const resolvedTickets = Number(report.resolvedTickets ?? report.resolved ?? 0);
-  const pendingTickets = Number(report.pendingTickets ?? report.pending ?? Math.max(totalTickets - openTickets - resolvedTickets, 0));
-  const activeChats = Number(report.activeChats ?? report.chats ?? 0);
-  const customerSatisfaction = Number(report.customerSatisfaction ?? report.csat ?? 0);
-  const aiResolvedTickets = Number(report.aiResolvedTickets ?? report.aiResolved ?? 0);
-  const agentsOnline = Number(report.agentsOnline ?? 0);
+  const totalTickets = resolveStatNumber(report.totalTickets, report.tickets);
+  const openTickets = resolveStatNumber(report.openTickets, report.open);
+  const resolvedTickets = resolveStatNumber(report.resolvedTickets, report.resolved);
+  const pendingTickets = resolveStatNumber(report.pendingTickets, report.pending, Math.max(totalTickets - openTickets - resolvedTickets, 0));
+  const activeChats = resolveStatNumber(report.activeChats, report.chats);
+  const customerSatisfaction = resolveStatNumber(report.customerSatisfaction, report.csat);
+  const aiResolvedTickets = resolveStatNumber(report.aiResolvedTickets, report.aiResolved);
+  const agentsOnline = resolveStatNumber(report.agentsOnline);
   const liveStats = [
     { title: t("dashboard.stats.totalTickets"), value: totalTickets, icon: Ticket, tone: "sky" },
     { title: t("dashboard.stats.openTickets"), value: openTickets, icon: AlertCircle, tone: "amber" },

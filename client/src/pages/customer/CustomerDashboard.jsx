@@ -9,7 +9,14 @@ import Card from "../../components/common/Card.jsx";
 import Badge from "../../components/common/Badge.jsx";
 import StatCard from "../../components/common/StatCard.jsx";
 import TicketCard from "../../components/tickets/TicketCard.jsx";
-import { formatDate, normalizeItems, sortByRecent } from "../../utils/helpers.js";
+import { extractArray, formatDate, sortByRecent } from "../../utils/helpers.js";
+
+const closedTicketStatuses = ["RESOLVED", "AUTO_CLOSED", "CLOSED"];
+const activeChatStatuses = ["ASSIGNED", "ACTIVE", "WAITING", "TRANSFERRED"];
+
+function normalizeStatus(status) {
+  return String(status || "").trim().replace(/\s+/g, "_").toUpperCase();
+}
 
 export default function CustomerDashboard() {
   const { t } = useTranslation();
@@ -38,10 +45,10 @@ export default function CustomerDashboard() {
         getWithTimeout("/chats"),
       ]);
       if (ticketResult.status === "fulfilled") {
-        setItems(sortByRecent(normalizeItems(ticketResult.value.data, []).filter(Boolean)));
+        setItems(sortByRecent(extractArray(ticketResult.value, "tickets").filter(Boolean)));
       }
       if (chatResult.status === "fulfilled") {
-        setChats(sortByRecent(normalizeItems(chatResult.value.data, []).filter(Boolean)));
+        setChats(sortByRecent(extractArray(chatResult.value, "chats").filter(Boolean)));
       }
       if (ticketResult.status === "rejected" || chatResult.status === "rejected") {
         setError("Some live dashboard data could not refresh. Showing the latest loaded values.");
@@ -65,9 +72,9 @@ export default function CustomerDashboard() {
     };
   }, [loadDashboard]);
 
-  const activeChats = chats.filter((chat) => ["ASSIGNED", "ACTIVE", "WAITING", "TRANSFERRED"].includes(chat?.status)).length;
-  const openTickets = items.filter((ticket) => !["RESOLVED", "AUTO_CLOSED", "CLOSED"].includes(ticket?.status)).length;
-  const resolvedTickets = items.filter((ticket) => ["RESOLVED", "AUTO_CLOSED", "CLOSED"].includes(ticket?.status)).length;
+  const activeChats = chats.filter((chat) => activeChatStatuses.includes(normalizeStatus(chat?.status))).length;
+  const openTickets = items.filter((ticket) => !closedTicketStatuses.includes(normalizeStatus(ticket?.status))).length;
+  const resolvedTickets = items.filter((ticket) => closedTicketStatuses.includes(normalizeStatus(ticket?.status))).length;
   const respondedTickets = items.filter((ticket) => ticket?.firstResponseMinutes !== null && ticket?.firstResponseMinutes !== undefined);
   const avgResponse = respondedTickets.length
     ? `${Math.round(respondedTickets.reduce((sum, ticket) => sum + Number(ticket.firstResponseMinutes || 0), 0) / respondedTickets.length)}m`
